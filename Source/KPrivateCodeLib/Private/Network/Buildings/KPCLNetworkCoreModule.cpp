@@ -5,24 +5,20 @@
 
 #include "Kismet/KismetMathLibrary.h"
 
-AKPCLNetworkCoreModule::AKPCLNetworkCoreModule()
-{
+AKPCLNetworkCoreModule::AKPCLNetworkCoreModule() {
 	mShouldUseUiFromMaster = true;
 }
 
-void AKPCLNetworkCoreModule::GetStats( EKPCLDirection& Direction, int32& FluidMax, int32& SolidMax ) const
-{
+void AKPCLNetworkCoreModule::GetStats(EKPCLDirection& Direction, int32& FluidMax, int32& SolidMax) const {
 	Direction = mDirection;
 	FluidMax = mFluidMax * GetTier();
 	SolidMax = mSolidMax * GetTier();
 }
 
-void AKPCLNetworkCoreModule::OnTierUpdated()
-{
+void AKPCLNetworkCoreModule::OnTierUpdated() {
 	Super::OnTierUpdated();
 
-	if( HasAuthority() )
-	{
+	if(HasAuthority()) {
 		mPowerOptions.mPowerMultiplier = 1.f + GetTier() * 0.25f;
 	}
 }

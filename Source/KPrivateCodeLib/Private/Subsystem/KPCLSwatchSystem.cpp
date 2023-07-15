@@ -8,56 +8,42 @@
 #include "Replication/KPCLDefaultRCO.h"
 
 
-void AKPCLSwatchSystem::GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutLifetimeProps ) const
-{
-	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
+void AKPCLSwatchSystem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME( AKPCLSwatchSystem, mCustomSwatchData );
+	DOREPLIFETIME(AKPCLSwatchSystem, mCustomSwatchData);
 }
 
 // Sets default values
-AKPCLSwatchSystem::AKPCLSwatchSystem()
-{
+AKPCLSwatchSystem::AKPCLSwatchSystem() {
 	mShouldSave = true;
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-AKPCLSwatchSystem* AKPCLSwatchSystem::Get( UObject* worldContext )
-{
-	return Cast< AKPCLSwatchSystem >( UKBFL_Util::GetSubsystemFromChild( worldContext, StaticClass() ) );
+AKPCLSwatchSystem* AKPCLSwatchSystem::Get(UObject* worldContext) {
+	return Cast<AKPCLSwatchSystem>(UKBFL_Util::GetSubsystemFromChild(worldContext, StaticClass()));
 }
 
-void AKPCLSwatchSystem::AddCustomSwatchData( FCustomSwatchData Data )
-{
-	if( HasAuthority() )
-	{
-		mCustomSwatchData.Add( Data );
+void AKPCLSwatchSystem::AddCustomSwatchData(FCustomSwatchData Data) {
+	if(HasAuthority()) {
+		mCustomSwatchData.Add(Data);
 		OnRep_CustomSwatchData();
-	}
-	else if( UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get( GetWorld() ) )
-	{
-		RCO->Server_AddCustomSwatchData( this, Data );
+	} else if(UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get(GetWorld())) {
+		RCO->Server_AddCustomSwatchData(this, Data);
 	}
 }
 
-void AKPCLSwatchSystem::RemoveCustomSwatchData( int32 Idx )
-{
-	if( HasAuthority() )
-	{
-		if( mCustomSwatchData.IsValidIndex( Idx ) )
-		{
-			const FCustomSwatchData OldCustomSwatchData = mCustomSwatchData[ Idx ];
-			TArray< FCustomSwatchData > NewArray;
+void AKPCLSwatchSystem::RemoveCustomSwatchData(int32 Idx) {
+	if(HasAuthority()) {
+		if(mCustomSwatchData.IsValidIndex(Idx)) {
+			const FCustomSwatchData   OldCustomSwatchData = mCustomSwatchData[Idx];
+			TArray<FCustomSwatchData> NewArray;
 
 			bool WasRemove = false;
-			for( FCustomSwatchData CustomSwatchData : mCustomSwatchData )
-			{
-				if( CustomSwatchData != OldCustomSwatchData || WasRemove )
-				{
-					NewArray.Add( CustomSwatchData );
-				}
-				else
-				{
+			for(FCustomSwatchData CustomSwatchData: mCustomSwatchData) {
+				if(CustomSwatchData != OldCustomSwatchData || WasRemove) {
+					NewArray.Add(CustomSwatchData);
+				} else {
 					WasRemove = true;
 				}
 			}
@@ -65,50 +51,38 @@ void AKPCLSwatchSystem::RemoveCustomSwatchData( int32 Idx )
 			mCustomSwatchData = NewArray;
 			OnRep_CustomSwatchData();
 		}
-	}
-	else if( UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get( GetWorld() ) )
-	{
-		RCO->Server_RemoveCustomSwatchData( this, Idx );
+	} else if(UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get(GetWorld())) {
+		RCO->Server_RemoveCustomSwatchData(this, Idx);
 	}
 }
 
-void AKPCLSwatchSystem::UseCustomSwatchData( int32 Idx )
-{
-	AFGPlayerState* State = UKBFL_Player::GetFgPlayerState( GetWorld() );
-	if( State && mCustomSwatchData.IsValidIndex( Idx ) )
-	{
+void AKPCLSwatchSystem::UseCustomSwatchData(int32 Idx) {
+	AFGPlayerState* State = UKBFL_Player::GetFgPlayerState(GetWorld());
+	if(State && mCustomSwatchData.IsValidIndex(Idx)) {
 		FFactoryCustomizationColorSlot Slot = State->GetCustomColorData();
-		Slot.PrimaryColor = mCustomSwatchData[ Idx ].mPrimaryColor;
-		Slot.SecondaryColor = mCustomSwatchData[ Idx ].mSecondaryColor;
-		State->SetPlayerCustomizationSlotData( Slot );
+		Slot.PrimaryColor = mCustomSwatchData[Idx].mPrimaryColor;
+		Slot.SecondaryColor = mCustomSwatchData[Idx].mSecondaryColor;
+		State->SetPlayerCustomizationSlotData(Slot);
 	}
 }
 
-void AKPCLSwatchSystem::UpdateCustomSwatchData( FCustomSwatchData Data, int32 Idx )
-{
-	if( HasAuthority() )
-	{
-		if( mCustomSwatchData.IsValidIndex( Idx ) )
-		{
-			mCustomSwatchData[ Idx ] = Data;
+void AKPCLSwatchSystem::UpdateCustomSwatchData(FCustomSwatchData Data, int32 Idx) {
+	if(HasAuthority()) {
+		if(mCustomSwatchData.IsValidIndex(Idx)) {
+			mCustomSwatchData[Idx] = Data;
 			OnRep_CustomSwatchData();
 		}
-	}
-	else if( UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get( GetWorld() ) )
-	{
-		RCO->Server_UpdateCustomSwatchData( this, Data, Idx );
+	} else if(UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get(GetWorld())) {
+		RCO->Server_UpdateCustomSwatchData(this, Data, Idx);
 	}
 }
 
-TArray< FCustomSwatchData > AKPCLSwatchSystem::GetCustomSwatchData() const
-{
+TArray<FCustomSwatchData> AKPCLSwatchSystem::GetCustomSwatchData() const {
 	return mCustomSwatchData;
 }
 
-void AKPCLSwatchSystem::OnRep_CustomSwatchData()
-{
-	if( mOnSwatchDataUpdated.IsBound() )
-	{
+void AKPCLSwatchSystem::OnRep_CustomSwatchData() {
+	if(mOnSwatchDataUpdated.IsBound()) {
 		mOnSwatchDataUpdated.Broadcast();
 	}
 }

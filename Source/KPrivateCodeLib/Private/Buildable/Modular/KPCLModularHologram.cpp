@@ -7,100 +7,80 @@
 #include "Buildable/Modular/KPCLModularBuildingHandler.h"
 #include "Buildable/Modular/KPCLModularBuildingInterface.h"
 
-AKPCLModularHologram::AKPCLModularHologram()
-{
+AKPCLModularHologram::AKPCLModularHologram() {
 	mUseSimplifiedHologramMaterial = true;
 	mNeedsValidFloor = false;
 	mCanSnapWithAttachmentPoints = false;
 
-	mMissingMasterModule = LoadClass< UFGConstructDisqualifier >( NULL, TEXT( "/KPrivateCodeLib/-Shared/Disqualifier/Disqualifier_MissingMaster.Disqualifier_MissingMaster_C" ) );
-	mToMuchModules = LoadClass< UFGConstructDisqualifier >( NULL, TEXT( "/KPrivateCodeLib/-Shared/Disqualifier/Disqualifier_ToMuchModules.Disqualifier_ToMuchModules_C" ) );
-	mModuleIsNotAllowed = LoadClass< UFGConstructDisqualifier >( NULL, TEXT( "/KPrivateCodeLib/-Shared/Disqualifier/Disqualifier_ModuleNowAllowed.Disqualifier_ModuleNowAllowed_C" ) );
+	mMissingMasterModule = LoadClass<UFGConstructDisqualifier>(nullptr, TEXT("/KPrivateCodeLib/-Shared/Disqualifier/Disqualifier_MissingMaster.Disqualifier_MissingMaster_C"));
+	mToMuchModules = LoadClass<UFGConstructDisqualifier>(nullptr, TEXT("/KPrivateCodeLib/-Shared/Disqualifier/Disqualifier_ToMuchModules.Disqualifier_ToMuchModules_C"));
+	mModuleIsNotAllowed = LoadClass<UFGConstructDisqualifier>(nullptr, TEXT("/KPrivateCodeLib/-Shared/Disqualifier/Disqualifier_ModuleNowAllowed.Disqualifier_ModuleNowAllowed_C"));
 }
 
-void AKPCLModularHologram::BeginPlay()
-{
+void AKPCLModularHologram::BeginPlay() {
 	Super::BeginPlay();
 
-	auto Comps = GetComponentsByTag( UStaticMeshComponent::StaticClass(), FName( "Top" ) );
-	if( Comps.Num() > 1 )
-	{
-		TopMesh = Cast< UStaticMeshComponent >( Comps[ 0 ] );
-		TopMesh->SetHiddenInGame( true );
+	auto Comps = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Top"));
+	if(Comps.Num() > 1) {
+		TopMesh = Cast<UStaticMeshComponent>(Comps[0]);
+		TopMesh->SetHiddenInGame(true);
 	}
 
-	Comps = GetComponentsByTag( USkeletalMeshComponent::StaticClass(), FName( "Top" ) );
-	if( Comps.Num() > 1 )
-	{
-		TopSkel = Cast< USkeletalMeshComponent >( Comps[ 0 ] );
-		TopSkel->SetHiddenInGame( true );
+	Comps = GetComponentsByTag(USkeletalMeshComponent::StaticClass(), FName("Top"));
+	if(Comps.Num() > 1) {
+		TopSkel = Cast<USkeletalMeshComponent>(Comps[0]);
+		TopSkel->SetHiddenInGame(true);
 	}
 }
 
-void AKPCLModularHologram::GetLifetimeReplicatedProps( TArray<FLifetimeProperty>& OutLifetimeProps ) const
-{
-	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
-	
+void AKPCLModularHologram::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
 	DOREPLIFETIME(AKPCLModularHologram, mModuleMasterHit);
 	DOREPLIFETIME(AKPCLModularHologram, mUpgradedActorRef);
 }
 
-bool AKPCLModularHologram::IsValidHitResult( const FHitResult& hitResult ) const
-{
-	if( hitResult.IsValidBlockingHit() && hitResult.GetActor() )
-	{
-		if( UKismetSystemLibrary::DoesImplementInterface( hitResult.GetActor(), UKPCLModularBuildingInterface::StaticClass() ) )
-		{
+bool AKPCLModularHologram::IsValidHitResult(const FHitResult& hitResult) const {
+	if(hitResult.IsValidBlockingHit() && hitResult.GetActor()) {
+		if(UKismetSystemLibrary::DoesImplementInterface(hitResult.GetActor(), UKPCLModularBuildingInterface::StaticClass())) {
 			return true;
 		}
 	}
-	return Super::IsValidHitResult( hitResult );
+	return Super::IsValidHitResult(hitResult);
 }
 
-void AKPCLModularHologram::SetHologramLocationAndRotation( const FHitResult& hitResult )
-{
-	TSubclassOf< UFGConstructDisqualifier > Disqualifier = mMissingMasterModule;
-	if( UKismetSystemLibrary::DoesImplementInterface( hitResult.GetActor(), UKPCLModularBuildingInterface::StaticClass() ) )
-	{
-		AFGBuildable* MasterTry = IKPCLModularBuildingInterface::Execute_GetMasterBuilding( hitResult.GetActor() );
-		mModuleMasterHit = MasterTry != nullptr ? MasterTry : Cast< AFGBuildable >( hitResult.GetActor() );
-		if( IKPCLModularBuildingInterface::Execute_GetCanHaveModules( mModuleMasterHit ) )
-		{
-			UKPCLModularBuildingHandlerBase* Handler = IKPCLModularBuildingInterface::Execute_GetModularHandler( mModuleMasterHit );
-			if( Handler )
-			{
-				if( IsModuleAllowed( Handler, mModuleMasterHit, hitResult ) )
-				{
+void AKPCLModularHologram::SetHologramLocationAndRotation(const FHitResult& hitResult) {
+	TSubclassOf<UFGConstructDisqualifier> Disqualifier = mMissingMasterModule;
+	if(UKismetSystemLibrary::DoesImplementInterface(hitResult.GetActor(), UKPCLModularBuildingInterface::StaticClass())) {
+		AFGBuildable* MasterTry = IKPCLModularBuildingInterface::Execute_GetMasterBuilding(hitResult.GetActor());
+		mModuleMasterHit = MasterTry != nullptr ? MasterTry : Cast<AFGBuildable>(hitResult.GetActor());
+		if(IKPCLModularBuildingInterface::Execute_GetCanHaveModules(mModuleMasterHit)) {
+			UKPCLModularBuildingHandlerBase* Handler = IKPCLModularBuildingInterface::Execute_GetModularHandler(mModuleMasterHit);
+			if(Handler) {
+				if(IsModuleAllowed(Handler, mModuleMasterHit, hitResult)) {
 					FTransform TestLocation = mModuleMasterHit->GetActorTransform();
-					if( !mIsStacker )
-					{
-						TestLocation.SetLocation( hitResult.Location );
+					if(!mIsStacker) {
+						TestLocation.SetLocation(hitResult.Location);
 					}
 
-					if( Handler->CanAttachToLocation( mAttachmentDescriptor, TestLocation, mNextSnapLocation, mSnapDistance ) )
-					{
+					if(Handler->CanAttachToLocation(mAttachmentDescriptor, TestLocation, mNextSnapLocation, mSnapDistance)) {
 						FRotator NewRotator = mNextSnapLocation.Rotator();
 						NewRotator.Yaw += mRotation;
-						SetActorLocationAndRotation( mNextSnapLocation.GetLocation(), NewRotator );
+						SetActorLocationAndRotation(mNextSnapLocation.GetLocation(), NewRotator);
 
 						// Play Snap Sound
-						if( FVector::Distance( mNextSnapLocation.GetLocation(), mSnapLocation.GetLocation() ) > 10 )
-						{
+						if(FVector::Distance(mNextSnapLocation.GetLocation(), mSnapLocation.GetLocation()) > 10) {
 							OnSnap();
 						}
 
-						if( TopMesh )
-						{
-							if( TopMesh->bHiddenInGame )
-							{
-								TopMesh->SetHiddenInGame( !TopMesh->bHiddenInGame );
+						if(TopMesh) {
+							if(TopMesh->bHiddenInGame) {
+								TopMesh->SetHiddenInGame(!TopMesh->bHiddenInGame);
 							}
 						}
-						if( TopSkel )
-						{
-							if( TopSkel->bHiddenInGame )
-							{
-								TopSkel->SetHiddenInGame( !TopSkel->bHiddenInGame );
+						if(TopSkel) {
+							if(TopSkel->bHiddenInGame) {
+								TopSkel->SetHiddenInGame(!TopSkel->bHiddenInGame);
 							}
 						}
 
@@ -108,103 +88,83 @@ void AKPCLModularHologram::SetHologramLocationAndRotation( const FHitResult& hit
 						return;
 					}
 					Disqualifier = mToMuchModules;
-				}
-				else if( mModuleIsNotAllowed )
-				{
+				} else if(mModuleIsNotAllowed) {
 					Disqualifier = mModuleIsNotAllowed;
 				}
 			}
 		}
 	}
 
-	AddConstructDisqualifier( Disqualifier );
+	AddConstructDisqualifier(Disqualifier);
 
-	if( TopMesh )
-	{
-		if( !TopMesh->bHiddenInGame )
-		{
-			TopMesh->SetHiddenInGame( !TopMesh->bHiddenInGame );
+	if(TopMesh) {
+		if(!TopMesh->bHiddenInGame) {
+			TopMesh->SetHiddenInGame(!TopMesh->bHiddenInGame);
 		}
 	}
-	if( TopSkel )
-	{
-		if( !TopSkel->bHiddenInGame )
-		{
-			TopSkel->SetHiddenInGame( !TopSkel->bHiddenInGame );
+	if(TopSkel) {
+		if(!TopSkel->bHiddenInGame) {
+			TopSkel->SetHiddenInGame(!TopSkel->bHiddenInGame);
 		}
 	}
 
-	mSnapLocation.SetLocation( hitResult.Location );
-	Super::SetHologramLocationAndRotation( hitResult );
+	mSnapLocation.SetLocation(hitResult.Location);
+	Super::SetHologramLocationAndRotation(hitResult);
 }
 
-void AKPCLModularHologram::ConfigureComponents( AFGBuildable* inBuildable ) const
-{
-	Super::ConfigureComponents( inBuildable );
+void AKPCLModularHologram::ConfigureComponents(AFGBuildable* inBuildable) const {
+	Super::ConfigureComponents(inBuildable);
 
-	if( mUpgradedActorRef )
-	{
-		IKPCLModularBuildingInterface::Execute_RemoveAttachedActor( mModuleMasterHit, mUpgradedActorRef );
+	if(mUpgradedActorRef) {
+		IKPCLModularBuildingInterface::Execute_RemoveAttachedActor(mModuleMasterHit, mUpgradedActorRef);
 	}
-	IKPCLModularBuildingInterface::Execute_AttachedActor( mModuleMasterHit, inBuildable, mAttachmentDescriptor, mSnapLocation, mSnapDistance );
+	IKPCLModularBuildingInterface::Execute_AttachedActor(mModuleMasterHit, inBuildable, mAttachmentDescriptor, mSnapLocation, mSnapDistance);
 }
 
-void AKPCLModularHologram::CheckValidPlacement()
-{
+void AKPCLModularHologram::CheckValidPlacement() {
 	Super::CheckValidPlacement();
 
-	if( !IsValid( mModuleMasterHit ) )
-	{
-		AddConstructDisqualifier( mMissingMasterModule );
+	if(!IsValid(mModuleMasterHit)) {
+		AddConstructDisqualifier(mMissingMasterModule);
 	}
 }
 
-bool AKPCLModularHologram::IsModuleAllowed( UKPCLModularBuildingHandlerBase* Handler, AFGBuildable* TargetBuildable, const FHitResult& hitResult )
-{
+bool AKPCLModularHologram::IsModuleAllowed(UKPCLModularBuildingHandlerBase* Handler, AFGBuildable* TargetBuildable, const FHitResult& hitResult) {
 	return true;
 }
 
-AActor* AKPCLModularHologram::GetUpgradedActor() const
-{
+AActor* AKPCLModularHologram::GetUpgradedActor() const {
 	return mUpgradedActorRef;
 }
 
-bool AKPCLModularHologram::TryUpgrade( const FHitResult& hitResult )
-{
-	if( mPreventUpgrade )
-	{
+bool AKPCLModularHologram::TryUpgrade(const FHitResult& hitResult) {
+	if(mPreventUpgrade) {
 		mUpgradedActorRef = nullptr;
-		return Super::TryUpgrade( hitResult );
+		return Super::TryUpgrade(hitResult);
 	}
 
-	if( hitResult.IsValidBlockingHit() )
-	{
-		if( UKismetSystemLibrary::DoesImplementInterface( hitResult.GetActor(), UKPCLModularBuildingInterface::StaticClass() ) )
-		{
-			TSubclassOf< UKPCLModularAttachmentDescriptor > ATClass = IKPCLModularBuildingInterface::Execute_GetModularAttachmentClass( hitResult.GetActor() );
-			if( ATClass == mAttachmentDescriptor && hitResult.GetActor()->GetClass() != mBuildClass )
-			{
-				mModuleMasterHit = IKPCLModularBuildingInterface::Execute_GetMasterBuilding( hitResult.GetActor() );
-				mUpgradedActorRef = Cast< AFGBuildable >( hitResult.GetActor() );
-				SetActorLocationAndRotation( hitResult.GetActor()->GetActorLocation(), hitResult.GetActor()->GetActorRotation() );
+	if(hitResult.IsValidBlockingHit()) {
+		if(UKismetSystemLibrary::DoesImplementInterface(hitResult.GetActor(), UKPCLModularBuildingInterface::StaticClass())) {
+			TSubclassOf<UKPCLModularAttachmentDescriptor> ATClass = IKPCLModularBuildingInterface::Execute_GetModularAttachmentClass(hitResult.GetActor());
+			if(ATClass == mAttachmentDescriptor && hitResult.GetActor()->GetClass() != mBuildClass) {
+				mModuleMasterHit = IKPCLModularBuildingInterface::Execute_GetMasterBuilding(hitResult.GetActor());
+				mUpgradedActorRef = Cast<AFGBuildable>(hitResult.GetActor());
+				SetActorLocationAndRotation(hitResult.GetActor()->GetActorLocation(), hitResult.GetActor()->GetActorRotation());
 				return mUpgradedActorRef != nullptr;
 			}
 		}
 	}
 
 	mUpgradedActorRef = nullptr;
-	return Super::TryUpgrade( hitResult );
+	return Super::TryUpgrade(hitResult);
 }
 
-void AKPCLModularHologram::Scroll( int32 Delta )
-{
-	if( mCanRotate )
-	{
+void AKPCLModularHologram::Scroll(int32 Delta) {
+	if(mCanRotate) {
 		mRotation += 45.0f * Delta;
-		if( mRotation == 360.0f )
-		{
+		if(mRotation == 360.0f) {
 			mRotation = 0;
 		}
 	}
-	Super::Scroll( Delta );
+	Super::Scroll(Delta);
 }

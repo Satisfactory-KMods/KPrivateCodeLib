@@ -11,103 +11,97 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "KPCLLootChest.generated.h"
 
-USTRUCT( BlueprintType )
-struct FKPCLRange
-{
+USTRUCT(BlueprintType)
+struct FKPCLRange {
 	GENERATED_BODY()
 
-	FKPCLRange()
-	{
+	FKPCLRange() {
 	}
 
-	FKPCLRange( int32 A, int32 B )
-	{
+	FKPCLRange(int32 A, int32 B) {
 		mMin = A;
 		mMax = A;
 	}
 
-	UPROPERTY( BlueprintReadWrite, EditAnywhere )
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	int32 mMin = 5;
 
-	UPROPERTY( BlueprintReadWrite, EditAnywhere )
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	int32 mMax = 15;
 
-	int32 GetRandom() const
-	{
-		return UKismetMathLibrary::RandomIntegerInRange( mMin, mMax );
+	int32 GetRandom() const {
+		return UKismetMathLibrary::RandomIntegerInRange(mMin, mMax);
 	}
 };
 
-USTRUCT( BlueprintType )
-struct FKPCLLootChestRandomData
-{
+USTRUCT(BlueprintType)
+struct FKPCLLootChestRandomData {
 	GENERATED_BODY()
 
-	UPROPERTY( BlueprintReadWrite, EditAnywhere )
-	TSubclassOf< UFGItemDescriptor > mItemClass;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	TSubclassOf<UFGItemDescriptor> mItemClass;
 
-	UPROPERTY( BlueprintReadWrite, EditAnywhere )
-	FKPCLRange mAmountRange = FKPCLRange( 5, 10 );
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FKPCLRange mAmountRange = FKPCLRange(5, 10);
 
-	UPROPERTY( BlueprintReadWrite, EditAnywhere )
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	int32 mAmountMultiplier;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE( FOnLootTableUpdated );
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLootTableUpdated);
 
 UCLASS()
-class KPRIVATECODELIB_API AKPCLLootChest : public AFGInteractActor, public IFGSaveInterface
-{
+class KPRIVATECODELIB_API AKPCLLootChest: public AFGInteractActor, public IFGSaveInterface {
 	GENERATED_BODY()
 
-public:
-	/** Decide on what properties to replicate */
-	virtual void GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutLifetimeProps ) const override;
+	public:
+		/** Decide on what properties to replicate */
+		virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual bool ShouldSave_Implementation() const override;
+		virtual bool ShouldSave_Implementation() const override;
 
-	virtual void OnUse_Implementation( AFGCharacterPlayer* byCharacter, const FUseState& state ) override;
+		virtual void OnUse_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& state) override;
 
-	// Sets default values for this actor's properties
-	AKPCLLootChest();
+		// Sets default values for this actor's properties
+		AKPCLLootChest();
 
-	virtual void BeginPlay() override;
+		virtual void BeginPlay() override;
 
-	void GenerateLoot();
+		void GenerateLoot();
 
-	UFUNCTION( BlueprintPure )
-	TArray< FItemAmount > GetLoot() const;
+		UFUNCTION(BlueprintPure)
+		TArray<FItemAmount> GetLoot() const;
 
-	UFUNCTION( BlueprintPure )
-	bool WasLooted() const;
+		UFUNCTION(BlueprintPure)
+		bool WasLooted() const;
 
-	UFUNCTION( BlueprintCallable )
-	void Loot( AFGCharacterPlayer* Player );
+		UFUNCTION(BlueprintCallable)
+		void Loot(AFGCharacterPlayer* Player);
 
-	UPROPERTY( BlueprintAssignable )
-	FOnLootTableUpdated OnLootTableUpdated;
+		UPROPERTY(BlueprintAssignable)
+		FOnLootTableUpdated OnLootTableUpdated;
 
-	UFUNCTION( BlueprintImplementableEvent )
-	void LootTableUpdated();
+		UFUNCTION(BlueprintImplementableEvent)
+		void LootTableUpdated();
 
-private:
-	friend class UKPCLLootChestSpawnDesc;
+	private:
+		friend class UKPCLLootChestSpawnDesc;
 
-	UFUNCTION()
-	void OnRep_LootTableUpdate();
+		UFUNCTION()
+		void OnRep_LootTableUpdate();
 
-	UPROPERTY( EditAnywhere, SaveGame, Replicated, ReplicatedUsing=OnRep_LootTableUpdate )
-	TArray< FItemAmount > mLootableTable;
+		UPROPERTY(EditAnywhere, SaveGame, Replicated, ReplicatedUsing=OnRep_LootTableUpdate)
+		TArray<FItemAmount> mLootableTable;
 
-	UPROPERTY( SaveGame, Replicated, ReplicatedUsing=OnRep_LootTableUpdate )
-	bool mContentLooted;
+		UPROPERTY(SaveGame, Replicated, ReplicatedUsing=OnRep_LootTableUpdate)
+		bool mContentLooted;
 
-	UPROPERTY( EditAnywhere, Category="KMods" )
-	TArray< FKPCLLootChestRandomData > mRandomData;
+		UPROPERTY(EditAnywhere, Category="KMods")
+		TArray<FKPCLLootChestRandomData> mRandomData;
 
-	UPROPERTY( EditAnywhere, Category="KMods" )
-	FKPCLRange mRandomTrys = FKPCLRange( 5, 20 );
+		UPROPERTY(EditAnywhere, Category="KMods")
+		FKPCLRange mRandomTrys = FKPCLRange(5, 20);
 
-	UPROPERTY()
-	UFGColoredInstanceMeshProxy* Mesh;
+		UPROPERTY()
+		UFGColoredInstanceMeshProxy* Mesh;
 };

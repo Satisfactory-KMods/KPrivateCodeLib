@@ -11,29 +11,28 @@
  * 
  */
 UCLASS()
-class KPRIVATECODELIB_API UKPCLPowerOptionsLib : public UBlueprintFunctionLibrary
-{
+class KPRIVATECODELIB_API UKPCLPowerOptionsLib: public UBlueprintFunctionLibrary {
 	GENERATED_BODY()
 
-public:
-	UFUNCTION( BlueprintPure, Category="KMods|BFL" )
-	static bool IsValid( FPowerOptions PowerOption );
+	public:
+		UFUNCTION(BlueprintPure, Category="KMods|BFL")
+		static bool IsValid(FPowerOptions PowerOption);
 
-	UFUNCTION( BlueprintCallable, Category="KMods|BFL" )
-	static void MergePowerOptions( UPARAM( ref ) FPowerOptions& PowerOption, FPowerOptions OtherPowerOption );
+		UFUNCTION(BlueprintCallable, Category="KMods|BFL")
+		static void MergePowerOptions(UPARAM(ref) FPowerOptions& PowerOption, FPowerOptions OtherPowerOption);
 
-	UFUNCTION( BlueprintCallable, Category="KMods|BFL" )
-	static void OverWritePowerOptions( UPARAM( ref ) FPowerOptions& PowerOption, FPowerOptions OtherPowerOption );
+		UFUNCTION(BlueprintCallable, Category="KMods|BFL")
+		static void OverWritePowerOptions(UPARAM(ref) FPowerOptions& PowerOption, FPowerOptions OtherPowerOption);
 
-	UFUNCTION( BlueprintPure, Category="KMods|BFL" )
-	static float GetMaxPowerConsume( FPowerOptions PowerOption );
+		UFUNCTION(BlueprintPure, Category="KMods|BFL")
+		static float GetMaxPowerConsume(FPowerOptions PowerOption);
 
-	UFUNCTION( BlueprintPure, Category="KMods|BFL" )
-	static float GetPowerConsume( FPowerOptions PowerOption );
+		UFUNCTION(BlueprintPure, Category="KMods|BFL")
+		static float GetPowerConsume(FPowerOptions PowerOption);
 
-	UFUNCTION( BlueprintPure, Category="KMods|BFL" )
-	static float GetCurrentVariablePower( FPowerOptions PowerOption );
+		UFUNCTION(BlueprintPure, Category="KMods|BFL")
+		static float GetCurrentVariablePower(FPowerOptions PowerOption);
 
-	UFUNCTION( BlueprintPure, Category="KMods|BFL" )
-	static bool IsPowerVariable( FPowerOptions PowerOption );
+		UFUNCTION(BlueprintPure, Category="KMods|BFL")
+		static bool IsPowerVariable(FPowerOptions PowerOption);
 };

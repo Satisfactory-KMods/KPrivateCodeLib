@@ -8,16 +8,15 @@
 #include "KPCLNetworkStorage.generated.h"
 
 UCLASS()
-class KPRIVATECODELIB_API AKPCLNetworkStorage : public AKPCLNetworkBuildingBase
-{
+class KPRIVATECODELIB_API AKPCLNetworkStorage: public AKPCLNetworkBuildingBase {
 	GENERATED_BODY()
 
-public:
-	AKPCLNetworkStorage();
+	public:
+		AKPCLNetworkStorage();
 
-	UPROPERTY( EditDefaultsOnly, Category="KMods|Hologram" )
-	float mBuildingHeight = 800.f;
+		UPROPERTY(EditDefaultsOnly, Category="KMods|Hologram")
+		float mBuildingHeight = 800.f;
 
-protected:
-	virtual void BeginPlay() override;
+	protected:
+		virtual void BeginPlay() override;
 };

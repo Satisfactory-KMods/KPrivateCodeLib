@@ -5,49 +5,41 @@
 
 #include "Subsystem/KPCLPatreonSubsystem.h"
 
-void FSubsystemTick::ExecuteTick( float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent )
-{
-	if( mTarget )
-	{
-		mTarget->SubsytemTick( DeltaTime );
+void FSubsystemTick::ExecuteTick(float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent) {
+	if(mTarget) {
+		mTarget->SubsytemTick(DeltaTime);
 	}
 }
 
-AKPCLModSubsystem::AKPCLModSubsystem()
-{
+AKPCLModSubsystem::AKPCLModSubsystem() {
 	PrimaryActorTick.bCanEverTick = 1;
 	mSubsystemTick.bCanEverTick = 1;
 	mSubsystemTick.bRunOnAnyThread = 1;
 	mSubsystemTick.bStartWithTickEnabled = 0;
-	mSubsystemTick.TickGroup = ETickingGroup::TG_PrePhysics;
-	mSubsystemTick.EndTickGroup = ETickingGroup::TG_EndPhysics;
+	mSubsystemTick.TickGroup = TG_PrePhysics;
+	mSubsystemTick.EndTickGroup = TG_EndPhysics;
 }
 
-void AKPCLModSubsystem::Init()
-{
+void AKPCLModSubsystem::Init() {
 	Super::Init();
 
 	// CALL EVENT
 	OnInit();
 }
 
-void AKPCLModSubsystem::BeginPlay()
-{
+void AKPCLModSubsystem::BeginPlay() {
 	Super::BeginPlay();
 
 	// Register our Tick if we want it.
-	if( bUseSubsystemTick )
-	{
+	if(bUseSubsystemTick) {
 		mSubsystemTick.mTarget = this;
-		mSubsystemTick.RegisterTickFunction( GetLevel() );
+		mSubsystemTick.RegisterTickFunction(GetLevel());
 	}
 }
 
-void AKPCLModSubsystem::EndPlay( const EEndPlayReason::Type EndPlayReason )
-{
-	if( mSubsystemTick.IsTickFunctionRegistered() )
-	{
+void AKPCLModSubsystem::EndPlay(const EEndPlayReason::Type EndPlayReason) {
+	if(mSubsystemTick.IsTickFunctionRegistered()) {
 		mSubsystemTick.UnRegisterTickFunction();
 	}
-	Super::EndPlay( EndPlayReason );
+	Super::EndPlay(EndPlayReason);
 }

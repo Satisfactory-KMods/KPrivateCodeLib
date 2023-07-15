@@ -16,193 +16,194 @@
  * 
  */
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FOnNetworkTierUnlocked, int32, Tier );
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FOnPointsUpdated, int64, mNewPointCount );
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FOnEndlessShoppingItemsUnlocked, const TArray< TSubclassOf<UKPCLEndlessShopItem> >, UnlockedItems );
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnNetworkTierUnlocked, int32, Tier);
 
-UCLASS( Blueprintable, BlueprintType )
-class KPRIVATECODELIB_API AKPCLUnlockSubsystem : public AKPCLModSubsystem
-{
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPointsUpdated, int64, mNewPointCount);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEndlessShoppingItemsUnlocked, const TArray< TSubclassOf<UKPCLEndlessShopItem> >, UnlockedItems);
+
+UCLASS(Blueprintable, BlueprintType)
+class KPRIVATECODELIB_API AKPCLUnlockSubsystem: public AKPCLModSubsystem {
 	GENERATED_BODY()
 
 	AKPCLUnlockSubsystem();
-protected:
-	virtual void PreSaveGame_Implementation(int32 saveVersion, int32 gameVersion) override;
-	void DequeuePoints();
-	void GenerateCategoryMap();
 
-public:
-	void AddPoints( int64 Points );
-	void AddPoints_ThreadSafe( int64 Points );
+	protected:
+		virtual void PreSaveGame_Implementation(int32 saveVersion, int32 gameVersion) override;
+		void         DequeuePoints();
+		void         GenerateCategoryMap();
 
-	UFUNCTION()
-	void OnRep_PointsUpdated();
+	public:
+		void AddPoints(int64 Points);
+		void AddPoints_ThreadSafe(int64 Points);
 
-public:
-	UFUNCTION( BlueprintPure, Category = "Subsystem", DisplayName = "GetKPCLUnlockSubsystem", meta = ( DefaultToSelf = "worldContext" ) )
-	static AKPCLUnlockSubsystem* Get( UObject* worldContext );
+		UFUNCTION()
+		void OnRep_PointsUpdated();
 
-	/** Start Replication */
-	virtual void GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutLifetimeProps ) const override;
-	/** End Replication */
+	public:
+		UFUNCTION(BlueprintPure, Category = "Subsystem", DisplayName = "GetKPCLUnlockSubsystem", meta = ( DefaultToSelf = "worldContext" ))
+		static AKPCLUnlockSubsystem* Get(UObject* worldContext);
 
-	virtual void BeginPlay() override;
+		/** Start Replication */
+		virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+		/** End Replication */
 
-	UFUNCTION()
-	void OnSchematicUnlocked( TSubclassOf< UFGSchematic > UnlockedSchematic );
+		virtual void BeginPlay() override;
 
-	virtual void Init() override;
+		UFUNCTION()
+		void OnSchematicUnlocked(TSubclassOf<UFGSchematic> UnlockedSchematic);
 
-	virtual void Tick( float DeltaSeconds ) override;
+		virtual void Init() override;
 
-	UFUNCTION( BlueprintPure, Category="KMods|Network" )
-	int32 GetNetworkTier() const;
+		virtual void Tick(float DeltaSeconds) override;
 
-	void UnlockNetworkTier( TSubclassOf< UFGSchematic > BoundedSchematic );
+		UFUNCTION(BlueprintPure, Category="KMods|Network")
+		int32 GetNetworkTier() const;
 
-	// Helper for Nexus
-	void OnNexusConstruct( AKPCLNetworkCore* Nexus );
-	void OnNexusDeconstruct( AKPCLNetworkCore* Nexus );
+		void UnlockNetworkTier(TSubclassOf<UFGSchematic> BoundedSchematic);
 
-	UFUNCTION( BlueprintPure, Category="KMods|Network" )
-	int32 GetGlobalNexusCount() const;
+		// Helper for Nexus
+		void OnNexusConstruct(AKPCLNetworkCore* Nexus);
+		void OnNexusDeconstruct(AKPCLNetworkCore* Nexus);
 
-	UFUNCTION( BlueprintPure, Category="KMods|Network" )
-	int32 GetMaxGlobalNexusCount() const;
+		UFUNCTION(BlueprintPure, Category="KMods|Network")
+		int32 GetGlobalNexusCount() const;
 
-	UFUNCTION( BlueprintPure, Category="KMods|Network" )
-	TArray< AKPCLNetworkCore* > GetAllNexusInTheWorld() const;
+		UFUNCTION(BlueprintPure, Category="KMods|Network")
+		int32 GetMaxGlobalNexusCount() const;
 
-	void RegisterPlayerState( AFGPlayerState* State );
-	
-	UPROPERTY( BlueprintAssignable, Category="KMods|Network" )
-	FOnNetworkTierUnlocked OnNetworkTierUnlocked;
+		UFUNCTION(BlueprintPure, Category="KMods|Network")
+		TArray<AKPCLNetworkCore*> GetAllNexusInTheWorld() const;
 
-public:
-	void UnlockDecorations( TArray< TSubclassOf< UKPCLDecorationRecipe > > Decorations );
+		void RegisterPlayerState(AFGPlayerState* State);
 
-	UFUNCTION()
-	void OnRep_Decoration();
-	
-	UFUNCTION( BlueprintCallable, Category="KMods|Decoration" )
-	void Decor_GetAllMainCats( TArray< TSubclassOf< UKPCLDecorMainCategory > >& MainCats );
+		UPROPERTY(BlueprintAssignable, Category="KMods|Network")
+		FOnNetworkTierUnlocked OnNetworkTierUnlocked;
 
-	UFUNCTION( BlueprintCallable, Category="KMods|Decoration" )
-	void Decor_GetAllSubCatsOfMainCat( TSubclassOf< UKPCLDecorMainCategory > MainCat, TArray< TSubclassOf< UKPCLDecorSubCategory > >& SubCats );
+	public:
+		void UnlockDecorations(TArray<TSubclassOf<UKPCLDecorationRecipe>> Decorations);
 
-	UFUNCTION( BlueprintCallable, Category="KMods|Decoration" )
-	TArray< TSubclassOf< UKPCLDecorationRecipe > > Decor_GetAllItemsOfSubCat( TSubclassOf< UKPCLDecorMainCategory > MainCat, TSubclassOf< UKPCLDecorSubCategory > SubCat );
+		UFUNCTION()
+		void OnRep_Decoration();
 
-public:
-	UFUNCTION( BlueprintPure, Category="KMods|EndlessShop" )
-	bool IsEndlessShopItemUnlocked( TSubclassOf<UKPCLEndlessShopItem> InClass ) const;
+		UFUNCTION(BlueprintCallable, Category="KMods|Decoration")
+		void Decor_GetAllMainCats(TArray<TSubclassOf<UKPCLDecorMainCategory>>& MainCats);
 
-	UFUNCTION( BlueprintCallable, Category="KMods|EndlessShop" )
-	void UnlockEndlessShopItems( AFGCharacterPlayer* Player, TArray< TSubclassOf<UKPCLEndlessShopItem> > UnlockingItems );
-	bool UnlockEndlessShopItem( AFGCharacterPlayer* Player, TSubclassOf<UKPCLEndlessShopItem> UnlockingItem );
-	void ApplyEndlessShopItem( TSubclassOf<UKPCLEndlessShopItem> UnlockingItem );
+		UFUNCTION(BlueprintCallable, Category="KMods|Decoration")
+		void Decor_GetAllSubCatsOfMainCat(TSubclassOf<UKPCLDecorMainCategory> MainCat, TArray<TSubclassOf<UKPCLDecorSubCategory>>& SubCats);
 
-	UFUNCTION( BlueprintCallable, Category="KMods|EndlessShop" )
-	void ClearShoppingList();
+		UFUNCTION(BlueprintCallable, Category="KMods|Decoration")
+		TArray<TSubclassOf<UKPCLDecorationRecipe>> Decor_GetAllItemsOfSubCat(TSubclassOf<UKPCLDecorMainCategory> MainCat, TSubclassOf<UKPCLDecorSubCategory> SubCat);
 
-	UFUNCTION( BlueprintCallable, Category="KMods|EndlessShop" )
-	int64 GetCurrentPoints() const;
+	public:
+		UFUNCTION(BlueprintPure, Category="KMods|EndlessShop")
+		bool IsEndlessShopItemUnlocked(TSubclassOf<UKPCLEndlessShopItem> InClass) const;
 
-	UFUNCTION( BlueprintCallable, Category="KMods|EndlessShop" )
-	bool AddToShoppingList( TSubclassOf<UKPCLEndlessShopItem> UnlockingItem );
+		UFUNCTION(BlueprintCallable, Category="KMods|EndlessShop")
+		void UnlockEndlessShopItems(AFGCharacterPlayer* Player, TArray<TSubclassOf<UKPCLEndlessShopItem>> UnlockingItems);
+		bool UnlockEndlessShopItem(AFGCharacterPlayer* Player, TSubclassOf<UKPCLEndlessShopItem> UnlockingItem);
+		void ApplyEndlessShopItem(TSubclassOf<UKPCLEndlessShopItem> UnlockingItem);
 
-	UFUNCTION( BlueprintCallable, Category="KMods|EndlessShop" )
-	void RemoveFromShoppingList( TSubclassOf<UKPCLEndlessShopItem> UnlockingItem );
+		UFUNCTION(BlueprintCallable, Category="KMods|EndlessShop")
+		void ClearShoppingList();
 
-	UFUNCTION( BlueprintCallable, Category="KMods|EndlessShop" )
-	bool CanBuyShoppingList( AFGCharacterPlayer* Player, TArray<TSubclassOf<UKPCLEndlessShopItem>> ShoppingList ) const;
+		UFUNCTION(BlueprintCallable, Category="KMods|EndlessShop")
+		int64 GetCurrentPoints() const;
 
-	UFUNCTION( BlueprintCallable, Category="KMods|EndlessShop" )
-	TArray< TSubclassOf< UKPCLEndlessShopItem > > GetShoppingList( bool FilterUnlockable = false ) const;
+		UFUNCTION(BlueprintCallable, Category="KMods|EndlessShop")
+		bool AddToShoppingList(TSubclassOf<UKPCLEndlessShopItem> UnlockingItem);
 
-	UFUNCTION( BlueprintPure, Category="KMods|EndlessShop" )
-	TArray< TSubclassOf< UKPCLEndlessShopItem > > GetUnlockedEndlessShopItems() const;
-	
-	UFUNCTION( NetMulticast, Reliable )
-	void MultiCast_UnlockedItems( const TArray< TSubclassOf<UKPCLEndlessShopItem> >& UnlockedItems );
+		UFUNCTION(BlueprintCallable, Category="KMods|EndlessShop")
+		void RemoveFromShoppingList(TSubclassOf<UKPCLEndlessShopItem> UnlockingItem);
 
-	UFUNCTION( BlueprintCallable, Category="KMods|EndlessShop" )
-	void ES_GetAllMainCats( TArray< TSubclassOf< UKPCLEndlessShopMainCategory > >& MainCats );
+		UFUNCTION(BlueprintCallable, Category="KMods|EndlessShop")
+		bool CanBuyShoppingList(AFGCharacterPlayer* Player, TArray<TSubclassOf<UKPCLEndlessShopItem>> ShoppingList) const;
 
-	UFUNCTION( BlueprintCallable, Category="KMods|EndlessShop" )
-	void ES_GetAllSubCatsOfMainCat( TSubclassOf< UKPCLEndlessShopMainCategory > MainCat, TArray< TSubclassOf< UKPCLEndlessShopSubCategory > >& SubCats );
+		UFUNCTION(BlueprintCallable, Category="KMods|EndlessShop")
+		TArray<TSubclassOf<UKPCLEndlessShopItem>> GetShoppingList(bool FilterUnlockable = false) const;
 
-	UFUNCTION( BlueprintCallable, Category="KMods|EndlessShop" )
-	TArray< TSubclassOf< UKPCLEndlessShopItem > > ES_GetAllItemsOfSubCat( TSubclassOf< UKPCLEndlessShopMainCategory > MainCat, TSubclassOf< UKPCLEndlessShopSubCategory > SubCat );
+		UFUNCTION(BlueprintPure, Category="KMods|EndlessShop")
+		TArray<TSubclassOf<UKPCLEndlessShopItem>> GetUnlockedEndlessShopItems() const;
 
-	// Events
-	UPROPERTY( BlueprintAssignable )
-	FOnEndlessShoppingItemsUnlocked OnEndlessShoppingItemsUnlocked;
-	
-	UPROPERTY( BlueprintAssignable, Category="KMods|Network" )
-	FOnPointsUpdated OnPointsUpdated;
+		UFUNCTION(NetMulticast, Reliable)
+		void MultiCast_UnlockedItems(const TArray<TSubclassOf<UKPCLEndlessShopItem>>& UnlockedItems);
 
-	UFUNCTION( BlueprintImplementableEvent, DisplayName="OnEndlessShoppingItemsUnlocked" )
-	void BP_OnEndlessShoppingItemsUnlocked( const TArray< TSubclassOf<UKPCLEndlessShopItem> >& UnlockedItems );
+		UFUNCTION(BlueprintCallable, Category="KMods|EndlessShop")
+		void ES_GetAllMainCats(TArray<TSubclassOf<UKPCLEndlessShopMainCategory>>& MainCats);
 
-private:
-	UPROPERTY( EditDefaultsOnly, SaveGame, ReplicatedUsing=OnRep_PointsUpdated, Category="KMods|EndlessShop" )
-	int64 mCurrentPoints = 1000;
-	
-	UPROPERTY( EditDefaultsOnly, SaveGame, Category="KMods|EndlessShop" )
-	FSmartTimer mTimeToGetPassivePoints = FSmartTimer( 5.f );
-	
-	UPROPERTY( EditDefaultsOnly, Category="KMods|EndlessShop" )
-	int64 mPassivePoints = 5;
-	
-	UPROPERTY( EditDefaultsOnly, SaveGame, Category="KMods|EndlessShop" )
-	TSubclassOf< UFGSchematic > mSchematicToUnlockPassivPoints;
+		UFUNCTION(BlueprintCallable, Category="KMods|EndlessShop")
+		void ES_GetAllSubCatsOfMainCat(TSubclassOf<UKPCLEndlessShopMainCategory> MainCat, TArray<TSubclassOf<UKPCLEndlessShopSubCategory>>& SubCats);
 
-	bool bPassiveIsUnlocked = false;
+		UFUNCTION(BlueprintCallable, Category="KMods|EndlessShop")
+		TArray<TSubclassOf<UKPCLEndlessShopItem>> ES_GetAllItemsOfSubCat(TSubclassOf<UKPCLEndlessShopMainCategory> MainCat, TSubclassOf<UKPCLEndlessShopSubCategory> SubCat);
 
-private:
+		// Events
+		UPROPERTY(BlueprintAssignable)
+		FOnEndlessShoppingItemsUnlocked OnEndlessShoppingItemsUnlocked;
 
-	TMap< TSubclassOf< UKPCLEndlessShopMainCategory >, TMap< TSubclassOf< UKPCLEndlessShopSubCategory >, TArray< TSubclassOf< UKPCLEndlessShopItem > > > > mCategoryMap;
-	TMap< TSubclassOf< UKPCLDecorMainCategory >, TMap< TSubclassOf< UKPCLDecorSubCategory >, TArray< TSubclassOf< UKPCLDecorationRecipe > > > > mDecorationCategoryMap;
+		UPROPERTY(BlueprintAssignable, Category="KMods|Network")
+		FOnPointsUpdated OnPointsUpdated;
 
-	TQueue< int64, EQueueMode::Mpsc > mPointQueue;
-	
-	UPROPERTY( Replicated, SaveGame )
-	TArray< TSubclassOf< UFGSchematic > > mUnlockedNetworkTiers;
-	
-	UPROPERTY( SaveGame )
-	TArray< TSubclassOf< UKPCLEndlessShopItem > > mShoppingList;
-	
-	UPROPERTY( Replicated, SaveGame )
-	TArray< TSubclassOf< UKPCLEndlessShopItem > > mUnlockedShopItems;
-	
-	UPROPERTY( ReplicatedUsing=OnRep_Decoration, SaveGame )
-	TArray< TSubclassOf< UKPCLDecorationRecipe > > mUnlockedDecorations;
-	
-	UPROPERTY()
-	TArray< TSubclassOf< UKPCLEndlessShopItem > > mAllEndlessShopItem;
+		UFUNCTION(BlueprintImplementableEvent, DisplayName="OnEndlessShoppingItemsUnlocked")
+		void BP_OnEndlessShoppingItemsUnlocked(const TArray<TSubclassOf<UKPCLEndlessShopItem>>& UnlockedItems);
 
-	UPROPERTY( SaveGame )
-	TArray< AFGPlayerState* > mPlayerStates;
+	private:
+		UPROPERTY(EditDefaultsOnly, SaveGame, ReplicatedUsing=OnRep_PointsUpdated, Category="KMods|EndlessShop")
+		int64 mCurrentPoints = 1000;
 
-	UPROPERTY( EditDefaultsOnly, Category="KMods|NetworkSystem" )
-	TSubclassOf< class UKPCLNetworkPlayerComponent > mStateComponentClass;
+		UPROPERTY(EditDefaultsOnly, SaveGame, Category="KMods|EndlessShop")
+		FSmartTimer mTimeToGetPassivePoints = FSmartTimer(5.f);
 
-	UPROPERTY( EditDefaultsOnly, Category="KMods|NetworkSystem" )
-	int32 mFluidItemsPerBytes;
+		UPROPERTY(EditDefaultsOnly, Category="KMods|EndlessShop")
+		int64 mPassivePoints = 5;
 
-	UPROPERTY( EditDefaultsOnly, Category="KMods|NetworkSystem" )
-	int32 mSolidItemsPerBytes;
+		UPROPERTY(EditDefaultsOnly, SaveGame, Category="KMods|EndlessShop")
+		TSubclassOf<UFGSchematic> mSchematicToUnlockPassivPoints;
 
-	UPROPERTY( EditDefaultsOnly, Category="KMods|NetworkSystem" )
-	int32 mNetworkConnectionFluidBufferSize;
+		bool bPassiveIsUnlocked = false;
 
-	UPROPERTY( EditDefaultsOnly, Category="KMods|NetworkSystem" )
-	int32 mNetworkConnectionSolidBufferSize;
+	private:
+		TMap<TSubclassOf<UKPCLEndlessShopMainCategory> , TMap<TSubclassOf<UKPCLEndlessShopSubCategory> , TArray<TSubclassOf<UKPCLEndlessShopItem>>>> mCategoryMap;
+		TMap<TSubclassOf<UKPCLDecorMainCategory> , TMap<TSubclassOf<UKPCLDecorSubCategory> , TArray<TSubclassOf<UKPCLDecorationRecipe>>>>            mDecorationCategoryMap;
 
-	UPROPERTY( EditDefaultsOnly, Category="KMods|NetworkSystem" )
-	int32 mNetworkGlobalNexusMaxCount = 4;
+		TQueue<int64 , EQueueMode::Mpsc> mPointQueue;
 
-	UPROPERTY( Replicated )
-	TArray< AKPCLNetworkCore* > mBuildedNexus;
+		UPROPERTY(Replicated, SaveGame)
+		TArray<TSubclassOf<UFGSchematic>> mUnlockedNetworkTiers;
+
+		UPROPERTY(SaveGame)
+		TArray<TSubclassOf<UKPCLEndlessShopItem>> mShoppingList;
+
+		UPROPERTY(Replicated, SaveGame)
+		TArray<TSubclassOf<UKPCLEndlessShopItem>> mUnlockedShopItems;
+
+		UPROPERTY(ReplicatedUsing=OnRep_Decoration, SaveGame)
+		TArray<TSubclassOf<UKPCLDecorationRecipe>> mUnlockedDecorations;
+
+		UPROPERTY()
+		TArray<TSubclassOf<UKPCLEndlessShopItem>> mAllEndlessShopItem;
+
+		UPROPERTY(SaveGame)
+		TArray<AFGPlayerState*> mPlayerStates;
+
+		UPROPERTY(EditDefaultsOnly, Category="KMods|NetworkSystem")
+		TSubclassOf<class UKPCLNetworkPlayerComponent> mStateComponentClass;
+
+		UPROPERTY(EditDefaultsOnly, Category="KMods|NetworkSystem")
+		int32 mFluidItemsPerBytes;
+
+		UPROPERTY(EditDefaultsOnly, Category="KMods|NetworkSystem")
+		int32 mSolidItemsPerBytes;
+
+		UPROPERTY(EditDefaultsOnly, Category="KMods|NetworkSystem")
+		int32 mNetworkConnectionFluidBufferSize;
+
+		UPROPERTY(EditDefaultsOnly, Category="KMods|NetworkSystem")
+		int32 mNetworkConnectionSolidBufferSize;
+
+		UPROPERTY(EditDefaultsOnly, Category="KMods|NetworkSystem")
+		int32 mNetworkGlobalNexusMaxCount = 4;
+
+		UPROPERTY(Replicated)
+		TArray<AKPCLNetworkCore*> mBuildedNexus;
 };

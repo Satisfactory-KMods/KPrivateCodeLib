@@ -8,47 +8,46 @@
 /**
  * This is a full native version for UKBFLWorldModule
  */
-UCLASS( Blueprintable )
-class KPRIVATECODELIB_API UKPCLWorldModule : public UKBFLWorldModule
-{
+UCLASS(Blueprintable)
+class KPRIVATECODELIB_API UKPCLWorldModule: public UKBFLWorldModule {
 	GENERATED_BODY()
 
-public:
-	UKPCLWorldModule();
+	public:
+		UKPCLWorldModule();
 
-	// Start: UKBFLWorldModule
-	virtual void PostInitPhase_Implementation() override;
-	virtual void InitPhase_Implementation() override;
-	// End: UKBFLWorldModule
+		// Start: UKBFLWorldModule
+		virtual void PostInitPhase_Implementation() override;
+		virtual void InitPhase_Implementation() override;
+		// End: UKBFLWorldModule
 
-	/** Bind Events for send messages on unlock etc. */
-	void BindUnlockEvents();
+		/** Bind Events for send messages on unlock etc. */
+		void BindUnlockEvents();
 
-	/** Send a Message to all Player */
-	void SendMessage( const TSubclassOf< UFGMessageBase > Message ) const;
+		/** Send a Message to all Player */
+		void SendMessage(const TSubclassOf<UFGMessageBase> Message) const;
 
-	UFUNCTION()
-	void OnSchematicUnlocked( TSubclassOf< UFGSchematic > Schematic );
+		UFUNCTION()
+		void OnSchematicUnlocked(TSubclassOf<UFGSchematic> Schematic);
 
-	UFUNCTION()
-	void OnResearchTreeAccessUnlocked( TSubclassOf< UFGResearchTree > ResearchTree );
+		UFUNCTION()
+		void OnResearchTreeAccessUnlocked(TSubclassOf<UFGResearchTree> ResearchTree);
 
-	UFUNCTION( BlueprintCallable, BlueprintNativeEvent, Category="Options" )
-	bool IsADAEnabled();
+		UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Options")
+		bool IsADAEnabled();
 
-	UFUNCTION( BlueprintCallable, BlueprintNativeEvent, Category="Options" )
-	bool IsEasyNodesEnabled();
+		UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Options")
+		bool IsEasyNodesEnabled();
 
-	UFUNCTION( BlueprintCallable, BlueprintNativeEvent, Category="Options" )
-	void ApplyEasyNodes( const TArray< TSubclassOf< UFGResearchTree > >& Nodes );
+		UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Options")
+		void ApplyEasyNodes(const TArray<TSubclassOf<UFGResearchTree>>& Nodes);
 
 
-	UPROPERTY( EditDefaultsOnly, Category="KMods|ADA" )
-	TMap< TSubclassOf< UFGSchematic >, TSubclassOf< UFGMessageBase > > mUnlockSchematic;
+		UPROPERTY(EditDefaultsOnly, Category="KMods|ADA")
+		TMap<TSubclassOf<UFGSchematic> , TSubclassOf<UFGMessageBase>> mUnlockSchematic;
 
-	UPROPERTY( EditDefaultsOnly, Category="KMods|ADA" )
-	TMap< TSubclassOf< UFGResearchTree >, TSubclassOf< UFGMessageBase > > mUnlockAccessResearchTree;
+		UPROPERTY(EditDefaultsOnly, Category="KMods|ADA")
+		TMap<TSubclassOf<UFGResearchTree> , TSubclassOf<UFGMessageBase>> mUnlockAccessResearchTree;
 
-	UPROPERTY( EditDefaultsOnly, Category="KMods|ADA" )
-	bool mUseEasyNodes = true;
+		UPROPERTY(EditDefaultsOnly, Category="KMods|ADA")
+		bool mUseEasyNodes = true;
 };

@@ -3,37 +3,30 @@
 
 #include "BlueprintFunctionLib/KPCLPowerOptionsLib.h"
 
-bool UKPCLPowerOptionsLib::IsValid( FPowerOptions PowerOption )
-{
+bool UKPCLPowerOptionsLib::IsValid(FPowerOptions PowerOption) {
 	return PowerOption.IsValid();
 }
 
-void UKPCLPowerOptionsLib::MergePowerOptions( FPowerOptions& PowerOption, FPowerOptions OtherPowerOption )
-{
-	return PowerOption.MergePowerOptions( OtherPowerOption );
+void UKPCLPowerOptionsLib::MergePowerOptions(FPowerOptions& PowerOption, FPowerOptions OtherPowerOption) {
+	return PowerOption.MergePowerOptions(OtherPowerOption);
 }
 
-void UKPCLPowerOptionsLib::OverWritePowerOptions( FPowerOptions& PowerOption, FPowerOptions OtherPowerOption )
-{
-	return PowerOption.OverWritePowerOptions( OtherPowerOption );
+void UKPCLPowerOptionsLib::OverWritePowerOptions(FPowerOptions& PowerOption, FPowerOptions OtherPowerOption) {
+	return PowerOption.OverWritePowerOptions(OtherPowerOption);
 }
 
-float UKPCLPowerOptionsLib::GetMaxPowerConsume( FPowerOptions PowerOption )
-{
+float UKPCLPowerOptionsLib::GetMaxPowerConsume(FPowerOptions PowerOption) {
 	return PowerOption.GetMaxPowerConsume();
 }
 
-float UKPCLPowerOptionsLib::GetPowerConsume( FPowerOptions PowerOption )
-{
+float UKPCLPowerOptionsLib::GetPowerConsume(FPowerOptions PowerOption) {
 	return PowerOption.GetPowerConsume();
 }
 
-float UKPCLPowerOptionsLib::GetCurrentVariablePower( FPowerOptions PowerOption )
-{
+float UKPCLPowerOptionsLib::GetCurrentVariablePower(FPowerOptions PowerOption) {
 	return PowerOption.GetCurrentVariablePower();
 }
 
-bool UKPCLPowerOptionsLib::IsPowerVariable( FPowerOptions PowerOption )
-{
+bool UKPCLPowerOptionsLib::IsPowerVariable(FPowerOptions PowerOption) {
 	return PowerOption.IsPowerVariable();
 }
