@@ -172,7 +172,7 @@ void                          AKPCLNetworkCore::GetDismantleRefund_Implementatio
 				PowerCon->GetWires(Wires);
 				for(AFGBuildableWire* Wire: Wires) {
 					if(ensure(Cast<UObject>(Wire))) {
-						Execute_GetDismantleRefund(Cast<UObject>(Wire), out_refund);
+						Execute_GetDismantleRefund(Cast<UObject>(Wire), out_refund, false);
 					}
 				}
 			}

@@ -279,7 +279,7 @@ void AKPCLUnlockSubsystem::ApplyEndlessShopItem(TSubclassOf<UKPCLEndlessShopItem
 
 		for(const TSubclassOf<UFGSchematic> SchematicToUnlock: UKPCLEndlessShopItem::GetSchematicsToUnlock(UnlockingItem)) {
 			if(!SchematicManager->IsSchematicPurchased(SchematicToUnlock)) {
-				SchematicManager->GiveAccessToSchematic(SchematicToUnlock);
+				SchematicManager->GiveAccessToSchematic(SchematicToUnlock, nullptr);
 			}
 		}
 	}
@@ -392,8 +392,8 @@ void AKPCLUnlockSubsystem::OnRep_Decoration() {
 				TArray<TSubclassOf<UFGCategory>> Cats;
 				UKPCLDecorationActorData::GetSubCategories(ActorData, Cats);
 
-				TSubclassOf<UKPCLDecorMainCategory> MainCat = UKPCLDecorationActorData::GetCategory(ActorData);
-				TSubclassOf<UKPCLDecorSubCategory>  SubCat = Cats[0];
+				TSubclassOf<UKPCLDecorMainCategory> MainCat{UKPCLDecorationActorData::GetCategory(ActorData)};
+				TSubclassOf<UKPCLDecorSubCategory>  SubCat{Cats[0]};
 
 				TMap<TSubclassOf<UKPCLDecorSubCategory> , TArray<TSubclassOf<UKPCLDecorationRecipe>>>* CatMap = mDecorationCategoryMap.Find(MainCat);
 				if(CatMap) {

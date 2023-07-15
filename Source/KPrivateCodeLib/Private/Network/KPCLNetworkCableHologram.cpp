@@ -47,55 +47,6 @@ void AKPCLNetworkCableHologram::CheckValidPlacement() {
 	}
 }
 
-void AKPCLNetworkCableHologram::SetHologramLocationAndRotation(const FHitResult& hitResult) {
-	Super::SetHologramLocationAndRotation(hitResult);
-
-	AdjustWire(hitResult);
-}
-
-bool AKPCLNetworkCableHologram::TrySnapToActor(const FHitResult& hitResult) {
-	const bool Re = Super::TrySnapToActor(hitResult);
-
-	if(Re) {
-		AdjustWire(hitResult);
-	}
-
-	return Re;
-}
-
-void AKPCLNetworkCableHologram::AdjustWire(const FHitResult& hitResult) {
-	if(IsValid(mWireMesh)) {
-		if(!mWireMesh->bHiddenInGame) {
-			FTransform     Transform;
-			const FVector  Source = IsValid(mConnections[0]) ? mConnections[0]->GetComponentLocation() : hitResult.Location;
-			FVector        TargetLocation = IsValid(mConnections[1]) ? mConnections[1]->GetComponentLocation() : hitResult.Location;
-			const float    Lenght = FVector::Distance(Source, TargetLocation);
-			const FRotator LotAtRotation = UKismetMathLibrary::FindLookAtRotation(Source, TargetLocation);
-
-			Transform.SetLocation(UKismetMathLibrary::GetForwardVector(LotAtRotation) * (Lenght / 2) + Source);
-			Transform.SetRotation(LotAtRotation.Quaternion());
-			Transform.SetScale3D(FVector(Lenght / 100, 1, 1));
-
-			mWireMesh->SetWorldTransform(Transform);
-			mConnectionMesh->SetWorldLocation(UKismetMathLibrary::GetForwardVector(LotAtRotation) * (Lenght) + Source);
-
-			if(GetActiveAutomaticPoleHologram()) {
-				TArray<UStaticMeshComponent*> Meshes;
-				GetActiveAutomaticPoleHologram()->GetComponents(Meshes);
-				for(UStaticMeshComponent* Component: Meshes) {
-					if(Component->GetName().Contains("StaticMeshComponent")) {
-						Component->SetHiddenInGame(true);
-					}
-				}
-			}
-		} else {
-			mWireMesh->SetWorldTransform(FTransform());
-		}
-	} else if(IsValid(mConnectionMesh)) {
-		mConnectionMesh->SetRelativeLocation(FVector());
-	}
-}
-
 bool AKPCLNetworkCableHologram::TryUpgrade(const FHitResult& hitResult) {
 	bool Super = Super::TryUpgrade(hitResult);
 
@@ -104,7 +55,6 @@ bool AKPCLNetworkCableHologram::TryUpgrade(const FHitResult& hitResult) {
 		if(IsValid(OtherCable)) {
 			SetConnection(0, OtherCable->GetConnection(0));
 			SetConnection(1, OtherCable->GetConnection(1));
-			AdjustWire(hitResult);
 		}
 	}
 

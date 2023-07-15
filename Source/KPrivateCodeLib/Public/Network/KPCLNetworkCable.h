@@ -13,9 +13,4 @@ class KPRIVATECODELIB_API AKPCLNetworkCable: public AFGBuildableWire {
 
 	public:
 		AKPCLNetworkCable();
-
-	protected:
-		virtual void BeginPlay() override;
-
-		void FixWireMesh();
 };

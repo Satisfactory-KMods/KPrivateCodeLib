@@ -303,7 +303,7 @@ UKPCLNetworkPlayerComponent* UKPCLNetworkPlayerComponent::GetOrCreateNetworkComp
 			return Component;
 		}
 
-		TSubclassOf<UKPCLNetworkPlayerComponent> Class = !IsValid(ComponentClass) ? StaticClass() : ComponentClass;
+		const TSubclassOf<UKPCLNetworkPlayerComponent> Class = !IsValid(ComponentClass) ? TSubclassOf<UKPCLNetworkPlayerComponent>{StaticClass()} : ComponentClass;
 		if(IsValid(Class)) {
 			Component = NewObject<UKPCLNetworkPlayerComponent>(State, Class, FName("NetworkComp"));
 			Component->SetIsReplicatedByDefault(true);

@@ -17,9 +17,6 @@ class KPRIVATECODELIB_API AKPCLNetworkCableHologram: public AFGWireHologram {
 
 		virtual void BeginPlay() override;
 		virtual void CheckValidPlacement() override;
-		virtual void SetHologramLocationAndRotation(const FHitResult& hitResult) override;
-		virtual bool TrySnapToActor(const FHitResult& hitResult) override;
-		virtual void AdjustWire(const FHitResult& hitResult);
 		virtual bool TryUpgrade(const FHitResult& hitResult) override;
 
 	private:
