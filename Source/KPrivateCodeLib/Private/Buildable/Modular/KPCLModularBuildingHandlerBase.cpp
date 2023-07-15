@@ -88,11 +88,11 @@ bool UKPCLModularBuildingHandlerBase::GetLocationMap(TMap<TSubclassOf<UKPCLModul
 	AFGBuildable* Building = Cast<AFGBuildable>(GetOwner());
 
 	TSubclassOf<AFGDecorationTemplate> Template = Building->GetDecorationTemplate();
-	if(Template) {
+	if(IsValid(Template)) {
 		TArray<UKPCLModularSnapPoint*> SnapPoints = AFGDecorationTemplate::GetComponentsFromSubclass<UKPCLModularSnapPoint>(Template);
 		if(SnapPoints.Num() > 0) {
 			for(UKPCLModularSnapPoint* SnapPoint: SnapPoints) {
-				if(SnapPoint->mAttachmentClass) {
+				if(IsValid((SnapPoint->mAttachmentClass))) {
 					UKPCLModularSnapPoint* SnapComponent = NewObject<UKPCLModularSnapPoint>(Building, NAME_None, RF_NoFlags, SnapPoint);
 					if(SnapComponent) {
 						SnapComponent->SetRelativeTransform(SnapPoint->GetRelativeTransform());

@@ -123,7 +123,7 @@ class KPRIVATECODELIB_API AKPCLModularExtractorBase: public AKPCLExtractorBase, 
 		FORCEINLINE T* GetMasterBuildable() const { return Cast<T>(GetMasterBuildable()); }
 
 		/** ----- Components ----- */
-		UPROPERTY(SaveGame)
+		UPROPERTY(SaveGame, Replicated)
 		int32 mModularIndex = -1;
 
 		UPROPERTY(EditDefaultsOnly, Category="KMods|Debug")

@@ -163,7 +163,7 @@ void UKPCLNetworkPlayerComponent::ReceiveTickFromNetwork(AKPCLNetworkCore* Core)
 
 					TSubclassOf<UFGItemDescriptor> Item = InventoryRule.mItemAmount.ItemClass;
 					if(FKPCLNetworkMaxData* Data = Core->mItemCountMap.FindByKey(FKPCLNetworkMaxData(Item, 0))) {
-						if(Data->mItemClass) {
+						if(IsValid(Data->mItemClass)) {
 							if(FCoreInventoryData* CoreData = Core->mSlotMappingAll.FindByKey(Data->mItemClass)) {
 								Core->GetInventory()->GetStackFromIndex(CoreData->mInventoryIndex, Stack);
 								if(Stack.NumItems >= Data->mMaxItemCount) {

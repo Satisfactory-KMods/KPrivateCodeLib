@@ -88,7 +88,7 @@ void AKPCLModularHologram::SetHologramLocationAndRotation(const FHitResult& hitR
 						return;
 					}
 					Disqualifier = mToMuchModules;
-				} else if(mModuleIsNotAllowed) {
+				} else if(IsValid(mModuleIsNotAllowed)) {
 					Disqualifier = mModuleIsNotAllowed;
 				}
 			}

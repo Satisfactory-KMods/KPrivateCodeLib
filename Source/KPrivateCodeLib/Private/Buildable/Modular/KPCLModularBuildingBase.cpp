@@ -116,7 +116,11 @@ void AKPCLModularBuildingBase::BeginPlay() {
 		HandlePowerInit();
 	}
 
-	GetHandler()->OnHandlerTriggerUpdate.AddUniqueDynamic(this, &AKPCLModularBuildingBase::OnMeshUpdate);
+	if(IsValid(GetHandler())) {
+		GetHandler()->OnHandlerTriggerUpdate.AddUniqueDynamic(this, &AKPCLModularBuildingBase::OnMeshUpdate);
+		GetHandler()->SetIsReplicated(true);
+		OnMeshUpdate();
+	}
 }
 
 void AKPCLModularBuildingBase::EndPlay(const EEndPlayReason::Type EndPlayReason) {
@@ -138,6 +142,7 @@ void AKPCLModularBuildingBase::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	//UI
 	DOREPLIFETIME(AKPCLModularBuildingBase, mMasterBuilding);
 	DOREPLIFETIME(AKPCLModularBuildingBase, mModularHandler);
+	DOREPLIFETIME(AKPCLModularBuildingBase, mModularIndex);
 }
 
 void AKPCLModularBuildingBase::PostInitializeComponents() {

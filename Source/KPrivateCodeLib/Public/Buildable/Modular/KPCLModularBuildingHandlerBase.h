@@ -52,6 +52,8 @@ struct FAttachmentLocations {
 	};
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHandlerTriggerUpdate);
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class KPRIVATECODELIB_API UKPCLModularBuildingHandlerBase: public UActorComponent, public IFGSaveInterface {
 	GENERATED_BODY()
@@ -103,7 +105,6 @@ class KPRIVATECODELIB_API UKPCLModularBuildingHandlerBase: public UActorComponen
 		template<class T>
 		T* GetAttachedActor_Internal(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment);
 
-		DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHandlerTriggerUpdate);
 
 		UPROPERTY(BlueprintAssignable)
 		FOnHandlerTriggerUpdate OnHandlerTriggerUpdate;

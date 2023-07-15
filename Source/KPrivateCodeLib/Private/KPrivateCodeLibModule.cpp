@@ -1,19 +1,10 @@
 ﻿#include "KPrivateCodeLibModule.h"
 
-#include "FGGameMode.h"
-#include "FGGameSession.h"
-#include "FGProjectile.h"
 #include "Patching/NativeHookManager.h"
 #include "Replication/KPCLDefaultRCO.h"
 #include "Subsystem/KPCLUnlockSubsystem.h"
 
 DEFINE_LOG_CATEGORY(LogKPCL);
-
-void GameModePostLogin(CallScope<void(*)(AFGGameMode*, APlayerController*)>& scope, AFGGameMode* gm, APlayerController* pc) {
-	if(gm->HasAuthority() && !gm->IsMainMenuGameMode()) {
-		gm->RegisterRemoteCallObjectClass(UKPCLDefaultRCO::StaticClass());
-	}
-}
 
 void PlayerStateBeginPlayer(CallScope<void(*)(AFGPlayerState*)>& scope, AFGPlayerState* State) {
 	if(State->GetWorld()) {
@@ -62,7 +53,6 @@ void FKPrivateCodeLib::StartupModule() {
 #endif
 
 #if !WITH_EDITOR
-	SUBSCRIBE_METHOD_VIRTUAL( AFGGameMode::PostLogin, GetMutableDefault<AFGGameMode>(), &GameModePostLogin )
 	SUBSCRIBE_METHOD_VIRTUAL( AFGPlayerState::BeginPlay, GetMutableDefault<AFGPlayerState>(), &PlayerStateBeginPlayer )
 #endif
 }

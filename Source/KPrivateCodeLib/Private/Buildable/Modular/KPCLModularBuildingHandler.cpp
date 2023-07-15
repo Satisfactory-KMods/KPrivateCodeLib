@@ -200,7 +200,7 @@ bool UKPCLModularBuildingHandler::CanAttachToLocation(TSubclassOf<UKPCLModularAt
 }
 
 bool UKPCLModularBuildingHandler::GetSnapPointInRange(FTransform TestLocation, FTransform& SnapLocation, float AllowedDistance, TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) {
-	if(Attachment) {
+	if(IsValid(Attachment)) {
 		const int SnapIndex = FindAttachmentIndex(Attachment);
 		if(SnapIndex > 0) {
 			if(mAttachmentInformations[SnapIndex].mSnapWorldLocations.Num() > 0) {
