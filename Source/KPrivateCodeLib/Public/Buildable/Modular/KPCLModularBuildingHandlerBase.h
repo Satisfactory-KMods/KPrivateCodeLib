@@ -115,6 +115,12 @@ class KPRIVATECODELIB_API UKPCLModularBuildingHandlerBase: public UActorComponen
 			}
 		};
 
+		FORCEINLINE void NotifyBuildingWasUpdated() {
+			if(GetOwner()) {
+				IKPCLModularBuildingInterface::Execute_OnModulesUpdated(GetOwner());
+			}
+		};
+
 		UFUNCTION(BlueprintPure, BlueprintCallable)
 		virtual TArray<AFGBuildable*> GetAttachedActorsByClass(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment);
 

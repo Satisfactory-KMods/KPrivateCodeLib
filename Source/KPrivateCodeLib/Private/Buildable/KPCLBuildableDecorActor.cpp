@@ -168,7 +168,7 @@ void AKPCLBuildableDecorActor::OnRep_DecorationData() {
 	}
 }
 
-AKPCLBuildableDecorActorLight::AKPCLBuildableDecorActorLight(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.DoNotCreateDefaultSubobject(TEXT("BuildingMeshProxy"))) {
+AKPCLBuildableDecorActorLight::AKPCLBuildableDecorActorLight(const FObjectInitializer& ObjectInitializer) : Super() {
 }
 
 // Called when the game starts or when spawned

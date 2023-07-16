@@ -367,8 +367,8 @@ class KPRIVATECODELIB_API AKPCLProducerBase: public AFGBuildableFactory, public 
 
 		virtual bool GetInventorysAreValid() const;
 
-		UFUNCTION(BlueprintCallable, Category = "KMods|Production")
 		// set again the inventory on all Belts after and while init the replication actor
+		UFUNCTION(BlueprintCallable, Category = "KMods|Production")
 		virtual void SetBelts();
 		/** ----- Inventory Stuff END ----- */
 

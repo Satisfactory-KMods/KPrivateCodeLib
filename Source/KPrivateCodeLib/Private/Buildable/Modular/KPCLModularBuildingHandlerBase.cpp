@@ -46,8 +46,11 @@ void UKPCLModularBuildingHandlerBase::BeginPlay() {
 
 	if(HasAuthority()) {
 		this->SetIsReplicatedByDefault(true);
+		this->SetIsReplicated(true);
+		GetOwner()->ForceNetUpdate();
 	}
 
+	NotifyBuildingWasUpdated();
 	BroadcastTrigger();
 }
 
@@ -56,8 +59,6 @@ int UKPCLModularBuildingHandlerBase::FindAttachmentIndex(TSubclassOf<UKPCLModula
 }
 
 void UKPCLModularBuildingHandlerBase::AttachedActorRemoved(AFGBuildable* Actor) {
-	UE_LOG(LogTemp, Warning, TEXT("AttachedActorRemoved"));
-
 	// Call on owner that removed was done
 	if(UKismetSystemLibrary::DoesImplementInterface(GetOwner(), UKPCLModularBuildingInterface::StaticClass())) {
 		IKPCLModularBuildingInterface::Execute_POST_RemoveAttachedActor(GetOwner());
