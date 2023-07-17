@@ -15,21 +15,6 @@ enum class EFound : uint8 {
 };
 
 USTRUCT(BlueprintType)
-struct KPRIVATECODELIB_API FProductionHandle {
-	public:
-		GENERATED_BODY()
-
-		UPROPERTY(EditAnywhere, SaveGame, BlueprintReadWrite)
-		float mCurrentTime;
-
-		UPROPERTY(EditAnywhere, SaveGame, BlueprintReadWrite)
-		float mProductionTime;
-
-		UPROPERTY(EditAnywhere, SaveGame, BlueprintReadWrite)
-		bool mCompleted;
-};
-
-USTRUCT(BlueprintType)
 struct KPRIVATECODELIB_API FPowerOptions {
 	public:
 		GENERATED_BODY()
