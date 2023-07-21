@@ -37,6 +37,7 @@ class KPRIVATECODELIB_API AKPCLEquipmentBase: public AFGEquipment {
 
 		// Bind Modded Inputs
 		virtual void AddEquipmentActionBindings() override;
+		virtual void SetEquipmentBindings(UEnhancedInputComponent* EIC);
 
 	public:
 		UFUNCTION(BlueprintPure)
@@ -55,6 +56,11 @@ class KPRIVATECODELIB_API AKPCLEquipmentBase: public AFGEquipment {
 		T* GetLastHit() const;
 
 	protected:
+		/** Input Actions */
+		void Input_PrimaryFire(const FInputActionValue& actionValue);
+		void Input_SecondaryFire(const FInputActionValue& actionValue);
+		void Input_Wheel(const FInputActionValue& actionValue);
+
 		UFUNCTION(NetMulticast, Reliable)
 		virtual void MultiCast_OnLeftClick();
 		virtual void OnLeftClick();

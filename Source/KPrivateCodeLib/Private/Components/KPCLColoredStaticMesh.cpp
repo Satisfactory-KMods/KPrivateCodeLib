@@ -78,7 +78,7 @@ bool UKPCLColoredStaticMesh::CheckIndex(FKPCLColorData ColorData, bool IsFG) {
 void UKPCLColoredStaticMesh::UpdateWorldTransform(FTransform Transform) {
 	if(IsInGameThread()) {
 		if(this) {
-			if(!mBlockInstancing && !IsPendingKillOrUnreachable()) {
+			if(!mBlockInstancing && !IsValid(this)) {
 				if(mInstanceHandle.IsInstanced() && AFGBuildableSubsystem::Get(this)) {
 					if(UFGColoredInstanceManager* Manager = AFGBuildableSubsystem::Get(this)->GetColoredInstanceManager(this)) {
 						Manager->UpdateTransformForInstance(Transform, mInstanceHandle.GetHandleID());
@@ -92,7 +92,7 @@ void UKPCLColoredStaticMesh::UpdateWorldTransform(FTransform Transform) {
 	} else {
 		AsyncTask(ENamedThreads::GameThread, [&, Transform]() {
 			if(this) {
-				if(!mBlockInstancing && !IsPendingKillOrUnreachable()) {
+				if(!mBlockInstancing && !IsValid(this)) {
 					if(mInstanceHandle.IsInstanced() && AFGBuildableSubsystem::Get(this)) {
 						if(UFGColoredInstanceManager* Manager = AFGBuildableSubsystem::Get(this)->GetColoredInstanceManager(this)) {
 							Manager->UpdateTransformForInstance(Transform, mInstanceHandle.GetHandleID());
@@ -166,12 +166,12 @@ void UKPCLColoredStaticMesh::ApplyNewColorDatas(TArray<FKPCLColorData> ColorData
 
 		if(MarkStateDirty && NeedDirty) {
 			if(IsInGameThread()) {
-				if(!IsPendingKillOrUnreachable()) {
+				if(!IsValid(this)) {
 					ApplyNewData();
 				}
 			} else {
 				AsyncTask(ENamedThreads::GameThread, [&]() {
-					if(!IsPendingKillOrUnreachable()) {
+					if(!IsValid(this)) {
 						ApplyNewData();
 					}
 				});
@@ -237,12 +237,12 @@ void UKPCLColoredStaticMesh::ApplyFGNewColorDatas(TArray<FKPCLColorData> ColorDa
 
 		if(MarkStateDirty && NeedDirty) {
 			if(IsInGameThread()) {
-				if(!IsPendingKillOrUnreachable()) {
+				if(!IsValid(this)) {
 					ApplyNewData();
 				}
 			} else {
 				AsyncTask(ENamedThreads::GameThread, [&]() {
-					if(!IsPendingKillOrUnreachable()) {
+					if(!IsValid(this)) {
 						ApplyNewData();
 					}
 				});
@@ -265,12 +265,12 @@ void UKPCLColoredStaticMesh::RemoveFGIndex(int32 Idx, bool MarkStateDirty) {
 		mFGOverwriteMap.Remove(Idx);
 		if(MarkStateDirty) {
 			if(IsInGameThread()) {
-				if(!IsPendingKillOrUnreachable()) {
+				if(!IsValid(this)) {
 					ApplyNewData();
 				}
 			} else {
 				AsyncTask(ENamedThreads::GameThread, [&]() {
-					if(!IsPendingKillOrUnreachable()) {
+					if(!IsValid(this)) {
 						ApplyNewData();
 					}
 				});

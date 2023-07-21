@@ -30,8 +30,24 @@ class KPRIVATECODELIB_API AKPCLModularBuildingBase: public AKPCLProducerBase, pu
 		virtual void  OnUse_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& state) override;
 		// End IFGUseableInterface
 
+		virtual void PreSaveGame_Implementation(int32 saveVersion, int32 gameVersion) override {
+			Super::PreSaveGame_Implementation(saveVersion, gameVersion);
+			mCanHaveBuildabled = true;
+		};
+
+		virtual void OnBuildEffectFinished() override {
+			Super::OnBuildEffectFinished();
+			mCanHaveBuildabled = true;
+		};
+
+		UPROPERTY(SaveGame)
+		bool mCanHaveBuildabled = false;
+
 		// Begin IKPCLModularBuildingInterface
-		FORCEINLINE virtual bool          GetCanHaveModules_Implementation() override { return mModularHandler != nullptr; }
+		FORCEINLINE virtual bool GetCanHaveModules_Implementation() override {
+			return mCanHaveBuildabled && IsValid(mModularHandler);
+		}
+
 		FORCEINLINE virtual AFGBuildable* GetMasterBuilding_Implementation() override {
 			if(mMasterBuilding.IsValid()) {
 				return mMasterBuilding.Get();

@@ -3,14 +3,18 @@
 
 #include "Equipment/KPCLEquipmentBase.h"
 
+#include "EnhancedInputComponent.h"
 #include "FGCharacterPlayer.h"
+#include "KPrivateCodeLibModule.h"
 #include "BlueprintFunctionLib/KPCLBlueprintFunctionLib.h"
+#include "Input/FGInputMappingContext.h"
 
 
 // Sets default values
 AKPCLEquipmentBase::AKPCLEquipmentBase() {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	//mMappingContext = LoadObject<UInputMappingContext>(nullptr, TEXT(''), TEXT("/KPrivateCodeLib/InputAction/IMC_KPCL_Equipment.IMC_KPCL_Equipment_C"));
 }
 
 void AKPCLEquipmentBase::Tick(float DeltaSeconds) {
@@ -118,12 +122,30 @@ void AKPCLEquipmentBase::AddEquipmentActionBindings() {
 	// bind modded keybinds and make the consumed (for example MMB will copy otherwise the building to open the build gun)
 	Super::AddEquipmentActionBindings();
 
-	/*BindActionHelper(FName("KPrivateCodeLib.EquipmentLMB"), IE_Pressed, this, &AKPCLEquipmentBase::OnLeftClick, true);
-	BindActionHelper(FName("KPrivateCodeLib.EquipmentLMB"), IE_Released, this, &AKPCLEquipmentBase::OnLeftClickReleased, true);
-	BindActionHelper(FName("SecondaryFire"), IE_Pressed, this, &AKPCLEquipmentBase::OnRightClick, true);
-	BindActionHelper(FName("SecondaryFire"), IE_Released, this, &AKPCLEquipmentBase::OnRightClickReleased, true);
-	BindActionHelper(FName("KPrivateCodeLib.EquipmentMMB"), IE_Pressed, this, &AKPCLEquipmentBase::OnMiddleMouseButton, true);
-	BindActionHelper(FName("KPrivateCodeLib.EquipmentMMB"), IE_Released, this, &AKPCLEquipmentBase::OnMiddleMouseButtonReleased, true);*/
+	if(IsValid(GetInstigatorCharacter())) {
+		UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(GetInstigatorCharacter()->InputComponent);
+		if(IsValid(EIC)) {
+			SetEquipmentBindings(EIC);
+		} else {
+			UE_LOG(LogKPCL, Error, TEXT("No EnhancedInputComponent found on %s"), *GetInstigatorCharacter()->GetName())
+		}
+	} else {
+		UE_LOG(LogKPCL, Error, TEXT("Invalid InstigatorCharacter"))
+	}
+}
+
+void AKPCLEquipmentBase::SetEquipmentBindings(UEnhancedInputComponent* EIC) {
+	const UInputMappingContext* Mapping = GetMappingContext();
+	if(IsValid(Mapping)) {
+		EIC->BindAction(Mapping->GetMappings()[0].Action, ETriggerEvent::Started, this, "OnLeftClick");
+		EIC->BindAction(Mapping->GetMappings()[0].Action, ETriggerEvent::Completed, this, "OnLeftClickReleased");
+		EIC->BindAction(Mapping->GetMappings()[1].Action, ETriggerEvent::Started, this, "OnRightClick");
+		EIC->BindAction(Mapping->GetMappings()[1].Action, ETriggerEvent::Completed, this, "OnRightClickReleased");
+		EIC->BindAction(Mapping->GetMappings()[2].Action, ETriggerEvent::Started, this, "OnMiddleMouseButton");
+		EIC->BindAction(Mapping->GetMappings()[2].Action, ETriggerEvent::Completed, this, "OnMiddleMouseButtonReleased");
+	} else {
+		UE_LOG(LogKPCL, Error, TEXT("Invalid MappingContext"))
+	}
 }
 
 UFGOutlineComponent* AKPCLEquipmentBase::GetCachedOutlineComponent() const {
@@ -136,6 +158,15 @@ AActor* AKPCLEquipmentBase::GetCurrentHit() const {
 
 AActor* AKPCLEquipmentBase::GetLastHit() const {
 	return mLastActor;
+}
+
+void AKPCLEquipmentBase::Input_PrimaryFire(const FInputActionValue& actionValue) {
+}
+
+void AKPCLEquipmentBase::Input_SecondaryFire(const FInputActionValue& actionValue) {
+}
+
+void AKPCLEquipmentBase::Input_Wheel(const FInputActionValue& actionValue) {
 }
 
 void AKPCLEquipmentBase::MultiCast_OnLeftClick_Implementation() {
