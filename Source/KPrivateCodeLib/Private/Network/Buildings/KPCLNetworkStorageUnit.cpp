@@ -5,52 +5,55 @@
 
 #include "Description/KPCLNetworkDrive.h"
 
+#include "Net/UnrealNetwork.h"
+
 
 // Sets default values
-AKPCLNetworkStorageUnit::AKPCLNetworkStorageUnit() {
-	mInventoryDatas[0].mInventorySize = 8;
+AKPCLNetworkStorageUnit::AKPCLNetworkStorageUnit( ) {
+	mInventoryDatas[ 0 ].mInventorySize = 8;
 }
 
-void AKPCLNetworkStorageUnit::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+void AKPCLNetworkStorageUnit::GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutLifetimeProps ) const {
+	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
 
-	DOREPLIFETIME(AKPCLNetworkStorageUnit, mDriveCount);
+	DOREPLIFETIME( AKPCLNetworkStorageUnit, mDriveCount );
 }
 
-void AKPCLNetworkStorageUnit::OnDrivesUpdated_Implementation() {
-	if(HasAuthority() && GetInventory()) {
+void AKPCLNetworkStorageUnit::OnDrivesUpdated_Implementation( ) {
+	if( HasAuthority( ) && GetInventory( ) ) {
 		int32 TotalBytes = 0;
 		int32 NewCount = 0;
 		float NewPowerConsume = 0;
-		for(int32 Idx = 0; Idx < GetInventory()->GetSizeLinear(); ++Idx) {
+		for( int32 Idx = 0; Idx < GetInventory( )->GetSizeLinear( ); ++Idx ) {
 			FInventoryStack Stack;
-			if(GetInventory()->GetStackFromIndex(Idx, Stack)) {
-				if(Stack.HasItems()) {
-					if(const TSubclassOf<UKPCLNetworkDrive> Drive = TSubclassOf<UKPCLNetworkDrive>(Stack.Item.GetItemClass())) {
+			if( GetInventory( )->GetStackFromIndex( Idx, Stack ) ) {
+				if( Stack.HasItems( ) ) {
+					if( const TSubclassOf< UKPCLNetworkDrive > Drive = TSubclassOf< UKPCLNetworkDrive >( Stack.Item.GetItemClass( ) ) ) {
 						NewCount++;
-						TotalBytes += UKPCLNetworkDrive::GetFicsitBytes(Drive);
-						NewPowerConsume += UKPCLNetworkDrive::GetPowerConsume(Drive);
+						TotalBytes += UKPCLNetworkDrive::GetFicsitBytes( Drive );
+						NewPowerConsume += UKPCLNetworkDrive::GetPowerConsume( Drive );
 					}
 				}
 			}
 		}
 		mDriveCount = NewCount;
 
-		if(IsValid(GetNetworkInfoComponent())) {
-			GetNetworkInfoComponent()->SetBytes(TotalBytes);
+		if( IsValid( GetNetworkInfoComponent( ) ) ) {
+			GetNetworkInfoComponent( )->SetBytes( TotalBytes );
 		}
 
 		mPowerOptions.mOtherPowerConsume = NewPowerConsume;
 
-		OnRep_DriveCount();
-	} else if(!HasAuthority()) {
-		OnRep_DriveCount();
+		OnRep_DriveCount( );
+	}
+	else if( !HasAuthority( ) ) {
+		OnRep_DriveCount( );
 	}
 }
 
-bool AKPCLNetworkStorageUnit::FilterInputInventory(TSubclassOf<UObject> object, int32 idx) const {
-	if(IsValid(object)) {
-		if(const TSubclassOf<UKPCLNetworkDrive> Drive{object}) {
+bool AKPCLNetworkStorageUnit::FilterInputInventory( TSubclassOf< UObject > object, int32 idx ) const {
+	if( IsValid( object ) ) {
+		if( const TSubclassOf< UKPCLNetworkDrive > Drive{ object } ) {
 			//return UKPCLNetworkDrive::GetIsFluidDrive( Drive ) == mIsFluidStorage;
 			return true;
 		}
@@ -58,62 +61,63 @@ bool AKPCLNetworkStorageUnit::FilterInputInventory(TSubclassOf<UObject> object, 
 	return false;
 }
 
-void AKPCLNetworkStorageUnit::OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved) {
-	Super::OnInputItemAdded(itemClass, numRemoved);
+void AKPCLNetworkStorageUnit::OnInputItemAdded( TSubclassOf< UFGItemDescriptor > itemClass, int32 numRemoved ) {
+	Super::OnInputItemAdded( itemClass, numRemoved );
 
-	OnDrivesUpdated();
+	OnDrivesUpdated( );
 }
 
-void AKPCLNetworkStorageUnit::OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved) {
-	Super::OnInputItemRemoved(itemClass, numRemoved);
+void AKPCLNetworkStorageUnit::OnInputItemRemoved( TSubclassOf< UFGItemDescriptor > itemClass, int32 numRemoved ) {
+	Super::OnInputItemRemoved( itemClass, numRemoved );
 
-	OnDrivesUpdated();
+	OnDrivesUpdated( );
 }
 
-void AKPCLNetworkStorageUnit::OnMasterBuildingReceived_Implementation(AActor* Actor) {
-	Super::OnMasterBuildingReceived_Implementation(Actor);
+void AKPCLNetworkStorageUnit::OnMasterBuildingReceived_Implementation( AActor* Actor ) {
+	Super::OnMasterBuildingReceived_Implementation( Actor );
 
-	if(HasAuthority()) {
-		InitNetwork();
-		OnDrivesUpdated();
+	if( HasAuthority( ) ) {
+		InitNetwork( );
+		OnDrivesUpdated( );
 	}
 }
 
-void AKPCLNetworkStorageUnit::OnRep_DriveCount() {
-	if(mCountToMeshMap.Contains(mDriveCount)) {
-		if(IsValid(mCountToMeshMap[mDriveCount]) && mMeshOverwriteInformations.IsValidIndex(0)) {
-			mMeshOverwriteInformations[0].mOverwriteMesh = mCountToMeshMap[mDriveCount];
-			ApplyMeshInformation(mMeshOverwriteInformations[0]);
+void AKPCLNetworkStorageUnit::OnRep_DriveCount( ) {
+	if( mCountToMeshMap.Contains( mDriveCount ) ) {
+		if( IsValid( mCountToMeshMap[ mDriveCount ] ) && mMeshOverwriteInformations.IsValidIndex( 0 ) ) {
+			mMeshOverwriteInformations[ 0 ].mOverwriteMesh = mCountToMeshMap[ mDriveCount ];
+			ApplyMeshInformation( mMeshOverwriteInformations[ 0 ] );
 		}
 	}
 }
 
 // Called when the game starts or when spawned
-void AKPCLNetworkStorageUnit::BeginPlay() {
-	if(!mMeshOverwriteInformations.IsValidIndex(0) && DoesContainLightweightInstances_Native()) {
+void AKPCLNetworkStorageUnit::BeginPlay( ) {
+	if( !mMeshOverwriteInformations.IsValidIndex( 0 ) && DoesContainLightweightInstances_Native( ) ) {
 		FKPCLMeshOverwriteInformation Information;
-		Information.mOverwriteMesh = mInstanceDataCDO->GetInstanceData()[0].StaticMesh;
+		Information.mOverwriteMesh = mInstanceDataCDO->GetInstanceData( )[ 0 ].StaticMesh;
 		Information.mOverwriteHandleIndex = 0;
 		Information.mUseCustomTransform = false;
-		mMeshOverwriteInformations.Add(Information);
+		mMeshOverwriteInformations.Add( Information );
 	}
 
-	Super::BeginPlay();
+	Super::BeginPlay( );
 
-	OnRep_DriveCount();
+	OnRep_DriveCount( );
 
-	if(HasAuthority() && GetInventory()) {
-		for(int32 Idx = 0; Idx < GetInventory()->GetSizeLinear(); ++Idx) {
-			GetInventory()->AddArbitrarySlotSize(Idx, 1);
+	if( HasAuthority( ) && GetInventory( ) ) {
+		for( int32 Idx = 0; Idx < GetInventory( )->GetSizeLinear( ); ++Idx ) {
+			GetInventory( )->AddArbitrarySlotSize( Idx, 1 );
 		}
 	}
 }
 
-void AKPCLNetworkStorageUnit::InitNetwork() {
-	if(HasAuthority() && GetNetworkInfoComponent()) {
-		OnDrivesUpdated();
-		GetNetworkInfoComponent()->SetHandleBytesAsFluid(mIsFluidStorage);
-	} else if(HasAuthority()) {
-		GetWorldTimerManager().SetTimerForNextTick(this, &AKPCLNetworkStorageUnit::InitNetwork);
+void AKPCLNetworkStorageUnit::InitNetwork( ) {
+	if( HasAuthority( ) && GetNetworkInfoComponent( ) ) {
+		OnDrivesUpdated( );
+		GetNetworkInfoComponent( )->SetHandleBytesAsFluid( mIsFluidStorage );
+	}
+	else if( HasAuthority( ) ) {
+		GetWorldTimerManager( ).SetTimerForNextTick( this, &AKPCLNetworkStorageUnit::InitNetwork );
 	}
 }

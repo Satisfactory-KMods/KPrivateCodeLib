@@ -53,7 +53,7 @@ void FKPrivateCodeLib::StartupModule() {
 #endif
 
 #if !WITH_EDITOR
-	SUBSCRIBE_METHOD_VIRTUAL( AFGPlayerState::BeginPlay, GetMutableDefault<AFGPlayerState>(), &PlayerStateBeginPlayer )
+	SUBSCRIBE_METHOD_VIRTUAL( AFGPlayerState::BeginPlay, GetMutableDefault<AFGPlayerState>(), &PlayerStateBeginPlayer );
 #endif
 }
 
