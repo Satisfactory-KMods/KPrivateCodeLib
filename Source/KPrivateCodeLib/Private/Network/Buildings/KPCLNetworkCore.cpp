@@ -257,7 +257,7 @@ void AKPCLNetworkCore::GetCoreData( FCoreDataSortOptionStruc SortOption, TArray<
 
 	CoreData.Empty( );
 
-	Data.Sort( [&]( const FCoreInventoryData& A, const FCoreInventoryData& B ) {
+	Data.Sort( [&] ( const FCoreInventoryData& A, const FCoreInventoryData& B ) {
 		switch( SortOption.mSorting ) {
 			case ECoreDataSortOption::alphab:
 				return UFGItemDescriptor::GetItemName( A.mItem ).ToString( ) < UFGItemDescriptor::GetItemName( B.mItem ).ToString( );
@@ -468,7 +468,7 @@ void AKPCLNetworkCore::Factory_Tick( float dt ) {
 
 			if( mNetworkConnections.Num( ) > 0 ) {
 				const int32 NumPerGroup = FMath::Max( FMath::DivideAndRoundUp( mNetworkConnections.Num( ), 8 ), 1 );
-				ParallelFor( 8, [&]( int32 Index ) {
+				ParallelFor( 8, [&] ( int32 Index ) {
 					TArray< AKPCLNetworkConnectionBuilding* > Buildings;
 					for( int32 Member = Index * NumPerGroup; Member < FMath::Min( ( Index + 1 ) * NumPerGroup, mNetworkConnections.Num( ) ); Member++ ) {
 						if( ensure( mNetworkConnections[Member] ) ) {
@@ -480,7 +480,7 @@ void AKPCLNetworkCore::Factory_Tick( float dt ) {
 
 			if( mNetworkManuConnections.Num( ) > 0 ) {
 				const int32 NumPerGroup = FMath::Max( FMath::DivideAndRoundUp( mNetworkManuConnections.Num( ), 8 ), 1 );
-				ParallelFor( 8, [&]( int32 Index ) {
+				ParallelFor( 8, [&] ( int32 Index ) {
 					TArray< AKPCLNetworkConnectionBuilding* > Buildings;
 					for( int32 Member = Index * NumPerGroup; Member < FMath::Min( ( Index + 1 ) * NumPerGroup, mNetworkManuConnections.Num( ) ); Member++ ) {
 						if( ensure( mNetworkManuConnections[Member] ) ) {
@@ -692,7 +692,7 @@ void AKPCLNetworkCore::ConfigureCoreInventory( ) {
 	auto ItemDescriptors = ModContent->GetLoadedItemDescriptors( );
 
 	for( auto ItemDescriptor : ItemDescriptors ) {
-		if( TSubclassOf< UFGItemDescriptor > Item = TSubclassOf< UFGItemDescriptor >( ItemDescriptor.RegisteredObject->GetClass( ) ) ) {
+		if( TSubclassOf< UFGItemDescriptor > Item = TSubclassOf< UFGItemDescriptor >( Cast< UClass >( ItemDescriptor.RegisteredObject ) ) ) {
 			if( UFGItemDescriptor::GetForm( Item ) != EResourceForm::RF_INVALID && UFGItemDescriptor::GetForm( Item ) != EResourceForm::RF_HEAT && !Item->IsChildOf( UFGBuildDescriptor::StaticClass( ) ) && !Item->IsChildOf( UFGFactoryCustomizationDescriptor::StaticClass( ) ) && !UFGItemDescriptor::GetItemName( Item ).IsEmpty( ) && !Item->IsChildOf( UFGNoneDescriptor::StaticClass( ) ) && !Item->IsChildOf( UFGAnyUndefinedDescriptor::StaticClass( ) ) && !Item->IsChildOf( UFGOverflowDescriptor::StaticClass( ) ) && !Item->IsChildOf( UFGWildCardDescriptor::StaticClass( ) ) ) {
 				Items.Add( Item );
 			}
@@ -954,12 +954,14 @@ void AKPCLNetworkCore::PullBuilding( AKPCLNetworkConnectionBuilding* NetworkConn
 		if( FKPCLNetworkMaxData* Data = mItemCountMap.FindByKey( FKPCLNetworkMaxData( Item, 0 ) ) ) {
 			if( Data->mItemClass ) {
 				FCoreInventoryData* CoreData = mSlotMappingAll.FindByKey( Data->mItemClass );
-				mMutexLock.Lock( );
-				GetInventory( )->GetStackFromIndex( CoreData->mInventoryIndex, Stack );
-				mMutexLock.Unlock( );
-				if( Stack.NumItems >= Data->mMaxItemCount ) {
-					NetworkConnection->TryToGrabItems( Stack, .0f, .0f );
-					return;
+				if( ensureAlways( CoreData ) ) {
+					mMutexLock.Lock( );
+					GetInventory( )->GetStackFromIndex( CoreData->mInventoryIndex, Stack );
+					mMutexLock.Unlock( );
+					if( Stack.NumItems >= Data->mMaxItemCount ) {
+						NetworkConnection->TryToGrabItems( Stack, .0f, .0f );
+						return;
+					}
 				}
 			}
 		}
