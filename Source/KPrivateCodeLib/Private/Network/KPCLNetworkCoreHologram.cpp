@@ -4,27 +4,21 @@
 
 #include "Subsystem/KPCLUnlockSubsystem.h"
 
-void AKPCLNetworkCoreHologram::BeginPlay()
-{
+void AKPCLNetworkCoreHologram::BeginPlay() {
 	Super::BeginPlay();
 
-	mUnlockSubsystem = AKPCLUnlockSubsystem::Get( GetWorld() );
+	mUnlockSubsystem = AKPCLUnlockSubsystem::Get(GetWorld());
 }
 
-void AKPCLNetworkCoreHologram::CheckValidPlacement()
-{
+void AKPCLNetworkCoreHologram::CheckValidPlacement() {
 	Super::CheckValidPlacement();
 
-	if( IsValid( mUnlockSubsystem ) )
-	{
-		if( mUnlockSubsystem->GetGlobalNexusCount() >= mUnlockSubsystem->GetMaxGlobalNexusCount() )
-		{
-			AddConstructDisqualifier( UKPCLCDMaxCountReached::StaticClass() );
+	if(IsValid(mUnlockSubsystem)) {
+		if(mUnlockSubsystem->GetGlobalNexusCount() >= mUnlockSubsystem->GetMaxGlobalNexusCount()) {
+			AddConstructDisqualifier(UKPCLCDMaxCountReached::StaticClass());
 		}
-	}
-	else
-	{
-		mUnlockSubsystem = AKPCLUnlockSubsystem::Get( GetWorld() );
-		AddConstructDisqualifier( UKPCLCDMaxCountReached::StaticClass() );
+	} else {
+		mUnlockSubsystem = AKPCLUnlockSubsystem::Get(GetWorld());
+		AddConstructDisqualifier(UKPCLCDMaxCountReached::StaticClass());
 	}
 }

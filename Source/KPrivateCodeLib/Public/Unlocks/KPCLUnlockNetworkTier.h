@@ -11,35 +11,33 @@
 /**
  * 
  */
-UCLASS( Blueprintable, EditInlineNew, abstract, DefaultToInstanced )
-class KPRIVATECODELIB_API UKPCLUnlockNetworkTier : public UFGUnlockInfoOnly
-{
+UCLASS(Blueprintable, EditInlineNew, abstract, DefaultToInstanced)
+class KPRIVATECODELIB_API UKPCLUnlockNetworkTier: public UFGUnlockInfoOnly {
 	GENERATED_BODY()
 
-	virtual void Unlock( AFGUnlockSubsystem* unlockSubssytem ) override;
-	virtual void Apply( AFGUnlockSubsystem* unlockSubssytem ) override;
-	void SendToSubsystem( AFGUnlockSubsystem* unlockSubssytem );
+	virtual void Unlock(AFGUnlockSubsystem* unlockSubssytem) override;
+	virtual void Apply(AFGUnlockSubsystem* unlockSubssytem) override;
+	void         SendToSubsystem(AFGUnlockSubsystem* unlockSubssytem);
 
-private:
-	UPROPERTY( EditAnywhere )
-	TSubclassOf< UFGSchematic > mSchematic;
+	private:
+		UPROPERTY(EditAnywhere)
+		TSubclassOf<UFGSchematic> mSchematic;
 };
 
 
 /**
  * 
  */
-UCLASS( Blueprintable, EditInlineNew, abstract, DefaultToInstanced )
-class KPRIVATECODELIB_API UKPCLUnlockDecoration : public UFGUnlock
-{
+UCLASS(Blueprintable, EditInlineNew, abstract, DefaultToInstanced)
+class KPRIVATECODELIB_API UKPCLUnlockDecoration: public UFGUnlock {
 	GENERATED_BODY()
 
-	virtual void Unlock( AFGUnlockSubsystem* unlockSubssytem ) override;
-	virtual void Apply( AFGUnlockSubsystem* unlockSubssytem ) override;
+	virtual void Unlock(AFGUnlockSubsystem* unlockSubssytem) override;
+	virtual void Apply(AFGUnlockSubsystem* unlockSubssytem) override;
 	virtual bool IsRepeatPurchasesAllowed_Implementation() const override;
-	void SendToSubsystem( AFGUnlockSubsystem* unlockSubssytem );
+	void         SendToSubsystem(AFGUnlockSubsystem* unlockSubssytem);
 
-private:
-	UPROPERTY( EditAnywhere )
-	TArray< TSubclassOf< UKPCLDecorationRecipe > > mDecorations;
+	private:
+		UPROPERTY(EditAnywhere)
+		TArray<TSubclassOf<UKPCLDecorationRecipe>> mDecorations;
 };

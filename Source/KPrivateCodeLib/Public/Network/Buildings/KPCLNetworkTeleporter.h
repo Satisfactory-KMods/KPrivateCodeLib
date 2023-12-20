@@ -7,79 +7,79 @@
 #include "Structures/KPCLNetworkStructures.h"
 #include "KPCLNetworkTeleporter.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FOnTeleporterDataUpdated, FTeleporterInformation, Data );
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FOnPlayerTeleported, AFGCharacterPlayer*, Player );
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTeleporterDataUpdated, FTeleporterInformation, Data);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerTeleported, AFGCharacterPlayer*, Player);
 
 /**
  * 
  */
 UCLASS()
-class KPRIVATECODELIB_API AKPCLNetworkTeleporter : public AKPCLNetworkBuildingBase
-{
+class KPRIVATECODELIB_API AKPCLNetworkTeleporter: public AKPCLNetworkBuildingBase {
 	GENERATED_BODY()
 
-public:
-	AKPCLNetworkTeleporter();
+	public:
+		AKPCLNetworkTeleporter();
 
-	// START: IFGUseableInterface
-	virtual void OnUse_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& state) override;
-	virtual FText GetLookAtDecription_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& state) const override;
-	// END: IFGUseableInterface
+		// START: IFGUseableInterface
+		virtual void  OnUse_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& state) override;
+		virtual FText GetLookAtDecription_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& state) const override;
+		// END: IFGUseableInterface
 
-	// START: AActor
-	virtual void GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutLifetimeProps ) const override;
-	// END: AActor
+		// START: AActor
+		virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+		// END: AActor
 
-	UFUNCTION( BlueprintCallable )
-	void TeleportPlayer( AFGCharacterPlayer* Character, AKPCLNetworkTeleporter* OtherTeleporter );
-	
-	UFUNCTION( NetMulticast, Reliable )
-	void Multicast_TeleportPlayer( AFGCharacterPlayer* Character, AKPCLNetworkTeleporter* OtherTeleporter );
+		UFUNCTION(BlueprintCallable)
+		void TeleportPlayer(AFGCharacterPlayer* Character, AKPCLNetworkTeleporter* OtherTeleporter);
 
-	UFUNCTION( BlueprintCallable )
-	void SetTeleporterData( FTeleporterInformation NewData );
+		UFUNCTION(NetMulticast, Reliable)
+		void Multicast_TeleportPlayer(AFGCharacterPlayer* Character, AKPCLNetworkTeleporter* OtherTeleporter);
 
-	UFUNCTION( BlueprintPure )
-	FTeleporterInformation GetTeleporterData();
+		UFUNCTION(BlueprintCallable)
+		void SetTeleporterData(FTeleporterInformation NewData);
 
-	UFUNCTION( BlueprintCallable )
-	bool CanTeleportToTeleporter( AFGCharacterPlayer* Character, AKPCLNetworkTeleporter* OtherTeleporter );
+		UFUNCTION(BlueprintPure)
+		FTeleporterInformation GetTeleporterData();
 
-	UFUNCTION( BlueprintCallable )
-	void GetCostToOtherTeleporter( AKPCLNetworkTeleporter* OtherTeleporter, TArray< FItemAmount >& OutCosts );
+		UFUNCTION(BlueprintCallable)
+		bool CanTeleportToTeleporter(AFGCharacterPlayer* Character, AKPCLNetworkTeleporter* OtherTeleporter);
 
-	UFUNCTION( BlueprintCallable )
-	void GetAllOtherTeleporter( TArray< AKPCLNetworkTeleporter* >& OtherTeleporter );
+		UFUNCTION(BlueprintCallable)
+		void GetCostToOtherTeleporter(AKPCLNetworkTeleporter* OtherTeleporter, TArray<FItemAmount>& OutCosts);
 
-	UFUNCTION( BlueprintPure )
-	FVector GetTeleportLocation() const;
-	
-	UPROPERTY( BlueprintAssignable )
-	FOnTeleporterDataUpdated mOnTeleporterDataUpdated;
-	
-	UPROPERTY( BlueprintAssignable )
-	FOnPlayerTeleported mOnPlayerTeleported;
-	
-protected:
-	UPROPERTY( EditAnywhere, BlueprintReadOnly )
-	UBoxComponent* mTriggerBox;
-	
-	UPROPERTY( EditAnywhere, BlueprintReadOnly )
-	USphereComponent* mPlayerSphere;
+		UFUNCTION(BlueprintCallable)
+		void GetAllOtherTeleporter(TArray<AKPCLNetworkTeleporter*>& OtherTeleporter);
 
-private:
-	UFUNCTION()
-	void OnRep_TeleporterName();
-	
-	UPROPERTY( EditAnywhere, SaveGame, Replicated, ReplicatedUsing=OnRep_TeleporterName, Category="KMods|Teleporter" )
-	FTeleporterInformation mTeleporterData;
-	
-	UPROPERTY( EditDefaultsOnly, Category="KMods|Teleporter" )
-	FText mToFarAwayText;
-	
-	UPROPERTY( EditDefaultsOnly, Category="KMods|Teleporter" )
-	TArray< FItemAmount > mCosts;
-    	
-	UPROPERTY( EditDefaultsOnly, Category="KMods|Teleporter" )
-	float mMultiplierPerRange = 1000.f;
+		UFUNCTION(BlueprintPure)
+		FVector GetTeleportLocation() const;
+
+		UPROPERTY(BlueprintAssignable)
+		FOnTeleporterDataUpdated mOnTeleporterDataUpdated;
+
+		UPROPERTY(BlueprintAssignable)
+		FOnPlayerTeleported mOnPlayerTeleported;
+
+	protected:
+		UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		UBoxComponent* mTriggerBox;
+
+		UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		USphereComponent* mPlayerSphere;
+
+	private:
+		UFUNCTION()
+		void OnRep_TeleporterName();
+
+		UPROPERTY(EditAnywhere, SaveGame, Replicated, ReplicatedUsing=OnRep_TeleporterName, Category="KMods|Teleporter")
+		FTeleporterInformation mTeleporterData;
+
+		UPROPERTY(EditDefaultsOnly, Category="KMods|Teleporter")
+		FText mToFarAwayText;
+
+		UPROPERTY(EditDefaultsOnly, Category="KMods|Teleporter")
+		TArray<FItemAmount> mCosts;
+
+		UPROPERTY(EditDefaultsOnly, Category="KMods|Teleporter")
+		float mMultiplierPerRange = 1000.f;
 };

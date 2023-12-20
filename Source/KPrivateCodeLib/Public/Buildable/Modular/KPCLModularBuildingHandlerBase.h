@@ -14,172 +14,172 @@
 
 #include "KPCLModularBuildingHandlerBase.generated.h"
 
-DECLARE_DELEGATE_OneParam( FTryConnectTo, AFGBuildable* );
+DECLARE_DELEGATE_OneParam(FTryConnectTo, AFGBuildable*);
 
-USTRUCT( BlueprintType )
-struct FAttachmentPointLocation
-{
+USTRUCT(BlueprintType)
+struct FAttachmentPointLocation {
 	GENERATED_BODY()
 
-	UPROPERTY( EditAnywhere, BlueprintReadOnly )
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FTransform mLocation;
 
-	UPROPERTY( EditAnywhere, BlueprintReadOnly )
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 mIndex;
 
-	UPROPERTY( EditAnywhere, BlueprintReadOnly )
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 mMaxStackCount;
 };
 
-USTRUCT( BlueprintType )
-struct FAttachmentLocations
-{
+USTRUCT(BlueprintType)
+struct FAttachmentLocations {
 	GENERATED_BODY()
 
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, meta=(EditCondition="!mDisplayinEditor") )
-	TArray< FAttachmentPointLocation > mLocations;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(EditCondition="!mDisplayinEditor"))
+	TArray<FAttachmentPointLocation> mLocations;
 
-	void GetTransformSortedByIndex( TArray< FTransform >& Transforms, bool rev = false )
-	{
+	void GetTransformSortedByIndex(TArray<FTransform>& Transforms, bool rev = false) {
 		Transforms.Empty();
-		mLocations.Sort( [rev]( const FAttachmentPointLocation& A, const FAttachmentPointLocation& B )
-		{
-			if( rev )
-			{
+		mLocations.Sort([rev](const FAttachmentPointLocation& A, const FAttachmentPointLocation& B) {
+			if(rev) {
 				return A.mIndex > B.mIndex;
 			}
 			return A.mIndex < B.mIndex;
-		} );
+		});
 
-		for( FAttachmentPointLocation Location : mLocations )
-		{
-			Transforms.Add( Location.mLocation );
+		for(FAttachmentPointLocation Location: mLocations) {
+			Transforms.Add(Location.mLocation);
 		}
 	};
 };
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class KPRIVATECODELIB_API UKPCLModularBuildingHandlerBase : public UActorComponent, public IFGSaveInterface
-{
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHandlerTriggerUpdate);
+
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+class KPRIVATECODELIB_API UKPCLModularBuildingHandlerBase: public UActorComponent, public IFGSaveInterface {
 	GENERATED_BODY()
 
 	// Begin IFGSaveInterface
 	FORCEINLINE virtual bool ShouldSave_Implementation() const override { return true; }
 	// End IFGSaveInterface
 
-public:
-	bool HasAuthority() const;
+	public:
+		bool HasAuthority() const;
 
-	// Sets default values for this component's properties
-	UKPCLModularBuildingHandlerBase();
+		// Sets default values for this component's properties
+		UKPCLModularBuildingHandlerBase();
 
-	virtual void GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutLifetimeProps ) const override;
+		virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void BeginPlay() override;
+		virtual void BeginPlay() override;
 
-	virtual void InitArrays()
-	{
-	}
+		virtual void InitArrays() {
+		}
 
-	virtual int FindAttachmentIndex( TSubclassOf< UKPCLModularAttachmentDescriptor > Attachment ) const;
+		virtual int FindAttachmentIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) const;
 
-	virtual bool AddNewActorToAttachment( AFGBuildable* Actor, TSubclassOf< UKPCLModularAttachmentDescriptor > Attachment, FTransform Location, float Distance = 500.0f ) { return false; }
+		virtual bool AddNewActorToAttachment(AFGBuildable* Actor, TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, FTransform Location, float Distance = 500.0f) { return false; }
 
-	virtual void AttachedActorRemoved( AFGBuildable* Actor );
-	virtual void TryToConnectPower( AFGBuildable* OtherActor );
+		virtual void AttachedActorRemoved(AFGBuildable* Actor);
+		virtual void TryToConnectPower(AFGBuildable* OtherActor);
 
-	bool GetLocationMap( TMap< TSubclassOf< UKPCLModularAttachmentDescriptor >, FAttachmentLocations >& OutMap );
+		bool GetLocationMap(TMap<TSubclassOf<UKPCLModularAttachmentDescriptor> , FAttachmentLocations>& OutMap);
 
-	UFUNCTION( BlueprintPure, BlueprintCallable )
-	void GetAttachedActorsOfType( TArray< AFGBuildable* >& Out, uint8 Type );
+		UFUNCTION(BlueprintPure, BlueprintCallable)
+		void GetAttachedActorsOfType(TArray<AFGBuildable*>& Out, uint8 Type);
 
-	UFUNCTION( BlueprintPure, BlueprintCallable )
-	virtual bool CanAttach( TSubclassOf< UKPCLModularAttachmentDescriptor > Attachment ) const;
+		UFUNCTION(BlueprintPure, BlueprintCallable)
+		virtual bool CanAttach(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) const;
 
-	UFUNCTION( BlueprintPure, BlueprintCallable )
-	virtual bool CanAttachToLocation( TSubclassOf< UKPCLModularAttachmentDescriptor > Attachment, FTransform TestLocation, FTransform& OutLocation, float Distance = 500.0f ) const { return false; };
+		UFUNCTION(BlueprintPure, BlueprintCallable)
+		virtual bool CanAttachToLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, FTransform TestLocation, FTransform& OutLocation, float Distance = 500.0f) const { return false; };
 
-	UFUNCTION( BlueprintPure, BlueprintCallable )
-	virtual bool GetSnapPointInRange( FTransform TestLocation, FTransform& SnapLocation, float AllowedDistance, TSubclassOf< UKPCLModularAttachmentDescriptor > Attachment ) { return false; };
+		UFUNCTION(BlueprintPure, BlueprintCallable)
+		virtual bool GetSnapPointInRange(FTransform TestLocation, FTransform& SnapLocation, float AllowedDistance, TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) { return false; };
 
-	UFUNCTION( BlueprintPure, BlueprintCallable )
-	virtual AFGBuildable* GetAttachedActorByClass( TSubclassOf< UKPCLModularAttachmentDescriptor > Attachment );
+		UFUNCTION(BlueprintPure, BlueprintCallable)
+		virtual AFGBuildable* GetAttachedActorByClass(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment);
 
-	/**
-	 * Internal version for GetAttachedActorByClass
-	 */
-	template< class T >
-	T* GetAttachedActor_Internal( TSubclassOf< UKPCLModularAttachmentDescriptor > Attachment );
+		/**
+		* Internal version for GetAttachedActorByClass
+		*/
+		template<class T>
+		T* GetAttachedActor_Internal(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment);
 
-	UFUNCTION( BlueprintPure, BlueprintCallable )
-	virtual TArray< AFGBuildable* > GetAttachedActorsByClass( TSubclassOf< UKPCLModularAttachmentDescriptor > Attachment );
 
-	/**
-	 * Internal version for GetAttachedActorsByClass
-	 */
-	template< class T >
-	void GetAttachedActors_Internal( TSubclassOf< UKPCLModularAttachmentDescriptor > Attachment, TArray< T* >& OutActors );
+		UPROPERTY(BlueprintAssignable)
+		FOnHandlerTriggerUpdate OnHandlerTriggerUpdate;
 
-	template< class T >
-	void GetAllAttachedActors_Internal( TArray< T* >& OutActors );
+		FORCEINLINE void BroadcastTrigger() {
+			if(OnHandlerTriggerUpdate.IsBound()) {
+				OnHandlerTriggerUpdate.Broadcast();
+			}
+		};
 
-	UFUNCTION( BlueprintCallable )
-	virtual void GetAttachedActorsByIndex( TArray< AFGBuildable* >& Out, uint8 index );
+		FORCEINLINE void NotifyBuildingWasUpdated() {
+			if(GetOwner()) {
+				IKPCLModularBuildingInterface::Execute_OnModulesUpdated(GetOwner());
+			}
+		};
 
-	/**
-	 * Internal version for GetAttachedActorsByClass
-	 */
-	template< class T >
-	void GetAttachedActorByIndex( TSubclassOf< UKPCLModularAttachmentDescriptor > Attachment, TArray< T* >& OutActors );
+		UFUNCTION(BlueprintPure, BlueprintCallable)
+		virtual TArray<AFGBuildable*> GetAttachedActorsByClass(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment);
 
-	UFUNCTION( BlueprintCallable )
-	virtual void GetAttachedActors( TArray< AFGBuildable* >& Out );
+		/**
+		* Internal version for GetAttachedActorsByClass
+		*/
+		template<class T>
+		void GetAttachedActors_Internal(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, TArray<T*>& OutActors);
 
-	FTryConnectTo OverwriteTryToConnectPower;
+		template<class T>
+		void GetAllAttachedActors_Internal(TArray<T*>& OutActors);
+
+		UFUNCTION(BlueprintCallable)
+		virtual void GetAttachedActorsByIndex(TArray<AFGBuildable*>& Out, uint8 index);
+
+		/**
+		* Internal version for GetAttachedActorsByClass
+		*/
+		template<class T>
+		void GetAttachedActorByIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, TArray<T*>& OutActors);
+
+		UFUNCTION(BlueprintCallable)
+		virtual void GetAttachedActors(TArray<AFGBuildable*>& Out);
+
+		FTryConnectTo OverwriteTryToConnectPower;
 };
 
-template< class T >
-T* UKPCLModularBuildingHandlerBase::GetAttachedActor_Internal( TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment )
-{
-	return Cast< T >( GetAttachedActorByClass( Attachment ) );
+template<class T>
+T* UKPCLModularBuildingHandlerBase::GetAttachedActor_Internal(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) {
+	return Cast<T>(GetAttachedActorByClass(Attachment));
 }
 
-template< class T >
-void UKPCLModularBuildingHandlerBase::GetAttachedActors_Internal( TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, TArray<T*>& OutActors )
-{
-	TArray< AFGBuildable* > Actors = GetAttachedActorsByClass( Attachment );
-	for( AFGBuildable* Actor : Actors )
-	{
-		if( T* Casted = Cast< T >( Actor ) )
-		{
-			OutActors.Add( Casted );
+template<class T>
+void UKPCLModularBuildingHandlerBase::GetAttachedActors_Internal(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, TArray<T*>& OutActors) {
+	TArray<AFGBuildable*> Actors = GetAttachedActorsByClass(Attachment);
+	for(AFGBuildable* Actor: Actors) {
+		if(T* Casted = Cast<T>(Actor)) {
+			OutActors.Add(Casted);
 		}
 	}
 }
 
-template< class T >
-void UKPCLModularBuildingHandlerBase::GetAllAttachedActors_Internal( TArray<T*>& OutActors )
-{
-	TArray< AFGBuildable* > Actors;
-	GetAttachedActors( Actors );
-	for( AFGBuildable* Actor : Actors )
-	{
-		if( T* Building = Cast< T >( Actor ) )
-		{
-			OutActors.Add( Building );
+template<class T>
+void UKPCLModularBuildingHandlerBase::GetAllAttachedActors_Internal(TArray<T*>& OutActors) {
+	TArray<AFGBuildable*> Actors;
+	GetAttachedActors(Actors);
+	for(AFGBuildable* Actor: Actors) {
+		if(T* Building = Cast<T>(Actor)) {
+			OutActors.Add(Building);
 		}
 	}
 }
 
-template< class T >
-void UKPCLModularBuildingHandlerBase::GetAttachedActorByIndex( TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, TArray<T*>& OutActors )
-{
-	TArray< AFGBuildable* > Actors = GetAttachedActorsByClass( Attachment );
-	for( AFGBuildable* Actor : Actors )
-	{
-		if( T* Casted = Cast< T >( Actor ) )
-		{
-			OutActors.Add( Casted );
+template<class T>
+void UKPCLModularBuildingHandlerBase::GetAttachedActorByIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, TArray<T*>& OutActors) {
+	TArray<AFGBuildable*> Actors = GetAttachedActorsByClass(Attachment);
+	for(AFGBuildable* Actor: Actors) {
+		if(T* Casted = Cast<T>(Actor)) {
+			OutActors.Add(Casted);
 		}
 	}
 }

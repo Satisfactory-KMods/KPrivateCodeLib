@@ -7,16 +7,10 @@
 #include "GameFramework/Actor.h"
 #include "KPCLNetworkCable.generated.h"
 
-UCLASS( Abstract )
-class KPRIVATECODELIB_API AKPCLNetworkCable : public AFGBuildableWire
-{
+UCLASS(Abstract)
+class KPRIVATECODELIB_API AKPCLNetworkCable: public AFGBuildableWire {
 	GENERATED_BODY()
 
-public:
-	AKPCLNetworkCable();
-
-protected:
-	virtual void BeginPlay() override;
-
-	void FixWireMesh();
+	public:
+		AKPCLNetworkCable();
 };

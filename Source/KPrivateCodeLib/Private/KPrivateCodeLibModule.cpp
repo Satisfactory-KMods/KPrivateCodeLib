@@ -1,36 +1,20 @@
 ﻿#include "KPrivateCodeLibModule.h"
 
-#include "FGGameMode.h"
-#include "FGGameSession.h"
-#include "FGProjectile.h"
 #include "Patching/NativeHookManager.h"
 #include "Replication/KPCLDefaultRCO.h"
-#include "Subsystem/KPCLLevelingSubsystem.h"
 #include "Subsystem/KPCLUnlockSubsystem.h"
 
-DEFINE_LOG_CATEGORY( LogKPCL );
+DEFINE_LOG_CATEGORY(LogKPCL);
 
-void GameModePostLogin( CallScope< void(*)( AFGGameMode*, APlayerController* ) >& scope, AFGGameMode* gm, APlayerController* pc )
-{
-	if( gm->HasAuthority() && !gm->IsMainMenuGameMode() )
-	{
-		gm->RegisterRemoteCallObjectClass( UKPCLDefaultRCO::StaticClass() );
-	}
-}
-
-void PlayerStateBeginPlayer( CallScope< void(*)( AFGPlayerState* ) >& scope, AFGPlayerState* State )
-{
-	if( State->GetWorld() )
-	{
-		if( AKPCLUnlockSubsystem* Sub = AKPCLUnlockSubsystem::Get( State->GetWorld() ) )
-		{
-			Sub->RegisterPlayerState( State );
+void PlayerStateBeginPlayer(CallScope<void(*)(AFGPlayerState*)>& scope, AFGPlayerState* State) {
+	if(State->GetWorld()) {
+		if(AKPCLUnlockSubsystem* Sub = AKPCLUnlockSubsystem::Get(State->GetWorld())) {
+			Sub->RegisterPlayerState(State);
 		}
 	}
 }
 
-void FKPrivateCodeLib::StartupModule()
-{
+void FKPrivateCodeLib::StartupModule() {
 #if !WITH_EDITOR
 	// Config
 	const TArray<FString> ModModuleNames = {
@@ -69,9 +53,8 @@ void FKPrivateCodeLib::StartupModule()
 #endif
 
 #if !WITH_EDITOR
-	SUBSCRIBE_METHOD_VIRTUAL( AFGGameMode::PostLogin, GetMutableDefault<AFGGameMode>(), &GameModePostLogin )
-	SUBSCRIBE_METHOD_VIRTUAL( AFGPlayerState::BeginPlay, GetMutableDefault<AFGPlayerState>(), &PlayerStateBeginPlayer )
+	SUBSCRIBE_METHOD_VIRTUAL( AFGPlayerState::BeginPlay, GetMutableDefault<AFGPlayerState>(), &PlayerStateBeginPlayer );
 #endif
 }
 
-IMPLEMENT_GAME_MODULE( FKPrivateCodeLib, KPrivateCodeLib );
+IMPLEMENT_GAME_MODULE(FKPrivateCodeLib, KPrivateCodeLib);

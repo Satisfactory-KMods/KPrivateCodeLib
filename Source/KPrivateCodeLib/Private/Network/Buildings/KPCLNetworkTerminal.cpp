@@ -4,29 +4,23 @@
 
 #include "Network/Buildings/KPCLNetworkCore.h"
 
-AKPCLNetworkTerminal::AKPCLNetworkTerminal()
-{
+AKPCLNetworkTerminal::AKPCLNetworkTerminal() {
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-bool AKPCLNetworkTerminal::IsUseable_Implementation() const
-{
+bool AKPCLNetworkTerminal::IsUseable_Implementation() const {
 	return true;
 }
 
-void AKPCLNetworkTerminal::OnUse_Implementation( AFGCharacterPlayer* byCharacter, const FUseState& state )
-{
-	if( IsProducing() )
-	{
-		Execute_OnUse( Execute_GetCore( this ), byCharacter, state );
+void AKPCLNetworkTerminal::OnUse_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& state) {
+	if(IsProducing()) {
+		Execute_OnUse(Execute_GetCore(this), byCharacter, state);
 	}
 }
 
-FText AKPCLNetworkTerminal::GetLookAtDecription_Implementation( AFGCharacterPlayer* byCharacter, const FUseState& state ) const
-{
-	if( IsProducing() )
-	{
-		return Super::GetLookAtDecription_Implementation( byCharacter, state );
+FText AKPCLNetworkTerminal::GetLookAtDecription_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& state) const {
+	if(IsProducing()) {
+		return Super::GetLookAtDecription_Implementation(byCharacter, state);
 	}
 	return mNoCoreText;
 }

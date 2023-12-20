@@ -13,62 +13,56 @@ class AKPCLModSubsystem;
  * Tick function that calls AFGBuildable::TickFactory
  */
 USTRUCT()
-struct KPRIVATECODELIB_API FSubsystemTick : public FTickFunction
-{
+struct KPRIVATECODELIB_API FSubsystemTick: public FTickFunction {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY( Transient )
+	UPROPERTY(Transient)
 	AKPCLModSubsystem* mTarget;
 
-	virtual void ExecuteTick( float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent ) override;
+	virtual void ExecuteTick(float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent) override;
 };
 
 template<>
-struct TStructOpsTypeTraits< FSubsystemTick > : public TStructOpsTypeTraitsBase2< FSubsystemTick >
-{
-	enum
-	{
+struct TStructOpsTypeTraits<FSubsystemTick>: public TStructOpsTypeTraitsBase2<FSubsystemTick> {
+	enum {
 		WithCopy = false
 	};
 };
 
 UCLASS()
-class KPRIVATECODELIB_API AKPCLModSubsystem : public AModSubsystem, public IFGSaveInterface
-{
+class KPRIVATECODELIB_API AKPCLModSubsystem: public AModSubsystem, public IFGSaveInterface {
 	GENERATED_BODY()
 
-public:
-	/** ----- Patreon End ----- */
+	public:
+		/** ----- Patreon End ----- */
 
-	// Sets default values for this actor's properties
-	AKPCLModSubsystem();
+		// Sets default values for this actor's properties
+		AKPCLModSubsystem();
 
-	virtual void Init() override;
-	virtual void BeginPlay() override;
-	virtual void EndPlay( const EEndPlayReason::Type EndPlayReason ) override;
+		virtual void Init() override;
+		virtual void BeginPlay() override;
+		virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	UFUNCTION( BlueprintNativeEvent, Category="KMods|Events" )
-	void OnInit();
+		UFUNCTION(BlueprintNativeEvent, Category="KMods|Events")
+		void OnInit();
 
-	virtual void OnInit_Implementation()
-	{
-	}
+		virtual void OnInit_Implementation() {
+		}
 
-	FORCEINLINE virtual bool ShouldSave_Implementation() const override { return mShouldSave; }
+		FORCEINLINE virtual bool ShouldSave_Implementation() const override { return mShouldSave; }
 
-	/** Threaded tick for special uses */
-	virtual void SubsytemTick( float dt )
-	{
-	};
+		/** Threaded tick for special uses */
+		virtual void SubsytemTick(float dt) {
+		};
 
-	UPROPERTY( EditDefaultsOnly, Category="KMods|System" )
-	bool mShouldSave = false;
+		UPROPERTY(EditDefaultsOnly, Category="KMods|System")
+		bool mShouldSave = false;
 
-	/** Our Threaded Tick function */
-	UPROPERTY( EditDefaultsOnly, Category="KMods|System" )
-	FSubsystemTick mSubsystemTick = FSubsystemTick();
+		/** Our Threaded Tick function */
+		UPROPERTY(EditDefaultsOnly, Category="KMods|System")
+		FSubsystemTick mSubsystemTick = FSubsystemTick();
 
-	/** Should we use the Subsystem Tick? */
-	UPROPERTY( EditDefaultsOnly, Category="KMods|System" )
-	bool bUseSubsystemTick = false;
+		/** Should we use the Subsystem Tick? */
+		UPROPERTY(EditDefaultsOnly, Category="KMods|System")
+		bool bUseSubsystemTick = false;
 };
