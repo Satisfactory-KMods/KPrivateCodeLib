@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
 	"Version": 2,
-	"VersionName": "2.1.1",
-	"SemVersion": "2.1.1",
+	"VersionName": "2.2.0",
+	"SemVersion": "2.2.0",
 	"FriendlyName": "KPrivateCodeLib",
 	"Description": "Lib for Kyris Mods",
 	"Category": "Modding",
@@ -25,19 +25,19 @@
 	"Plugins": [
 		{
 			"Name": "SML",
-			"SemVersion": "^3.6.0",
+			"SemVersion": "^3.6.1",
 			"Enabled": true,
 			"BasePlugin": false
 		},
 		{
 			"Name": "KUI",
-			"SemVersion": "^2.1.0",
+			"SemVersion": "^2.2.0",
 			"Enabled": true,
 			"BasePlugin": false
 		},
 		{
 			"Name": "KBFL",
-			"SemVersion": "^2.1.0",
+			"SemVersion": "^2.2.0",
 			"Enabled": true,
 			"BasePlugin": false
 		}

@@ -31,10 +31,10 @@ FNetworkUIData AKPCLNetworkBuildingBase::GetUIDData_Implementation( ) const {
 }
 
 void AKPCLNetworkBuildingBase::PreSaveGame_Implementation( int32 saveVersion, int32 gameVersion ) {
-	Super::PreSaveGame_Implementation( saveVersion, gameVersion );
-
 	DequeueItems( );
 	DequeueSink( );
+	
+	Super::PreSaveGame_Implementation( saveVersion, gameVersion );
 }
 
 bool AKPCLNetworkBuildingBase::HasCore_Internal( ) const {
