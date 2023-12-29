@@ -865,26 +865,20 @@ void AKPCLNetworkCore::HandlePower(float dt)
 
 void AKPCLNetworkCore::ConfigureCoreInventory()
 {
+	auto AssetSubsystem = UKBFLAssetDataSubsystem::Get(GetWorld());
 	TArray<TSubclassOf<UFGItemDescriptor>> Items;
 
-	auto ModContent = UModContentRegistry::Get(GetWorld());
-	auto ItemDescriptors = ModContent->GetLoadedItemDescriptors();
-
-	for (auto ItemDescriptor : ItemDescriptors)
+	for (auto Item : AssetSubsystem->GetAllItems())
 	{
-		if (TSubclassOf<UFGItemDescriptor> Item = TSubclassOf<UFGItemDescriptor>(
-			Cast<UClass>(ItemDescriptor.RegisteredObject)))
+		if (UFGItemDescriptor::GetForm(Item) != EResourceForm::RF_INVALID && UFGItemDescriptor::GetForm(Item) !=
+			EResourceForm::RF_HEAT && !Item->IsChildOf(UFGBuildDescriptor::StaticClass()) && !Item->
+			IsChildOf(UFGFactoryCustomizationDescriptor::StaticClass()) && !UFGItemDescriptor::GetItemName(Item).
+			IsEmpty() && !Item->IsChildOf(UFGNoneDescriptor::StaticClass()) && !Item->
+			IsChildOf(UFGAnyUndefinedDescriptor::StaticClass()) && !Item->
+			IsChildOf(UFGOverflowDescriptor::StaticClass()) && !Item->IsChildOf(
+				UFGWildCardDescriptor::StaticClass()))
 		{
-			if (UFGItemDescriptor::GetForm(Item) != EResourceForm::RF_INVALID && UFGItemDescriptor::GetForm(Item) !=
-				EResourceForm::RF_HEAT && !Item->IsChildOf(UFGBuildDescriptor::StaticClass()) && !Item->
-				IsChildOf(UFGFactoryCustomizationDescriptor::StaticClass()) && !UFGItemDescriptor::GetItemName(Item).
-				IsEmpty() && !Item->IsChildOf(UFGNoneDescriptor::StaticClass()) && !Item->
-				IsChildOf(UFGAnyUndefinedDescriptor::StaticClass()) && !Item->
-				IsChildOf(UFGOverflowDescriptor::StaticClass()) && !Item->IsChildOf(
-					UFGWildCardDescriptor::StaticClass()))
-			{
-				Items.Add(Item);
-			}
+			Items.Add(Item);
 		}
 	}
 
