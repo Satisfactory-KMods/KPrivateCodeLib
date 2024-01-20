@@ -122,7 +122,7 @@ bool UKPCLJsonObject::TryGetJsonArray(FString StringField, TArray<UKPCLJsonObjec
 	Result.Empty();
 	const TArray<TSharedPtr<FJsonValue>>* DataArray;
 	if(GetJson()->TryGetArrayField(StringField, DataArray)) {
-		for(const TSharedPtr<FJsonValue> ArrayElement: *DataArray) {
+		for(const TSharedPtr<FJsonValue>& ArrayElement: *DataArray) {
 			if(ArrayElement) {
 				UKPCLJsonObject* ElementObj = CreateFromJson(ArrayElement->AsObject());
 				Result.Add(ElementObj);

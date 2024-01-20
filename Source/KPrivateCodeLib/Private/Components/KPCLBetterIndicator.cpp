@@ -39,7 +39,7 @@ void UKPCLBetterIndicator::SetEmissiveOverwrite(float NewIntensity, bool MarkSta
 }
 
 FLinearColor UKPCLBetterIndicator::GetColorByState(ENewProductionState State) const {
-	return mStateColors[11];
+	return mStateColors[static_cast<uint8>(State)];
 }
 
 FLinearColor UKPCLBetterIndicator::GetCurrentColor() const {

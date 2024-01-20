@@ -20,6 +20,7 @@ struct KPRIVATECODELIB_API FPowerOptions {
 		GENERATED_BODY( )
 
 		FPowerOptions( ) { }
+		~FPowerOptions( ) { }
 
 		FPowerOptions( float Consume ) {
 			mNormalPowerConsume = Consume;
@@ -79,13 +80,13 @@ struct KPRIVATECODELIB_API FPowerOptions {
 
 		bool IsValid( ) const;
 
-		virtual void Init( );
+		void Init( );
 
-		virtual void MergePowerOptions( FPowerOptions OtherOption );
+		void MergePowerOptions( FPowerOptions OtherOption );
 
-		virtual void OverWritePowerOptions( FPowerOptions OtherOption );
+		void OverWritePowerOptions( FPowerOptions OtherOption );
 
-		virtual void StructureTick( float dt, bool IsConsuming = true );
+		void StructureTick( float dt, bool IsConsuming = true );
 
 		float GetMaxPowerConsume( ) const;
 
@@ -93,7 +94,7 @@ struct KPRIVATECODELIB_API FPowerOptions {
 
 		float GetCurrentVariablePower( ) const;
 
-		virtual bool IsPowerVariable( ) const;
+		bool IsPowerVariable( ) const;
 };
 
 USTRUCT( BlueprintType )

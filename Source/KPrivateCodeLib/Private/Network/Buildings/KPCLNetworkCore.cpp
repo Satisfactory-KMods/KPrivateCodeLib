@@ -3,9 +3,6 @@
 
 #include "Network/Buildings/KPCLNetworkCore.h"
 
-#include <d2d1helper.h>
-
-#include "FGCategory.h"
 #include "FGResourceSinkSubsystem.h"
 #include "KPrivateCodeLibModule.h"
 #include "Logging.h"
@@ -99,11 +96,11 @@ void AKPCLNetworkCore::CollectAndPushPipes(float dt, bool IsPush)
 
 	if (IsPush)
 	{
-		UKBFLCppInventoryHelper::PushPipe(GetFluidBufferInventory(), 1, dt, GetPipe(0, Output));
+		UKBFLCppInventoryHelper::PushPipe(GetFluidBufferInventory(), 1, dt, GetPipe(0, KPCLOutput));
 		return;
 	}
 
-	UKBFLCppInventoryHelper::PullPipe(GetFluidBufferInventory(), 0, dt, mInputConsume.ItemClass, GetPipe(0, Input));
+	UKBFLCppInventoryHelper::PullPipe(GetFluidBufferInventory(), 0, dt, mInputConsume.ItemClass, GetPipe(0, KPCLInput));
 }
 
 void AKPCLNetworkCore::OnTierUpdated()
@@ -308,10 +305,10 @@ void AKPCLNetworkCore::GetCoreData(FCoreDataSortOptionStruc SortOption, TArray<F
 			else if ((SortOption.mFilteredUnlocked && HasRecipe && !SortOption.mNameFilter.IsEmpty()) || !SortOption.
 				mFilteredUnlocked)
 			{
-				if (InventoryData.mItem->GetName().Contains(*SortOption.mNameFilter) ||
+				if ((InventoryData.mItem->GetName().Contains(*SortOption.mNameFilter) ||
 					UFGItemDescriptor::GetAbbreviatedDisplayName(InventoryData.mItem).ToString().
 					Contains(*SortOption.mNameFilter) || UFGItemDescriptor::GetItemName(InventoryData.mItem).ToString().
-					Contains(*SortOption.mNameFilter) && HasRecipe)
+					Contains(*SortOption.mNameFilter)) && HasRecipe)
 				{
 					Data.Add(InventoryData);
 				}

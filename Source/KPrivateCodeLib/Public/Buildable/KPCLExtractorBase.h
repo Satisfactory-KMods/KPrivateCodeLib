@@ -376,9 +376,9 @@ class KPRIVATECODELIB_API AKPCLExtractorBase: public AFGBuildableResourceExtract
 		TMap<EKPCLConnectionType , TArray<UFGConnectionComponent*>> mConnectionMap;
 
 		// Native Helper
-		UFGFactoryConnectionComponent*         GetConv(int Index, ECDirection Direction = Input) const;
-		TArray<UFGFactoryConnectionComponent*> GetAllConv(ECDirection Direction = Any) const;
-		UFGPipeConnectionFactory*              GetPipe(int Index, ECDirection Direction = Input) const;
-		TArray<UFGPipeConnectionFactory*>      GetAllPipes(ECDirection Direction = Any) const;
+		UFGFactoryConnectionComponent*         GetConv(int Index, ECKPCLDirection Direction = KPCLInput) const;
+		TArray<UFGFactoryConnectionComponent*> GetAllConv(ECKPCLDirection Direction = KPCLAny) const;
+		UFGPipeConnectionFactory*              GetPipe(int Index, ECKPCLDirection Direction = KPCLInput) const;
+		TArray<UFGPipeConnectionFactory*>      GetAllPipes(ECKPCLDirection Direction = KPCLAny) const;
 		bool                                   bInventoryHasInit = false;
 };

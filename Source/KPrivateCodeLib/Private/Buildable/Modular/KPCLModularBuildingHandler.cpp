@@ -25,7 +25,7 @@ AFGBuildable* FAttachmentData::GetActorFromIndex( int Index ) const {
 
 AFGBuildable* FAttachmentData::GetActorFromLocation( FTransform TestLocation, FTransform& OutLocation, float MaxDistance ) const {
 	AFGBuildable* ClosedActor = nullptr;
-	OutLocation.SetLocation( FVector( ) );
+	OutLocation.SetLocation( FVector(0) );
 	float LastHit = MaxDistance;
 	if( mAttachmentPointDatas.Num( ) > 0 ) {
 		for( int i = 0; i < mAttachmentPointDatas.Num( ); ++i ) {
@@ -55,7 +55,7 @@ bool FAttachmentData::HasInRange( FTransform TestLocation, float MaxDistance ) c
 bool FAttachmentData::IsLocationFree( FTransform TestLocation, FTransform& OutLocation, float MaxDistance ) const {
 	if( HasInRange( TestLocation, MaxDistance ) ) {
 		const bool DontAttached = GetActorFromLocation( TestLocation, OutLocation, MaxDistance ) == nullptr;
-		return DontAttached && FVector::Distance( OutLocation.GetLocation( ), FVector( ) ) > 200.f && OutLocation.GetLocation( ).Z > -20000000;
+		return DontAttached && FVector::Distance( OutLocation.GetLocation( ), FVector(0) ) > 200.f && OutLocation.GetLocation( ).Z > -20000000;
 	}
 	return false;
 }

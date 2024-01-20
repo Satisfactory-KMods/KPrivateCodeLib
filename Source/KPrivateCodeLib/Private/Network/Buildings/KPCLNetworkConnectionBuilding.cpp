@@ -55,8 +55,8 @@ void AKPCLNetworkConnectionBuilding::BeginPlay()
 
 	if (HasAuthority())
 	{
-		mInformations.bIsInput = GetConv(0, Input) || GetPipe(0, Input);
-		mInformations.mForm = GetPipe(0, Any) != nullptr ? EResourceForm::RF_LIQUID : EResourceForm::RF_SOLID;
+		mInformations.bIsInput = GetConv(0, KPCLInput) || GetPipe(0, KPCLInput);
+		mInformations.mForm = GetPipe(0, KPCLAny) != nullptr ? EResourceForm::RF_LIQUID : EResourceForm::RF_SOLID;
 
 		if (GetMaxItemCount() > 0)
 		{
@@ -112,11 +112,11 @@ void AKPCLNetworkConnectionBuilding::CollectBelts()
 		if (mInformations.mItemsToGrab == UFGNoneDescriptor::StaticClass() || !mInformations.mItemsToGrab)
 		{
 			UKBFLCppInventoryHelper::PullBeltChildClass(GetInventory(), 0, 0.f, UFGItemDescriptor::StaticClass(),
-			                                            GetConv(0, Input));
+			                                            GetConv(0, KPCLInput));
 		}
 		else
 		{
-			UKBFLCppInventoryHelper::PullBelt(GetInventory(), 0, 0.f, mInformations.mItemsToGrab, GetConv(0, Input));
+			UKBFLCppInventoryHelper::PullBelt(GetInventory(), 0, 0.f, mInformations.mItemsToGrab, GetConv(0, KPCLInput));
 		}
 	}
 }
@@ -131,11 +131,11 @@ void AKPCLNetworkConnectionBuilding::CollectAndPushPipes(float dt, bool IsPush)
 		{
 			if (mInformations.mItemsToGrab == UFGNoneDescriptor::StaticClass() || !mInformations.mItemsToGrab)
 			{
-				UKBFLCppInventoryHelper::PullAllFromPipe(GetInventory(), 0, dt, GetPipe(0, Input));
+				UKBFLCppInventoryHelper::PullAllFromPipe(GetInventory(), 0, dt, GetPipe(0, KPCLInput));
 			}
 			else
 			{
-				UKBFLCppInventoryHelper::PullPipe(GetInventory(), 0, dt, mInformations.mItemsToGrab, GetPipe(0, Input));
+				UKBFLCppInventoryHelper::PullPipe(GetInventory(), 0, dt, mInformations.mItemsToGrab, GetPipe(0, KPCLInput));
 			}
 		}
 	}
@@ -143,11 +143,11 @@ void AKPCLNetworkConnectionBuilding::CollectAndPushPipes(float dt, bool IsPush)
 	{
 		if (mInformations.mForm == EResourceForm::RF_LIQUID)
 		{
-			UKBFLCppInventoryHelper::PushPipe(GetInventory(), 0, dt, GetPipe(0, Output));
+			UKBFLCppInventoryHelper::PushPipe(GetInventory(), 0, dt, GetPipe(0, KPCLOutput));
 		}
 		else if (mInformations.mForm == EResourceForm::RF_SOLID)
 		{
-			if (UFGFactoryConnectionComponent* Conv = GetConv(0, Output))
+			if (UFGFactoryConnectionComponent* Conv = GetConv(0, KPCLOutput))
 			{
 				Conv->SetInventory(GetInventory());
 				Conv->SetInventoryAccessIndex(0);

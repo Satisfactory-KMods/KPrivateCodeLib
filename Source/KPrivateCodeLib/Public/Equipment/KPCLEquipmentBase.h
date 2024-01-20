@@ -37,7 +37,7 @@ class KPRIVATECODELIB_API AKPCLEquipmentBase: public AFGEquipment {
 
 		// Bind Modded Inputs
 		virtual void AddEquipmentActionBindings() override;
-		virtual void SetEquipmentBindings(UEnhancedInputComponent* EIC);
+		//virtual void SetEquipmentBindings(UEnhancedInputComponent* EIC);
 
 	public:
 		UFUNCTION(BlueprintPure)

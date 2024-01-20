@@ -45,13 +45,13 @@ class KPRIVATECODELIB_API UKPCLBetterIndicator: public UKPCLColoredStaticMesh {
 		void SetEmissiveOverwrite(float NewIntensity, bool MarkStateDirty = true);
 
 		UFUNCTION(BlueprintCallable, Category="KMods Indicator")
-		FORCEINLINE FLinearColor GetColorByState(ENewProductionState State) const;
+		FLinearColor GetColorByState(ENewProductionState State) const;
 
 		UFUNCTION(BlueprintCallable, Category="KMods Indicator")
-		FORCEINLINE FLinearColor GetCurrentColor() const;
+		FLinearColor GetCurrentColor() const;
 
 		UFUNCTION(BlueprintPure, Category="KMods Indicator")
-		FORCEINLINE ENewProductionState GetState() const;
+		ENewProductionState GetState() const;
 
 	private:
 		TEnumAsByte<ENewProductionState> mCurrentState;

@@ -202,26 +202,26 @@ void AKPCLProducerBase::ApplyNewProductionState( ENewProductionState NewState ) 
 	}
 }
 
-UFGFactoryConnectionComponent* AKPCLProducerBase::GetConv( int Index, ECDirection Direction ) const {
-	if( ( Direction == Input || Direction == Any ) && mConnectionMap[ EKPCLConnectionType::ConvIn ].IsValidIndex( Index ) ) {
+UFGFactoryConnectionComponent* AKPCLProducerBase::GetConv( int Index, ECKPCLDirection Direction ) const {
+	if( ( Direction == KPCLInput || Direction == KPCLAny ) && mConnectionMap[ EKPCLConnectionType::ConvIn ].IsValidIndex( Index ) ) {
 		return Cast< UFGFactoryConnectionComponent >( mConnectionMap[ EKPCLConnectionType::ConvIn ][ Index ] );
 	}
 
-	if( ( Direction == Output || Direction == Any ) && mConnectionMap[ EKPCLConnectionType::ConvOut ].IsValidIndex( Index ) ) {
+	if( ( Direction == KPCLOutput || Direction == KPCLAny ) && mConnectionMap[ EKPCLConnectionType::ConvOut ].IsValidIndex( Index ) ) {
 		return Cast< UFGFactoryConnectionComponent >( mConnectionMap[ EKPCLConnectionType::ConvOut ][ Index ] );
 	}
 
 	return nullptr;
 }
 
-TArray< UFGFactoryConnectionComponent* > AKPCLProducerBase::GetAllConv( ECDirection Direction ) const {
+TArray< UFGFactoryConnectionComponent* > AKPCLProducerBase::GetAllConv( ECKPCLDirection Direction ) const {
 	TArray< UFGFactoryConnectionComponent* > Return;
 	TArray< UFGConnectionComponent* > All;
 
-	if( Direction == Input || Direction == Any ) {
+	if( Direction == KPCLInput || Direction == KPCLAny ) {
 		All.Append( mConnectionMap[ EKPCLConnectionType::ConvIn ] );
 	}
-	if( Direction == Output || Direction == Any ) {
+	if( Direction == KPCLOutput || Direction == KPCLAny ) {
 		All.Append( mConnectionMap[ EKPCLConnectionType::ConvOut ] );
 	}
 
@@ -234,26 +234,26 @@ TArray< UFGFactoryConnectionComponent* > AKPCLProducerBase::GetAllConv( ECDirect
 	return Return;
 }
 
-UFGPipeConnectionFactory* AKPCLProducerBase::GetPipe( int Index, ECDirection Direction ) const {
-	if( ( Direction == Input || Direction == Any ) && mConnectionMap[ EKPCLConnectionType::PipeIn ].IsValidIndex( Index ) ) {
+UFGPipeConnectionFactory* AKPCLProducerBase::GetPipe( int Index, ECKPCLDirection Direction ) const {
+	if( ( Direction == KPCLInput || Direction == KPCLAny ) && mConnectionMap[ EKPCLConnectionType::PipeIn ].IsValidIndex( Index ) ) {
 		return Cast< UFGPipeConnectionFactory >( mConnectionMap[ EKPCLConnectionType::PipeIn ][ Index ] );
 	}
 
-	if( ( Direction == Output || Direction == Any ) && mConnectionMap[ EKPCLConnectionType::PipeOut ].IsValidIndex( Index ) ) {
+	if( ( Direction == KPCLOutput || Direction == KPCLAny ) && mConnectionMap[ EKPCLConnectionType::PipeOut ].IsValidIndex( Index ) ) {
 		return Cast< UFGPipeConnectionFactory >( mConnectionMap[ EKPCLConnectionType::PipeOut ][ Index ] );
 	}
 
 	return nullptr;
 }
 
-TArray< UFGPipeConnectionFactory* > AKPCLProducerBase::GetAllPipes( ECDirection Direction ) const {
+TArray< UFGPipeConnectionFactory* > AKPCLProducerBase::GetAllPipes( ECKPCLDirection Direction ) const {
 	TArray< UFGPipeConnectionFactory* > Return;
 	TArray< UFGConnectionComponent* > All;
 
-	if( Direction == Input || Direction == Any ) {
+	if( Direction == KPCLInput || Direction == KPCLAny ) {
 		All.Append( mConnectionMap[ EKPCLConnectionType::PipeIn ] );
 	}
-	if( Direction == Output || Direction == Any ) {
+	if( Direction == KPCLOutput || Direction == KPCLAny ) {
 		All.Append( mConnectionMap[ EKPCLConnectionType::PipeOut ] );
 	}
 

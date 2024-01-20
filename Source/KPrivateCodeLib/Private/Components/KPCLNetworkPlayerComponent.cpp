@@ -280,7 +280,7 @@ FVector UKPCLNetworkPlayerComponent::GetPlayerCharacterLocation() const
 	{
 		return GetPlayerPawn()->GetActorLocation();
 	}
-	return FVector();
+	return FVector(0);
 }
 
 AFGPlayerState* UKPCLNetworkPlayerComponent::GetPlayerState() const

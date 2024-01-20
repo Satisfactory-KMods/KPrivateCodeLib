@@ -125,7 +125,7 @@ void AKPCLEquipmentBase::AddEquipmentActionBindings() {
 	if(IsValid(GetInstigatorCharacter())) {
 		UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(GetInstigatorCharacter()->InputComponent);
 		if(IsValid(EIC)) {
-			SetEquipmentBindings(EIC);
+			//SetEquipmentBindings(EIC);
 		} else {
 			UE_LOG(LogKPCL, Error, TEXT("No EnhancedInputComponent found on %s"), *GetInstigatorCharacter()->GetName())
 		}
@@ -134,7 +134,7 @@ void AKPCLEquipmentBase::AddEquipmentActionBindings() {
 	}
 }
 
-void AKPCLEquipmentBase::SetEquipmentBindings(UEnhancedInputComponent* EIC) {
+/*void AKPCLEquipmentBase::SetEquipmentBindings(UEnhancedInputComponent* EIC) {
 	const UInputMappingContext* Mapping = GetMappingContext();
 	if(IsValid(Mapping)) {
 		EIC->BindAction(Mapping->GetMappings()[0].Action, ETriggerEvent::Started, this, "OnLeftClick");
@@ -146,7 +146,7 @@ void AKPCLEquipmentBase::SetEquipmentBindings(UEnhancedInputComponent* EIC) {
 	} else {
 		UE_LOG(LogKPCL, Error, TEXT("Invalid MappingContext"))
 	}
-}
+}*/
 
 UFGOutlineComponent* AKPCLEquipmentBase::GetCachedOutlineComponent() const {
 	return mCachedOutlineComponent;
