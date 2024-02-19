@@ -18,7 +18,8 @@ void UKPCLNetwork::GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutL
 	DOREPLIFETIME( UKPCLNetwork, mNetworkBytesForSolids );
 	DOREPLIFETIME( UKPCLNetwork, mNetworkBytesForFluids );
 	DOREPLIFETIME( UKPCLNetwork, mConnectionBuildings );
-	DOREPLIFETIME( UKPCLNetwork, mConnectionManufacturerBuildings );
+	DOREPLIFETIME( UKPCLNetwork, mConnectionAttachments );
+	DOREPLIFETIME( UKPCLNetwork, mNetworkProcessors );
 	DOREPLIFETIME( UKPCLNetwork, mConnectedTeleporterInNetwork );
 
 	DOREPLIFETIME( UKPCLNetwork, mNetworkMaxInputFluid );
@@ -57,10 +58,7 @@ void UKPCLNetwork::UpdateBytesInNetwork( ) {
 
 	const UKPCLNetworkInfoComponent* Core = GetCore( )->GetNetworkInfoComponent( );
 
-	mNetworkMaxInputFluid = Core->GetMaxInput( true );
-	mNetworkMaxOutputFluid = Core->GetMaxOutput( true );
-	mNetworkMaxInputSolid = Core->GetMaxInput( );
-	mNetworkMaxOutputSolid = Core->GetMaxOutput( );
+	GetProccessorCapacity(mNetworkMaxInputSolid, mNetworkMaxInputFluid, mNetworkMaxOutputFluid, mNetworkMaxInputSolid);
 
 	int32 NewBytes = 0;
 	int32 NewFluidBytes = 0;
@@ -108,13 +106,15 @@ void UKPCLNetwork::OnCircuitChanged( ) {
 	AKPCLNetworkCore* NewCore = nullptr;
 
 	TArray< AKPCLNetworkConnectionBuilding* > AllBuildings;
-	TArray< AKPCLNetworkManufacturerConnection* > AllManuBuildings;
+	TArray< AKPCLNetworkBuildingAttachment* > AllManuBuildings;
 	TArray< AKPCLNetworkTeleporter* > AllTeleporter;
+	TArray< AKPCLNetworkCoreModule* > AllProcessors;
 
 	const int32 NumPerGroup = FMath::Max( FMath::DivideAndRoundUp( mPowerInfos.Num( ), 7 ), 1 );
 	ParallelFor( 7, [&]( int32 Index ) {
 		TArray< AKPCLNetworkConnectionBuilding* > Buildings;
-		TArray< AKPCLNetworkManufacturerConnection* > ManuBuildings;
+		TArray< AKPCLNetworkBuildingAttachment* > ManuBuildings;
+		TArray< AKPCLNetworkCoreModule* > Processors;
 		TArray< AKPCLNetworkTeleporter* > TeleBuildings;
 
 		for( int32 Member = Index * NumPerGroup; Member < FMath::Min( ( Index + 1 ) * NumPerGroup, mPowerInfos.Num( ) ); Member++ ) {
@@ -123,8 +123,11 @@ void UKPCLNetwork::OnCircuitChanged( ) {
 					if( AKPCLNetworkConnectionBuilding* Owner = Cast< AKPCLNetworkConnectionBuilding >( mPowerInfos[ Member ]->GetOwner( ) ) ) {
 						Buildings.Add( Owner );
 					}
-					else if( AKPCLNetworkManufacturerConnection* ManuOwner = Cast< AKPCLNetworkManufacturerConnection >( mPowerInfos[ Member ]->GetOwner( ) ) ) {
+					else if( AKPCLNetworkBuildingAttachment* ManuOwner = Cast< AKPCLNetworkBuildingAttachment >( mPowerInfos[ Member ]->GetOwner( ) ) ) {
 						ManuBuildings.Add( ManuOwner );
+					}
+					else if( AKPCLNetworkCoreModule* Processor = Cast< AKPCLNetworkCoreModule >( mPowerInfos[ Member ]->GetOwner( ) ) ) {
+						Processors.Add( Processor );
 					}
 					else if( AKPCLNetworkTeleporter* TeleporterOwner = Cast< AKPCLNetworkTeleporter >( mPowerInfos[ Member ]->GetOwner( ) ) ) {
 						UE_LOG( LogKPCL, Warning, TEXT(" ADD TeleporterOwner! ") )
@@ -148,23 +151,30 @@ void UKPCLNetwork::OnCircuitChanged( ) {
 		AllBuildings.Append( Buildings );
 		AllManuBuildings.Append( ManuBuildings );
 		AllTeleporter.Append( TeleBuildings );
+		AllTeleporter.Append( TeleBuildings );
+		AllProcessors.Append( Processors );
 		Mutex.Unlock( );
 	} );
 
 	mConnectionBuildings = AllBuildings;
-	mConnectionManufacturerBuildings = AllManuBuildings;
+	mConnectionAttachments = AllManuBuildings;
 	mConnectedTeleporterInNetwork = AllTeleporter;
+	mNetworkProcessors = AllProcessors;
 	UE_LOG( LogKPCL, Warning, TEXT( "mConnectedTeleporterInNetwork = %d" ), mConnectedTeleporterInNetwork.Num() )
 
-	mConnectionBuildings.Sort( []( const AKPCLNetworkConnectionBuilding& A, const AKPCLNetworkConnectionBuilding& B ) {
+	/*mConnectionBuildings.Sort( []( const AKPCLNetworkConnectionBuilding& A, const AKPCLNetworkConnectionBuilding& B ) {
 		FNetworkConnectionInformations AInfo;
 		FNetworkConnectionInformations BInfo;
 		A.GetConnectionInformations( AInfo );
 		B.GetConnectionInformations( BInfo );
 		return AInfo.bIsInput > BInfo.bIsInput;
-	} );
+	} );*/
 
 	mCoreBuilding = NewCore;
+	if(IsValid(mCoreBuilding))
+	{
+
+	}
 
 	bNetworkBuildingsAreDirty = true;
 	bNetworkGroupsAreDirty = true;
@@ -197,6 +207,28 @@ int32 UKPCLNetwork::GetBytes( bool AsFluid ) const {
 	return 0;
 }
 
+int32 UKPCLNetwork::GetProcessorCapacity() const
+{
+	int32 Capacity = 0;
+	for(int32 i = 0; i < mNetworkProcessors.Num(); ++i)
+	{
+		if(IsValid(mNetworkProcessors[i]) && mNetworkProcessors[i]->IsProducing())
+		{
+			Capacity++;
+		}
+
+		/**
+		*  We only need to check the first 8 running processors and ignore all the other
+		*  to limit the capacity for each faxit network!
+		*/
+		if(Capacity >= 8)
+		{
+			return Capacity;
+		}
+	}
+	return Capacity;
+}
+
 void UKPCLNetwork::GetAllTeleporter( TArray< AKPCLNetworkTeleporter* >& OtherTeleporter ) {
 	OtherTeleporter = mConnectedTeleporterInNetwork;
 }
@@ -210,9 +242,15 @@ TArray< AKPCLNetworkConnectionBuilding* > UKPCLNetwork::GetNetworkConnectionBuil
 	return mConnectionBuildings;
 }
 
-TArray< AKPCLNetworkManufacturerConnection* > UKPCLNetwork::GetNetworkManufacturerConnections( ) {
+TArray<AKPCLNetworkBuildingAttachment*> UKPCLNetwork::GetNetworkAttachments()
+{
 	bNetworkBuildingsAreDirty = false;
-	return mConnectionManufacturerBuildings;
+	return mConnectionAttachments;
+}
+
+TArray<AKPCLNetworkCoreModule*> UKPCLNetwork::GetNetworkProcessors()
+{
+	return mNetworkProcessors;
 }
 
 int32 UKPCLNetwork::GetMaxInput( bool IsFluid ) const {
@@ -221,6 +259,41 @@ int32 UKPCLNetwork::GetMaxInput( bool IsFluid ) const {
 
 int32 UKPCLNetwork::GetMaxOutput( bool IsFluid ) const {
 	return IsFluid ? mNetworkMaxOutputFluid : mNetworkMaxOutputSolid;
+}
+
+void UKPCLNetwork::GetProccessorCapacity(int32& TotalInFluid, int32& TotalInSolid, int32& TotalOutFluid,
+	int32& TotalOutSolid) const
+{
+	int32 Capacity = 0;
+	for(int32 i = 0; i < mNetworkProcessors.Num(); ++i)
+	{
+		AKPCLNetworkCoreModule* CoreModule = mNetworkProcessors[i];
+		if (ensure(IsValid(CoreModule) && !CoreModule->IsUnreachable() && CoreModule->IsProducing()))
+		{
+			Capacity++;
+
+			EKPCLDirection Direction;
+			int32 Fluid;
+			int32 Solid;
+			CoreModule->GetStats(Direction, Fluid, Solid);
+
+			if (Direction == EKPCLDirection::Input)
+			{
+				TotalInFluid += Fluid;
+				TotalInSolid += Solid;
+			}
+			else if (Direction == EKPCLDirection::Output)
+			{
+				TotalOutFluid += Fluid;
+				TotalOutSolid += Solid;
+			}
+
+			if(Capacity >= 8)
+			{
+				return;
+			}
+		}
+	}
 }
 
 void UKPCLNetwork::ReBuildGroups( ) {

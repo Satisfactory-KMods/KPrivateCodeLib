@@ -62,31 +62,9 @@ void AKPCLNetworkCore::TryConnectNetworks(AFGBuildable* OtherBuildable) const
 	}
 }
 
-void AKPCLNetworkCore::OnModulesUpdated_Implementation()
-{
-	Super::OnModulesUpdated_Implementation();
-	if (HasAuthority())
-	{
-		UpdateNetworkMax();
-	}
-}
-
-void AKPCLNetworkCore::POST_RemoveAttachedActor_Implementation()
-{
-	Super::POST_RemoveAttachedActor_Implementation();
-	if (HasAuthority())
-	{
-		UpdateNetworkMax();
-	}
-}
-
 void AKPCLNetworkCore::onProducingFinal_Implementation()
 {
 	Super::onProducingFinal_Implementation();
-
-	UKBFLCppInventoryHelper::AddStackInInventory(GetFluidBufferInventory(),
-	                                             FInventoryStack(GetCurrentOutputAmount(),
-	                                                             mOutputProduction.ItemClass));
 	GetFluidBufferInventory()->RemoveFromIndex(0, GetCurrentInputAmount());
 }
 
@@ -127,9 +105,7 @@ void AKPCLNetworkCore::BeginPlay()
 		ConfigureCoreInventory();
 
 		GetFluidBufferInventory()->AddArbitrarySlotSize(0, FMath::Max(mMaxConsumeAmount * 2, 50000));
-		GetFluidBufferInventory()->AddArbitrarySlotSize(1, FMath::Max(mMaxProduceAmount * 2, 50000));
 		GetFluidBufferInventory()->SetAllowedItemOnIndex(0, mInputConsume.ItemClass);
-		GetFluidBufferInventory()->SetAllowedItemOnIndex(1, mOutputProduction.ItemClass);
 
 		FInventoryStack Stack;
 		if (GetFluidBufferInventory()->GetStackFromIndex(0, Stack))
@@ -139,16 +115,6 @@ void AKPCLNetworkCore::BeginPlay()
 				GetFluidBufferInventory()->RemoveAllFromIndex(0);
 			}
 		}
-
-		if (GetFluidBufferInventory()->GetStackFromIndex(1, Stack))
-		{
-			if (Stack.Item.GetItemClass() != mOutputProduction.ItemClass)
-			{
-				GetFluidBufferInventory()->RemoveAllFromIndex(1);
-			}
-		}
-
-		GetHandler()->OverwriteTryToConnectPower.BindUObject(this, &AKPCLNetworkCore::TryConnectNetworks);
 
 		if (GetNetworkInfoComponent() && GetNetworkConnectionComponent())
 		{
@@ -389,11 +355,6 @@ void AKPCLNetworkCore::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	if (GetHandler())
-	{
-		GetHandler()->OverwriteTryToConnectPower.BindUObject(this, &AKPCLNetworkCore::TryConnectNetworks);
-	}
-
 	TArray<UFGPowerInfoComponent*> PowerInfoComponents;
 	GetComponents<UFGPowerInfoComponent>(PowerInfoComponents);
 	for (UFGPowerInfoComponent* PowerInfoComponent : PowerInfoComponents)
@@ -562,13 +523,6 @@ int32 AKPCLNetworkCore::GetCurrentInputAmount() const
 	                  mInputConsume.Amount);
 }
 
-int32 AKPCLNetworkCore::GetCurrentOutputAmount() const
-{
-	const float TotalBytes = (mTotalSolidBytes + mTotalFluidBytes) / mByteCalcDiv;
-	return FMath::Max(FMath::Min(mMaxConsumeAmount, FMath::TruncToInt(mOutputProduction.Amount * TotalBytes)),
-	                  mInputConsume.Amount);
-}
-
 void AKPCLNetworkCore::Factory_Tick(float dt)
 {
 	Super::Factory_Tick(dt);
@@ -639,10 +593,7 @@ bool AKPCLNetworkCore::CanProduce_Implementation() const
 
 	if (GetPowerInfo()->HasPower() && GetFluidBufferInventory())
 	{
-		return GetFluidBufferInventory()->HasItems(mInputConsume.ItemClass, GetCurrentInputAmount()) &&
-			UKBFLCppInventoryHelper::CanStoreItemStack(GetFluidBufferInventory(),
-			                                           FInventoryStack(GetCurrentOutputAmount(),
-			                                                           mOutputProduction.ItemClass));
+		return GetFluidBufferInventory()->HasItems(mInputConsume.ItemClass, GetCurrentInputAmount());
 	}
 
 	return false;
@@ -924,44 +875,10 @@ void AKPCLNetworkCore::ConfigureCoreInventory()
 
 void AKPCLNetworkCore::UpdateNetworkMax()
 {
-	UKPCLModularBuildingHandler* Handler = GetHandler<UKPCLModularBuildingHandler>();
-	if (ensure(Handler))
+	if(!HasAuthority()) return;
+	if (ensure(GetNetworkInfoComponent()))
 	{
-		int32 TotalInFluid = 0;
-		int32 TotalInSolid = 0;
-		int32 TotalOutFluid = 0;
-		int32 TotalOutSolid = 0;
-		int32 NewModuleBytes = 0;
-
-		TArray<AFGBuildable*> Out;
-		Handler->GetAttachedActors(Out);
-		for (AFGBuildable* Buildable : Out)
-		{
-			if (ensure(IsValid(Buildable) && !Buildable->IsUnreachable()))
-			{
-				if (AKPCLNetworkCoreModule* CoreModule = Cast<AKPCLNetworkCoreModule>(Buildable))
-				{
-					EKPCLDirection Direction;
-					int32 Fluid;
-					int32 Solid;
-					CoreModule->GetStats(Direction, Fluid, Solid);
-
-					if (Direction == EKPCLDirection::Input)
-					{
-						TotalInFluid += Fluid;
-						TotalInSolid += Solid;
-					}
-					else if (Direction == EKPCLDirection::Output)
-					{
-						TotalOutFluid += Fluid;
-						TotalOutSolid += Solid;
-					}
-				}
-			}
-		}
-
-		GetNetworkInfoComponent()->SetMax(TotalInFluid, TotalOutFluid, true);
-		GetNetworkInfoComponent()->SetMax(TotalInSolid, TotalOutSolid, false);
+		GetNetworkInfoComponent()->UpdateProcessorCapacity();
 	}
 }
 
@@ -971,7 +888,7 @@ void AKPCLNetworkCore::CheckNetwork()
 	if (Network->IsNetworkDirty())
 	{
 		mNetworkConnections = Network->GetNetworkConnectionBuildings();
-		mNetworkManuConnections = Network->GetNetworkManufacturerConnections();
+		mNetworkManuConnections = Network->GetNetworkAttachments();
 		ReGroupSlaves();
 	}
 
@@ -1097,10 +1014,10 @@ void AKPCLNetworkCore::CacheBytes()
 	mUsedSolidBytes = TotalSolidByteSize;
 }
 
-void AKPCLNetworkCore::HandleManuConnections(AKPCLNetworkManufacturerConnection* NetworkConnection, float dt)
+void AKPCLNetworkCore::HandleManuConnections(AKPCLNetworkBuildingAttachment* NetworkConnection, float dt)
 {
 	TArray<FItemAmount> Amounts;
-	if (NetworkConnection->GetNeededResourceClassesThisFrame(Amounts))
+	if (NetworkConnection->GetRequiredItems(Amounts))
 	{
 		for (FItemAmount Amount : Amounts)
 		{

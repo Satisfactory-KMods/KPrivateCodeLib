@@ -72,7 +72,7 @@ void UKPCLPatreonSubsystem::OnSettingChanged( ) {
 }
 
 bool UKPCLPatreonSubsystem::IsTickable( ) const {
-	return !HasAnyFlags( RF_ClassDefaultObject ) && !IsPendingKill( );
+	return !HasAnyFlags( RF_ClassDefaultObject ) && IsValid(this);
 }
 
 UWorld* UKPCLPatreonSubsystem::GetTickableGameObjectWorld( ) const {

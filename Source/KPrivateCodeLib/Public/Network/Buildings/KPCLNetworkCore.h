@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KPCLNetworkBuildingAttachment.h"
 #include "KPCLNetworkConnectionBuilding.h"
-#include "KPCLNetworkManufacturerConnection.h"
 #include "KPCLNetworkCore.generated.h"
 
 USTRUCT(BlueprintType)
@@ -56,9 +56,6 @@ class KPRIVATECODELIB_API AKPCLNetworkCore: public AKPCLNetworkBuildingBase {
 
 		// START: Modular Building
 		void TryConnectNetworks(AFGBuildable* OtherBuildable) const;
-
-		virtual void OnModulesUpdated_Implementation() override;
-		virtual void POST_RemoveAttachedActor_Implementation() override;
 
 		virtual void onProducingFinal_Implementation() override;
 
@@ -118,6 +115,7 @@ class KPRIVATECODELIB_API AKPCLNetworkCore: public AKPCLNetworkBuildingBase {
 		virtual void OnPlayerItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved);
 
 	public:
+
 		UFUNCTION(BlueprintCallable, Category="KMods|Network")
 		void GetCoreData(FCoreDataSortOptionStruc SortOption, TArray<FCoreInventoryData>& Data);
 
@@ -161,9 +159,6 @@ class KPRIVATECODELIB_API AKPCLNetworkCore: public AKPCLNetworkBuildingBase {
 		UFUNCTION(BlueprintPure, Category="KMods|Network")
 		int32 GetCurrentInputAmount() const;
 
-		UFUNCTION(BlueprintPure, Category="KMods|Network")
-		int32 GetCurrentOutputAmount() const;
-
 	private:
 		/** Configure the Inventory to all items */
 		void ConfigureCoreInventory();
@@ -178,7 +173,7 @@ class KPRIVATECODELIB_API AKPCLNetworkCore: public AKPCLNetworkBuildingBase {
 		void PullBuilding(AKPCLNetworkConnectionBuilding* NetworkConnection, float dt);
 
 		/** Call all relevant things on slaves */
-		void HandleManuConnections(AKPCLNetworkManufacturerConnection* NetworkConnection, float dt);
+		void HandleManuConnections(AKPCLNetworkBuildingAttachment* NetworkConnection, float dt);
 
 		virtual void OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved) override;
 		virtual void OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved) override;
@@ -197,9 +192,6 @@ class KPRIVATECODELIB_API AKPCLNetworkCore: public AKPCLNetworkBuildingBase {
 		FItemAmount mInputConsume = {UFGNoneDescriptor::StaticClass(), 10};
 
 		UPROPERTY(EditDefaultsOnly, Category="KMods|Cooling")
-		FItemAmount mOutputProduction = {UFGNoneDescriptor::StaticClass(), 10};
-
-		UPROPERTY(EditDefaultsOnly, Category="KMods|Cooling")
 		int32 mMaxProduceAmount = 5000;
 
 		UPROPERTY(EditDefaultsOnly, Category="KMods|Cooling")
@@ -212,7 +204,7 @@ class KPRIVATECODELIB_API AKPCLNetworkCore: public AKPCLNetworkBuildingBase {
 		TArray<AKPCLNetworkConnectionBuilding*> mNetworkConnections;
 
 		UPROPERTY(Replicated)
-		TArray<AKPCLNetworkManufacturerConnection*> mNetworkManuConnections;
+		TArray<AKPCLNetworkBuildingAttachment*> mNetworkManuConnections;
 
 		// Queue for calling the Player Logic!
 		TQueue<UKPCLNetworkPlayerComponent* , EQueueMode::Mpsc> mNetworkPlayerComponentsThisFrame;

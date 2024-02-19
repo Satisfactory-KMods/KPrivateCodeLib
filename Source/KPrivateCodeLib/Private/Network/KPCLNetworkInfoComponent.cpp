@@ -26,6 +26,23 @@ bool UKPCLNetworkInfoComponent::HasCore( ) const {
 	return mNetworkHasCore;
 }
 
+void UKPCLNetworkInfoComponent::UpdateProcessorCapacity()
+{
+	UKPCLNetwork* Network = GetNetwork();
+	if (ensure(Network))
+	{
+		int32 TotalInFluid = 0;
+		int32 TotalInSolid = 0;
+		int32 TotalOutFluid = 0;
+		int32 TotalOutSolid = 0;
+
+		Network->GetProccessorCapacity(TotalInFluid, TotalInSolid, TotalOutFluid, TotalOutSolid);
+
+		SetMax(TotalInFluid, TotalOutFluid, true);
+		SetMax(TotalInSolid, TotalOutSolid, false);
+	}
+}
+
 bool UKPCLNetworkInfoComponent::IsCore( ) const {
 	if( AKPCLNetworkBuildingBase* Base = Cast< AKPCLNetworkBuildingBase >( GetOwner( ) ) ) {
 		return Base->IsCore( );

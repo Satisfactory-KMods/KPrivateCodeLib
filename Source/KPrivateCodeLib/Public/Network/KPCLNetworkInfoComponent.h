@@ -30,6 +30,7 @@ class KPRIVATECODELIB_API UKPCLNetworkInfoComponent: public UFGPowerInfoComponen
 		UFUNCTION(BlueprintPure, Category="Network")
 		bool HasCore() const;
 
+		void UpdateProcessorCapacity();
 		void SetHasCore(bool Has);
 
 		// Request for the next Frame

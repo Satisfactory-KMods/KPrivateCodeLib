@@ -5,8 +5,9 @@
 #include "CoreMinimal.h"
 #include "FGPowerCircuit.h"
 #include "KPCLNetworkBuildingBase.h"
+#include "Buildings/KPCLNetworkBuildingAttachment.h"
 #include "Buildings/KPCLNetworkConnectionBuilding.h"
-#include "Buildings/KPCLNetworkManufacturerConnection.h"
+#include "Buildings/KPCLNetworkCoreModule.h"
 #include "KPCLNetwork.generated.h"
 
 /**
@@ -25,6 +26,8 @@ class KPRIVATECODELIB_API UKPCLNetwork: public UFGPowerCircuit {
 	virtual void OnCircuitChanged() override;
 
 	public:
+		void GetProccessorCapacity(int32& TotalInFluid, int32& TotalInSolid, int32& TotalOutFluid, int32& TotalOutSolid) const;
+
 		UFUNCTION(BlueprintPure, Category = "Circuits|Network")
 		bool NetworkHasCore() const;
 
@@ -37,13 +40,21 @@ class KPRIVATECODELIB_API UKPCLNetwork: public UFGPowerCircuit {
 		UFUNCTION(BlueprintPure, Category = "Circuits|Network")
 		int32 GetBytes(bool AsFluid) const;
 
+		/**
+		 * Get the Capacity of the processor in the network
+		 * @return count of running processors (max 8)
+		 */
+		UFUNCTION(BlueprintPure, Category = "Circuits|Network")
+		int32 GetProcessorCapacity() const;
+
 		UFUNCTION(BlueprintCallable)
 		void GetAllTeleporter(TArray<AKPCLNetworkTeleporter*>& OtherTeleporter);
 
 		bool IsNetworkDirty() const;
 
 		TArray<AKPCLNetworkConnectionBuilding*>     GetNetworkConnectionBuildings();
-		TArray<AKPCLNetworkManufacturerConnection*> GetNetworkManufacturerConnections();
+		TArray<AKPCLNetworkBuildingAttachment*>		GetNetworkAttachments();
+		TArray<AKPCLNetworkCoreModule*>				GetNetworkProcessors();
 
 		UFUNCTION(BlueprintPure, Category="Network")
 		int32 GetMaxInput(bool IsFluid = false) const;
@@ -64,7 +75,10 @@ class KPRIVATECODELIB_API UKPCLNetwork: public UFGPowerCircuit {
 		TArray<AKPCLNetworkConnectionBuilding*> mConnectionBuildings;
 
 		UPROPERTY(Replicated, SaveGame)
-		TArray<AKPCLNetworkManufacturerConnection*> mConnectionManufacturerBuildings;
+		TArray<AKPCLNetworkBuildingAttachment*> mConnectionAttachments;
+
+		UPROPERTY(Replicated, SaveGame)
+		TArray<AKPCLNetworkCoreModule*> mNetworkProcessors;
 
 		UPROPERTY(Replicated, SaveGame)
 		int32 mNetworkBytesForSolids = 0;

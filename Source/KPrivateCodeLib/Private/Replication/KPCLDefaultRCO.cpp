@@ -10,7 +10,6 @@
 
 #include "Network/Buildings/KPCLNetworkConnectionBuilding.h"
 #include "Network/Buildings/KPCLNetworkCore.h"
-#include "Network/Buildings/KPCLNetworkManufacturerConnection.h"
 #include "Network/Buildings/KPCLNetworkTeleporter.h"
 #include "Subsystem/KPCLUnlockSubsystem.h"
 
@@ -76,9 +75,9 @@ void UKPCLDefaultRCO::Server_SetSinkOverflowItem_Implementation( AKPCLNetworkBui
 		return;
 	}
 
-	AKPCLNetworkManufacturerConnection* ManufacturerConnection = Cast< AKPCLNetworkManufacturerConnection >( Building );
+	AKPCLNetworkBuildingAttachment* ManufacturerConnection = Cast< AKPCLNetworkBuildingAttachment >( Building );
 	if( ensure( ManufacturerConnection ) ) {
-		ManufacturerConnection->SetIsAllowedToSinkOverflow( NewAllowed );
+		//ManufacturerConnection->SetIsAllowedToSinkOverflow( NewAllowed );
 		ManufacturerConnection->ForceNetUpdate( );
 	}
 }
