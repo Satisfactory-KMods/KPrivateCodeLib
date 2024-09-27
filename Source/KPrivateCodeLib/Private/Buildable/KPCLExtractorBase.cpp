@@ -52,11 +52,13 @@ void AKPCLExtractorBase::InitInventories( ) {
 		return;
 	}
 
+	mCachedInventorys.Empty();
 	TArray<UFGInventoryComponent*> Components;
 	GetComponents(Components);
 	for (UFGInventoryComponent* Component : Components)
 	{
-		
+		FName ComponentName = FName(Component->GetName());
+		mCachedInventorys.Add(ComponentName, Component);
 	}
 
 	if(IsValid(GetInventory()))

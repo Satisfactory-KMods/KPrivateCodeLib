@@ -57,9 +57,7 @@ class KPRIVATECODELIB_API AKPCLLootChest: public AFGInteractActor, public IFGSav
 	public:
 		/** Decide on what properties to replicate */
 		virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 		virtual bool ShouldSave_Implementation() const override;
-
 		virtual void OnUse_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& state) override;
 
 		// Sets default values for this actor's properties
@@ -70,10 +68,10 @@ class KPRIVATECODELIB_API AKPCLLootChest: public AFGInteractActor, public IFGSav
 		void GenerateLoot();
 
 		UFUNCTION(BlueprintPure)
-		TArray<FItemAmount> GetLoot() const;
+		bool WasLooted() const;
 
 		UFUNCTION(BlueprintPure)
-		bool WasLooted() const;
+		UFGInventoryComponent* GetInventory() const;
 
 		UFUNCTION(BlueprintCallable)
 		void Loot(AFGCharacterPlayer* Player);
@@ -85,6 +83,12 @@ class KPRIVATECODELIB_API AKPCLLootChest: public AFGInteractActor, public IFGSav
 		void LootTableUpdated();
 
 	private:
+		UFUNCTION()
+		 void OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved, UFGInventoryComponent* sourceInventory);
+
+		UFUNCTION()
+		 void OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved, UFGInventoryComponent* sourceInventory);
+	
 		friend class UKPCLLootChestSpawnDesc;
 
 		UFUNCTION()
@@ -95,10 +99,6 @@ class KPRIVATECODELIB_API AKPCLLootChest: public AFGInteractActor, public IFGSav
 
 		UPROPERTY(EditAnywhere, SaveGame, ReplicatedUsing=OnRep_LootTableUpdate)
 		TArray<FItemAmount> mLootableTable;
-
-		UPROPERTY(SaveGame, Replicated, ReplicatedUsing=OnRep_LootTableUpdate)
-		bool mContentLooted;
-
 		UPROPERTY(EditAnywhere, Category="KMods")
 		TArray<FKPCLLootChestRandomData> mRandomData;
 
@@ -107,4 +107,7 @@ class KPRIVATECODELIB_API AKPCLLootChest: public AFGInteractActor, public IFGSav
 
 		UPROPERTY()
 		UFGColoredInstanceMeshProxy* Mesh;
+
+		UPROPERTY(SaveGame)
+		bool mLooted = false;
 };
