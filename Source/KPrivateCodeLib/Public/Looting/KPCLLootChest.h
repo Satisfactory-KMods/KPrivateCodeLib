@@ -90,7 +90,10 @@ class KPRIVATECODELIB_API AKPCLLootChest: public AFGInteractActor, public IFGSav
 		UFUNCTION()
 		void OnRep_LootTableUpdate();
 
-		UPROPERTY(EditAnywhere, SaveGame, Replicated, ReplicatedUsing=OnRep_LootTableUpdate)
+		UPROPERTY(SaveGame)
+		UFGInventoryComponent* mInventory;
+
+		UPROPERTY(EditAnywhere, SaveGame, ReplicatedUsing=OnRep_LootTableUpdate)
 		TArray<FItemAmount> mLootableTable;
 
 		UPROPERTY(SaveGame, Replicated, ReplicatedUsing=OnRep_LootTableUpdate)

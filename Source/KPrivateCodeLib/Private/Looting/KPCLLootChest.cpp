@@ -16,6 +16,14 @@
 #include "Subsystem/KPCLUnlockSubsystem.h"
 
 
+// Sets default values
+AKPCLLootChest::AKPCLLootChest( ) : Super( ) {
+	PrimaryActorTick.bCanEverTick = 1;
+	PrimaryActorTick.bStartWithTickEnabled = 1;
+
+	mInventory = CreateDefaultSubobject< UFGInventoryComponent >( FKPCLInventoryStructure::InputName );
+}
+
 void AKPCLLootChest::GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutLifetimeProps ) const {
 	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
 
@@ -30,12 +38,6 @@ bool AKPCLLootChest::ShouldSave_Implementation( ) const {
 void AKPCLLootChest::OnUse_Implementation( AFGCharacterPlayer* byCharacter, const FUseState& state ) {
 	UE_LOG( LogTemp, Error, TEXT("OnUse_Implementation(%d) %d %d"), mLootableTable.Num(), !mContentLooted, mLootableTable.Num() <= 0 )
 	Super::OnUse_Implementation( byCharacter, state );
-}
-
-// Sets default values
-AKPCLLootChest::AKPCLLootChest( ) : Super( ) {
-	PrimaryActorTick.bCanEverTick = 1;
-	PrimaryActorTick.bStartWithTickEnabled = 1;
 }
 
 void AKPCLLootChest::BeginPlay( ) {

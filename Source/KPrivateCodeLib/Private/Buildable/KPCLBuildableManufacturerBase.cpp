@@ -130,8 +130,8 @@ void AKPCLBuildableManufacturerBase::ApplyCustomizationData_Native( const FFacto
 	}
 }
 
-void AKPCLBuildableManufacturerBase::SetCustomizationData_Native( const FFactoryCustomizationData& customizationData ) {
-	Super::SetCustomizationData_Native( customizationData );
+void AKPCLBuildableManufacturerBase::SetCustomizationData_Native( const FFactoryCustomizationData& customizationData, bool skipCombine ) {
+	Super::SetCustomizationData_Native( customizationData, skipCombine );
 
 	if( DoesContainLightweightInstances_Native( ) ) {
 		for( int32 Idx = 0; Idx < mInstanceHandles.Num( ); ++Idx ) {

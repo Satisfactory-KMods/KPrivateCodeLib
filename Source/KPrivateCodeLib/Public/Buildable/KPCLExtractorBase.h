@@ -79,7 +79,7 @@ class KPRIVATECODELIB_API AKPCLExtractorBase: public AFGBuildableResourceExtract
 
 		virtual void ReApplyColorForIndex(int32 Idx, const FFactoryCustomizationData& customizationData);
 		virtual void ApplyCustomizationData_Native(const FFactoryCustomizationData& customizationData) override;
-		virtual void SetCustomizationData_Native(const FFactoryCustomizationData& customizationData) override;
+		virtual void SetCustomizationData_Native(const FFactoryCustomizationData& customizationData, bool skipCombine) override;
 
 		virtual void InitMeshOverwriteInformation();
 		void         ApplyMeshOverwriteInformation(int32 Idx);
@@ -132,10 +132,6 @@ class KPRIVATECODELIB_API AKPCLExtractorBase: public AFGBuildableResourceExtract
 		virtual void Factory_CollectInput_Implementation() override;
 		virtual void Factory_PullPipeInput_Implementation(float dt) override;
 		virtual void Factory_PushPipeOutput_Implementation(float dt) override;
-
-		virtual void OnReplicationDetailActorCreated() override;
-		virtual void OnReplicationDetailActorRemoved() override;
-		virtual void OnBuildableReplicationDetailStateChange(bool newStateIsActive) override;
 		// END: AFGBuildableFactory
 
 	protected:
@@ -187,15 +183,6 @@ class KPRIVATECODELIB_API AKPCLExtractorBase: public AFGBuildableResourceExtract
 
 		virtual void onProducingFinal_Implementation() {
 		};
-
-		UFUNCTION(BlueprintNativeEvent, Category = "KMods  Events")
-		void                     RevalidateInventoryStateForReplication();
-		FORCEINLINE virtual void RevalidateInventoryStateForReplication_Implementation() {
-			if(HasAuthority()) {
-				SetBelts();
-				ReconfigureInventory();
-			}
-		}
 
 		/** ----- Events END ----- */
 
@@ -253,73 +240,69 @@ class KPRIVATECODELIB_API AKPCLExtractorBase: public AFGBuildableResourceExtract
 		/** ----- Cpp Functions END ----- */
 
 
+		
 		/** ----- Inventory Stuff ----- */
-		virtual UClass* GetReplicationDetailActorClass() const override;
+		UPROPERTY()
+		TMap<FName, UFGInventoryComponent*> mCachedInventorys;
 
 		UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
-		UFGInventoryComponent* GetInventory() const;
+		virtual UFGInventoryComponent*  GetInventoryFromType(EKPCLInventoryType Type) const;
 
-		virtual void             ReconfigureInventory();
+		/** ----- Input Inventory ----- */
+		UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
+		virtual UFGInventoryComponent* GetInventory() const;
+
+		virtual void InitInputInventory();
 		FORCEINLINE virtual bool FilterInputInventory(TSubclassOf<UObject> object, int32 idx) const { return true; }
 		FORCEINLINE virtual bool FormFilterInputInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const { return true; }
 
 		UFUNCTION()
-		virtual void OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved) {
+		virtual void OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved, UFGInventoryComponent* sourceInventory) {
 		}
 
 		UFUNCTION()
-		virtual void OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved) {
+		virtual void OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved, UFGInventoryComponent* sourceInventory) {
+		}
+		/** ----- Input Inventory END ----- */
+
+		/** ----- Input Inventory ----- */
+		UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
+		virtual UFGInventoryComponent* GetOutputInventory() const;
+
+		virtual void InitOutputInventory();
+		FORCEINLINE virtual bool FilterOutputInventory(TSubclassOf<UObject> object, int32 idx) const { return true; }
+		FORCEINLINE virtual bool FormFilterOutputInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const { return true; }
+
+		UFUNCTION()
+		virtual void OnOutputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved, UFGInventoryComponent* sourceInventory) {
 		}
 
-		friend class AKPCLReplicationActor_ExtractorBase;
+		UFUNCTION()
+		virtual void OnOutputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved, UFGInventoryComponent* sourceInventory) {
+		}
+		/** ----- Input Inventory END ----- */
 
-		UPROPERTY(EditDefaultsOnly, Category = "KMods|Inventory")
-		TArray<FKPCLInventoryStructure> mInventoryDatas;
-
-		UPROPERTY(SaveGame, Replicated)
-		TArray<FKPCLInventoryStructure> mInventoryDatasSaved;
-
+		/** ----- Input Inventory ----- */
 		UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
-		UFGInventoryComponent* GetInventoryFromIndex(int32 Idx) const;
+		virtual UFGInventoryComponent* GetBoosterInventory() const;
 
-		UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
-		bool GetInventoryData(int32 Idx, FKPCLInventoryStructure& Out) const;
+		virtual void InitBoosterInventory();
+		FORCEINLINE virtual bool FilterBoosterInventory(TSubclassOf<UObject> object, int32 idx) const { return true; }
+		FORCEINLINE virtual bool FormFilterBoosterInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const { return true; }
 
-		UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
-		bool GetStackFromInventory(int32 Idx, int32 InventoryIdx, FInventoryStack& Stack) const;
+		UFUNCTION()
+		virtual void OnBoosterItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved, UFGInventoryComponent* sourceInventory) {
+		}
 
-		UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
-		bool DoInventoryDataExsists(int32 Idx) const;
+		UFUNCTION()
+		virtual void OnBoosterItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved, UFGInventoryComponent* sourceInventory) {
+		}
+		/** ----- Input Inventory END ----- */
+	
+		virtual void InitInventories();
 
-		UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
-		bool AreAllInventorysValid() const;
-
-		UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
-		void ResizeInventory(int32 Idx, int32 Size);
-
-		virtual void OnRep_ReplicationDetailActor() override;
-
-		virtual void InitInventorys();
-
-		virtual void PreInitInventoryIdex(int32 Idx) {
-		};
-
-		virtual void PostInitInventoryIdex(int32 Idx) {
-		};
-
-		virtual void OnReplicatedInventoryIndex(int32 Idx) {
-		};
-
-		virtual void OnFlushInventoryIndex(int32 Idx) {
-		};
-
-		virtual void OnRemoveReplicatedInventoryIndex(int32 Idx) {
-		};
-
-		virtual bool GetInventorysAreValid() const;
-
-		UFUNCTION(BlueprintCallable, Category = "KMods|Production")
 		// set again the inventory on all Belts after and while init the replication actor
+		UFUNCTION(BlueprintCallable, Category = "KMods|Production")
 		virtual void SetBelts();
 		/** ----- Inventory Stuff END ----- */
 

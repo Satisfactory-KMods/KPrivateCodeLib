@@ -11,23 +11,15 @@
 #include "FGPowerConnectionComponent.h"
 #include "FGPowerInfoComponent.h"
 #include "FGProductionIndicatorComponent.h"
-#include "FGProductionIndicatorInstanceComponent.h"
 #include "KPrivateCodeLibModule.h"
 #include "BFL/KBFL_Player.h"
 #include "Components/KPCLBetterIndicator.h"
-#include "ModLoading/ModLoadingLibrary.h"
-
 #include "Net/UnrealNetwork.h"
-
-#include "Replication/FGReplicationDetailInventoryComponent.h"
 #include "Replication/KPCLDefaultRCO.h"
 #include "Replication/KPCLReplicationActor_ProducerBase.h"
 #include "Structures/KPCLFunctionalStructure.h"
-#include "Subsystem/KPCLPatreonSubsystem.h"
 
 AKPCLProducerBase::AKPCLProducerBase( ): mFGPowerConnection( nullptr ), mCustomProductionStateIndicator( nullptr ) {
-	mInventoryDatas.Add( FKPCLInventoryStructure( "Inv_Main" ) );
-
 	bReplicates = true;
 	mFactoryTickFunction.bCanEverTick = true;
 	PrimaryActorTick.bCanEverTick = true;
@@ -55,88 +47,34 @@ bool AKPCLProducerBase::ShouldSave_Implementation( ) const {
 	return true;
 }
 
-UFGInventoryComponent* AKPCLProducerBase::GetInventoryFromIndex( int32 Idx ) const {
-	if( !DoInventoryDataExsists( Idx ) ) {
-		return nullptr;
-	}
-	return mInventoryDatasSaved[ Idx ].GetInventory( );
-}
-
-bool AKPCLProducerBase::GetInventoryData( int32 Idx, FKPCLInventoryStructure& Out ) const {
-	if( DoInventoryDataExsists( Idx ) ) {
-		Out = mInventoryDatasSaved[ Idx ];
-		return true;
-	}
-	return false;
-}
-
-bool AKPCLProducerBase::GetStackFromInventory( int32 Idx, int32 InventoryIdx, FInventoryStack& Stack ) const {
-	UFGInventoryComponent* Inv = GetInventoryFromIndex( Idx );
-	if( IsValid( Inv ) ) {
-		return Inv->GetStackFromIndex( InventoryIdx, Stack );
-	}
-	return false;
-}
-
-bool AKPCLProducerBase::DoInventoryDataExsists( int32 Idx ) const {
-	return mInventoryDatasSaved.IsValidIndex( Idx );
-}
-
-bool AKPCLProducerBase::AreAllInventorysValid( ) const {
-	for( int32 Idx = 0; Idx < mInventoryDatasSaved.Num( ); ++Idx ) {
-		if( !IsValid( mInventoryDatasSaved[ Idx ].GetInventory_Detailed( ) ) ) {
-			return false;
-		}
-	}
-	return true;
-}
-
-void AKPCLProducerBase::ResizeInventory( int32 Idx, int32 Size ) {
-	if( DoInventoryDataExsists( Idx ) ) {
-		mInventoryDatasSaved[ Idx ].SetInventorySize( Size );
-	}
-}
-
-void AKPCLProducerBase::InitInventorys( ) {
+void AKPCLProducerBase::InitInventories( ) {
 	if( !HasAuthority( ) ) {
 		return;
 	}
 
-	for( int32 Idx = 0; Idx < mInventoryDatas.Num( ); ++Idx ) {
-		if( !mInventoryDatasSaved.IsValidIndex( Idx ) ) {
-			mInventoryDatasSaved.Add( mInventoryDatas[ Idx ] );
-		}
-
-		mInventoryDatasSaved[ Idx ].LoadDefaultData( mInventoryDatas[ Idx ] );
-
-		PreInitInventoryIdex( Idx );
-		mInventoryDatasSaved[ Idx ].InitInventory( this );
-		PostInitInventoryIdex( Idx );
+	TArray<UFGInventoryComponent*> Components;
+	GetComponents(Components);
+	for (UFGInventoryComponent* Component : Components)
+	{
+		
 	}
 
-	for( int32 Idx = 0; Idx < mInventoryDatasSaved.Num( ); ++Idx ) {
-		if( !mInventoryDatas.IsValidIndex( Idx ) ) {
-			mInventoryDatasSaved[ Idx ].RemoveInventory( );
-		}
+	if(IsValid(GetInventory()))
+	{
+		InitInputInventory();
 	}
-	mInventoryDatasSaved.SetNum( mInventoryDatas.Num( ) );
 
-	if( !GetInventorysAreValid( ) ) {
-		GetWorldTimerManager( ).SetTimerForNextTick( this, &AKPCLProducerBase::InitInventorys );
+	if(IsValid(GetOutputInventory()))
+	{
+		InitOutputInventory();
 	}
-	else {
-		ReconfigureInventory( );
-		SetBelts( );
-	}
-}
 
-bool AKPCLProducerBase::GetInventorysAreValid( ) const {
-	for( int32 Idx = 0; Idx < mInventoryDatasSaved.Num( ); ++Idx ) {
-		if( !IsValid( mInventoryDatasSaved[ Idx ].GetInventory( ) ) ) {
-			return false;
-		}
+	if(IsValid(GetBoosterInventory()))
+	{
+		InitBoosterInventory();
 	}
-	return true;
+
+	SetBelts( );
 }
 
 void AKPCLProducerBase::SetBelts( ) {
@@ -272,8 +210,7 @@ void AKPCLProducerBase::BeginPlay( ) {
 	InitComponents( );
 
 	if( HasAuthority( ) ) {
-		InitInventorys( );
-		ReconfigureInventory( );
+		InitInventories( );
 		HandlePowerInit( );
 		SetBelts( );
 	}
@@ -748,24 +685,6 @@ float AKPCLProducerBase::GetProducingPowerConsumptionBase( ) const {
 	return mPowerOptions.mNormalPowerConsume;
 }
 
-void AKPCLProducerBase::OnReplicationDetailActorCreated( ) {
-	Super::OnReplicationDetailActorCreated( );
-
-	RevalidateInventoryStateForReplication( );
-}
-
-void AKPCLProducerBase::OnReplicationDetailActorRemoved( ) {
-	Super::OnReplicationDetailActorRemoved( );
-
-	RevalidateInventoryStateForReplication( );
-}
-
-void AKPCLProducerBase::OnBuildableReplicationDetailStateChange( bool newStateIsActive ) {
-	Super::OnBuildableReplicationDetailStateChange( newStateIsActive );
-
-	RevalidateInventoryStateForReplication( );
-}
-
 void AKPCLProducerBase::CollectBelts( ) {}
 
 void AKPCLProducerBase::CollectAndPushPipes( float dt, bool IsPush ) {}
@@ -853,24 +772,6 @@ void AKPCLProducerBase::GetLifetimeReplicatedProps( TArray< FLifetimeProperty >&
 	DOREPLIFETIME( AKPCLProducerBase, mPowerOptions );
 	DOREPLIFETIME( AKPCLProducerBase, mCurrentState );
 	DOREPLIFETIME( AKPCLProducerBase, mMeshOverwriteInformations );
-	DOREPLIFETIME( AKPCLProducerBase, mInventoryDatasSaved );
-}
-
-void AKPCLProducerBase::OnRep_ReplicationDetailActor( ) {
-	Super::OnRep_ReplicationDetailActor( );
-
-	if( !HasAuthority( ) && mReplicationDetailActor ) {
-		AKPCLReplicationActor_ProducerBase* DetailActor = Cast< AKPCLReplicationActor_ProducerBase >( mReplicationDetailActor );
-		DetailActor->SetOwningBuildable( this );
-		if( DetailActor->HasCompletedInitialReplication( ) ) {
-			for( int32 Idx = 0; Idx < mInventoryDatasSaved.Num( ); ++Idx ) {
-				OnReplicatedInventoryIndex( Idx );
-			}
-		}
-		else {
-			GetWorldTimerManager( ).SetTimerForNextTick( this, &AKPCLProducerBase::OnRep_ReplicationDetailActor );
-		}
-	}
 }
 
 float AKPCLProducerBase::GetProductionTime( ) const {
@@ -880,6 +781,7 @@ float AKPCLProducerBase::GetProductionTime( ) const {
 float AKPCLProducerBase::GetPendingProductionTime( ) const {
 	return mProductionHandle.GetPendingProductionTime( );
 }
+
 
 FFullProductionHandle AKPCLProducerBase::GetProductionHandle( ) const {
 	return mProductionHandle;
@@ -900,16 +802,12 @@ float AKPCLProducerBase::GetProductionCycleTime( ) const {
 	return mProductionHandle.GetProductionTime( );
 }
 
-UClass* AKPCLProducerBase::GetReplicationDetailActorClass( ) const {
-	return AKPCLReplicationActor_ProducerBase::StaticClass( );
-}
-
 UFGInventoryComponent* AKPCLProducerBase::GetInventory( ) const {
-	return GetInventoryFromIndex( 0 );
+	return mCachedInventorys[ FKPCLInventoryStructure::InputName ];
 }
 
-void AKPCLProducerBase::ReconfigureInventory( ) {
-	if( GetInventory( ) ) {
+void AKPCLProducerBase::InitInputInventory()
+{
 		GetInventory( )->OnItemAddedDelegate.AddUniqueDynamic( this, &AKPCLProducerBase::OnInputItemAdded );
 		GetInventory( )->OnItemRemovedDelegate.AddUniqueDynamic( this, &AKPCLProducerBase::OnInputItemRemoved );
 
@@ -919,7 +817,53 @@ void AKPCLProducerBase::ReconfigureInventory( ) {
 		if( !GetInventory( )->mFormFilter.IsBoundToObject( this ) ) {
 			GetInventory( )->mFormFilter.BindUObject( this, &AKPCLProducerBase::FormFilterInputInventory );
 		}
-	}
+}
 
-	SetBelts( );
+UFGInventoryComponent* AKPCLProducerBase::GetOutputInventory() const
+{
+	return mCachedInventorys[ FKPCLInventoryStructure::OutputName ];
+}
+
+void AKPCLProducerBase::InitOutputInventory()
+{
+	GetOutputInventory( )->OnItemAddedDelegate.AddUniqueDynamic( this, &AKPCLProducerBase::OnOutputItemAdded );
+	GetOutputInventory( )->OnItemRemovedDelegate.AddUniqueDynamic( this, &AKPCLProducerBase::OnOutputItemRemoved );
+
+	if( !GetOutputInventory( )->mItemFilter.IsBoundToObject( this ) ) {
+		GetOutputInventory( )->mItemFilter.BindUObject( this, &AKPCLProducerBase::FilterOutputInventory );
+	}
+	if( !GetOutputInventory( )->mFormFilter.IsBoundToObject( this ) ) {
+		GetOutputInventory( )->mFormFilter.BindUObject( this, &AKPCLProducerBase::FormFilterOutputInventory );
+	}
+}
+
+UFGInventoryComponent* AKPCLProducerBase::GetBoosterInventory() const
+{
+	return mCachedInventorys[ FKPCLInventoryStructure::BoosterName ];
+}
+
+void AKPCLProducerBase::InitBoosterInventory()
+{
+	GetBoosterInventory( )->OnItemAddedDelegate.AddUniqueDynamic( this, &AKPCLProducerBase::OnBoosterItemAdded );
+	GetBoosterInventory( )->OnItemRemovedDelegate.AddUniqueDynamic( this, &AKPCLProducerBase::OnBoosterItemRemoved );
+
+	if( !GetBoosterInventory( )->mItemFilter.IsBoundToObject( this ) ) {
+		GetBoosterInventory( )->mItemFilter.BindUObject( this, &AKPCLProducerBase::FilterBoosterInventory );
+	}
+	if( !GetBoosterInventory( )->mFormFilter.IsBoundToObject( this ) ) {
+		GetBoosterInventory( )->mFormFilter.BindUObject( this, &AKPCLProducerBase::FormFilterBoosterInventory );
+	}
+}
+
+UFGInventoryComponent* AKPCLProducerBase::GetInventoryFromType(EKPCLInventoryType Type) const
+{
+	switch (Type)
+	{
+	case EKPCLInventoryType::Booster:
+		return GetBoosterInventory();
+	case EKPCLInventoryType::Output:
+		return GetBoosterInventory();
+	default:
+		return GetInventory();
+	}
 }

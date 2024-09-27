@@ -20,8 +20,6 @@
 #include "Structures/KPCLFunctionalStructure.h"
 
 AKPCLExtractorBase::AKPCLExtractorBase( ): mFGPowerConnection( nullptr ), mCustomProductionStateIndicator( nullptr ) {
-	mInventoryDatas.Add( FKPCLInventoryStructure( "Inv_Main" ) );
-
 	bReplicates = true;
 	mFactoryTickFunction.bCanEverTick = true;
 	PrimaryActorTick.bCanEverTick = true;
@@ -49,46 +47,34 @@ bool AKPCLExtractorBase::ShouldSave_Implementation( ) const {
 	return true;
 }
 
-void AKPCLExtractorBase::InitInventorys( ) {
+void AKPCLExtractorBase::InitInventories( ) {
 	if( !HasAuthority( ) ) {
 		return;
 	}
 
-	for( int32 Idx = 0; Idx < mInventoryDatas.Num( ); ++Idx ) {
-		if( !mInventoryDatasSaved.IsValidIndex( Idx ) ) {
-			mInventoryDatasSaved.Add( mInventoryDatas[ Idx ] );
-		}
-
-		mInventoryDatasSaved[ Idx ].LoadDefaultData( mInventoryDatas[ Idx ] );
-
-		PreInitInventoryIdex( Idx );
-		mInventoryDatasSaved[ Idx ].InitInventory( this );
-		PostInitInventoryIdex( Idx );
+	TArray<UFGInventoryComponent*> Components;
+	GetComponents(Components);
+	for (UFGInventoryComponent* Component : Components)
+	{
+		
 	}
 
-	for( int32 Idx = 0; Idx < mInventoryDatasSaved.Num( ); ++Idx ) {
-		if( !mInventoryDatas.IsValidIndex( Idx ) ) {
-			mInventoryDatasSaved[ Idx ].RemoveInventory( );
-		}
+	if(IsValid(GetInventory()))
+	{
+		InitInputInventory();
 	}
-	mInventoryDatasSaved.SetNum( mInventoryDatas.Num( ) );
 
-	if( !GetInventorysAreValid( ) ) {
-		GetWorldTimerManager( ).SetTimerForNextTick( this, &AKPCLExtractorBase::InitInventorys );
+	if(IsValid(GetOutputInventory()))
+	{
+		InitOutputInventory();
 	}
-	else {
-		ReconfigureInventory( );
-		SetBelts( );
-	}
-}
 
-bool AKPCLExtractorBase::GetInventorysAreValid( ) const {
-	for( int32 Idx = 0; Idx < mInventoryDatasSaved.Num( ); ++Idx ) {
-		if( !IsValid( mInventoryDatasSaved[ Idx ].GetInventory( ) ) ) {
-			return false;
-		}
+	if(IsValid(GetBoosterInventory()))
+	{
+		InitBoosterInventory();
 	}
-	return true;
+
+	SetBelts( );
 }
 
 void AKPCLExtractorBase::SetBelts( ) {
@@ -224,8 +210,7 @@ void AKPCLExtractorBase::BeginPlay( ) {
 	InitComponents( );
 
 	if( HasAuthority( ) ) {
-		InitInventorys( );
-		ReconfigureInventory( );
+		InitInventories( );
 		HandlePowerInit( );
 		SetBelts( );
 	}
@@ -358,8 +343,8 @@ void AKPCLExtractorBase::ApplyCustomizationData_Native( const FFactoryCustomizat
 	}
 }
 
-void AKPCLExtractorBase::SetCustomizationData_Native( const FFactoryCustomizationData& customizationData ) {
-	Super::SetCustomizationData_Native( customizationData );
+void AKPCLExtractorBase::SetCustomizationData_Native( const FFactoryCustomizationData& customizationData, bool skipCombine) {
+	Super::SetCustomizationData_Native( customizationData, skipCombine );
 
 	if( DoesContainLightweightInstances_Native( ) ) {
 		for( int32 Idx = 0; Idx < mInstanceHandles.Num( ); ++Idx ) {
@@ -438,7 +423,7 @@ bool AKPCLExtractorBase::AIO_OverwriteInstanceData_Transform( UStaticMesh* Mesh,
 			mCachedTransforms.Add( Idx, NewRelativTransform * GetActorTransform( ) );
 
 			ApplyCustomizationData_Native( mCustomizationData );
-			SetCustomizationData_Native( mCustomizationData );
+			SetCustomizationData_Native( mCustomizationData, false );
 
 			return true;
 		}
@@ -724,25 +709,6 @@ void AKPCLExtractorBase::Factory_PushPipeOutput_Implementation( float dt ) {
 		CollectAndPushPipes( dt, true );
 	}
 }
-
-void AKPCLExtractorBase::OnReplicationDetailActorCreated( ) {
-	Super::OnReplicationDetailActorCreated( );
-
-	RevalidateInventoryStateForReplication( );
-}
-
-void AKPCLExtractorBase::OnReplicationDetailActorRemoved( ) {
-	Super::OnReplicationDetailActorRemoved( );
-
-	RevalidateInventoryStateForReplication( );
-}
-
-void AKPCLExtractorBase::OnBuildableReplicationDetailStateChange( bool newStateIsActive ) {
-	Super::OnBuildableReplicationDetailStateChange( newStateIsActive );
-
-	RevalidateInventoryStateForReplication( );
-}
-
 void AKPCLExtractorBase::CollectBelts( ) {}
 
 void AKPCLExtractorBase::CollectAndPushPipes( float dt, bool IsPush ) {}
@@ -783,66 +749,6 @@ void AKPCLExtractorBase::GetLifetimeReplicatedProps( TArray< FLifetimeProperty >
 	DOREPLIFETIME( AKPCLExtractorBase, mPowerOptions );
 	DOREPLIFETIME( AKPCLExtractorBase, mCurrentState );
 	DOREPLIFETIME( AKPCLExtractorBase, mMeshOverwriteInformations );
-	DOREPLIFETIME( AKPCLExtractorBase, mInventoryDatasSaved );
-}
-
-UFGInventoryComponent* AKPCLExtractorBase::GetInventoryFromIndex( int32 Idx ) const {
-	if( !DoInventoryDataExsists( Idx ) ) {
-		return nullptr;
-	}
-	return mInventoryDatasSaved[ Idx ].GetInventory( );
-}
-
-bool AKPCLExtractorBase::GetInventoryData( int32 Idx, FKPCLInventoryStructure& Out ) const {
-	if( DoInventoryDataExsists( Idx ) ) {
-		Out = mInventoryDatasSaved[ Idx ];
-		return true;
-	}
-	return false;
-}
-
-bool AKPCLExtractorBase::GetStackFromInventory( int32 Idx, int32 InventoryIdx, FInventoryStack& Stack ) const {
-	UFGInventoryComponent* Inv = GetInventoryFromIndex( Idx );
-	if( IsValid( Inv ) ) {
-		return Inv->GetStackFromIndex( InventoryIdx, Stack );
-	}
-	return false;
-}
-
-bool AKPCLExtractorBase::DoInventoryDataExsists( int32 Idx ) const {
-	return mInventoryDatasSaved.IsValidIndex( Idx );
-}
-
-bool AKPCLExtractorBase::AreAllInventorysValid( ) const {
-	for( int32 Idx = 0; Idx < mInventoryDatasSaved.Num( ); ++Idx ) {
-		if( !IsValid( mInventoryDatasSaved[ Idx ].GetInventory_Detailed( ) ) ) {
-			return false;
-		}
-	}
-	return true;
-}
-
-void AKPCLExtractorBase::ResizeInventory( int32 Idx, int32 Size ) {
-	if( DoInventoryDataExsists( Idx ) ) {
-		mInventoryDatasSaved[ Idx ].SetInventorySize( Size );
-	}
-}
-
-void AKPCLExtractorBase::OnRep_ReplicationDetailActor( ) {
-	Super::OnRep_ReplicationDetailActor( );
-
-	if( !HasAuthority( ) && mReplicationDetailActor ) {
-		AKPCLReplicationActor_ExtractorBase* DetailActor = Cast< AKPCLReplicationActor_ExtractorBase >( mReplicationDetailActor );
-		DetailActor->SetOwningBuildable( this );
-		if( DetailActor->HasCompletedInitialReplication( ) ) {
-			for( int32 Idx = 0; Idx < mInventoryDatasSaved.Num( ); ++Idx ) {
-				OnReplicatedInventoryIndex( Idx );
-			}
-		}
-		else {
-			GetWorldTimerManager( ).SetTimerForNextTick( this, &AKPCLExtractorBase::OnRep_ReplicationDetailActor );
-		}
-	}
 }
 
 float AKPCLExtractorBase::GetProductionTime( ) const {
@@ -872,16 +778,12 @@ float AKPCLExtractorBase::GetProductionCycleTime( ) const {
 	return mProductionHandle.GetProductionTime( );
 }
 
-UClass* AKPCLExtractorBase::GetReplicationDetailActorClass( ) const {
-	return AKPCLReplicationActor_ExtractorBase::StaticClass( );
-}
-
 UFGInventoryComponent* AKPCLExtractorBase::GetInventory( ) const {
-	return GetInventoryFromIndex( 0 );
+	return mCachedInventorys[ FKPCLInventoryStructure::InputName ];
 }
 
-void AKPCLExtractorBase::ReconfigureInventory( ) {
-	if( GetInventory( ) ) {
+void AKPCLExtractorBase::InitInputInventory()
+{
 		GetInventory( )->OnItemAddedDelegate.AddUniqueDynamic( this, &AKPCLExtractorBase::OnInputItemAdded );
 		GetInventory( )->OnItemRemovedDelegate.AddUniqueDynamic( this, &AKPCLExtractorBase::OnInputItemRemoved );
 
@@ -891,7 +793,53 @@ void AKPCLExtractorBase::ReconfigureInventory( ) {
 		if( !GetInventory( )->mFormFilter.IsBoundToObject( this ) ) {
 			GetInventory( )->mFormFilter.BindUObject( this, &AKPCLExtractorBase::FormFilterInputInventory );
 		}
-	}
+}
 
-	SetBelts( );
+UFGInventoryComponent* AKPCLExtractorBase::GetOutputInventory() const
+{
+	return mCachedInventorys[ FKPCLInventoryStructure::OutputName ];
+}
+
+void AKPCLExtractorBase::InitOutputInventory()
+{
+	GetOutputInventory( )->OnItemAddedDelegate.AddUniqueDynamic( this, &AKPCLExtractorBase::OnOutputItemAdded );
+	GetOutputInventory( )->OnItemRemovedDelegate.AddUniqueDynamic( this, &AKPCLExtractorBase::OnOutputItemRemoved );
+
+	if( !GetOutputInventory( )->mItemFilter.IsBoundToObject( this ) ) {
+		GetOutputInventory( )->mItemFilter.BindUObject( this, &AKPCLExtractorBase::FilterOutputInventory );
+	}
+	if( !GetOutputInventory( )->mFormFilter.IsBoundToObject( this ) ) {
+		GetOutputInventory( )->mFormFilter.BindUObject( this, &AKPCLExtractorBase::FormFilterOutputInventory );
+	}
+}
+
+UFGInventoryComponent* AKPCLExtractorBase::GetBoosterInventory() const
+{
+	return mCachedInventorys[ FKPCLInventoryStructure::BoosterName ];
+}
+
+void AKPCLExtractorBase::InitBoosterInventory()
+{
+	GetBoosterInventory( )->OnItemAddedDelegate.AddUniqueDynamic( this, &AKPCLExtractorBase::OnBoosterItemAdded );
+	GetBoosterInventory( )->OnItemRemovedDelegate.AddUniqueDynamic( this, &AKPCLExtractorBase::OnBoosterItemRemoved );
+
+	if( !GetBoosterInventory( )->mItemFilter.IsBoundToObject( this ) ) {
+		GetBoosterInventory( )->mItemFilter.BindUObject( this, &AKPCLExtractorBase::FilterBoosterInventory );
+	}
+	if( !GetBoosterInventory( )->mFormFilter.IsBoundToObject( this ) ) {
+		GetBoosterInventory( )->mFormFilter.BindUObject( this, &AKPCLExtractorBase::FormFilterBoosterInventory );
+	}
+}
+
+UFGInventoryComponent* AKPCLExtractorBase::GetInventoryFromType(EKPCLInventoryType Type) const
+{
+	switch (Type)
+	{
+	case EKPCLInventoryType::Booster:
+		return GetBoosterInventory();
+	case EKPCLInventoryType::Output:
+		return GetBoosterInventory();
+	default:
+		return GetInventory();
+	}
 }

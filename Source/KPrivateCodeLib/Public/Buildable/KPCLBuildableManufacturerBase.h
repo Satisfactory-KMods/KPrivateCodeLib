@@ -49,7 +49,7 @@ class KPRIVATECODELIB_API AKPCLBuildableManufacturerBase : public AFGBuildableMa
 
 		virtual void ApplyCustomizationData_Native( const FFactoryCustomizationData& customizationData ) override;
 
-		virtual void SetCustomizationData_Native( const FFactoryCustomizationData& customizationData ) override;
+		virtual void SetCustomizationData_Native( const FFactoryCustomizationData& customizationData, bool skipCombine ) override;
 
 		virtual void InitMeshOverwriteInformation( );
 
