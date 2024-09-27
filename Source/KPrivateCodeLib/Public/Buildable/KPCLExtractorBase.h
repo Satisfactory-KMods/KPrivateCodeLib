@@ -266,9 +266,6 @@ class KPRIVATECODELIB_API AKPCLExtractorBase: public AFGBuildableResourceExtract
 		/** ----- Input Inventory END ----- */
 
 		/** ----- Input Inventory ----- */
-		UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
-		virtual UFGInventoryComponent* GetOutputInventory() const;
-
 		virtual void InitOutputInventory();
 		FORCEINLINE virtual bool FilterOutputInventory(TSubclassOf<UObject> object, int32 idx) const { return true; }
 		FORCEINLINE virtual bool FormFilterOutputInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const { return true; }

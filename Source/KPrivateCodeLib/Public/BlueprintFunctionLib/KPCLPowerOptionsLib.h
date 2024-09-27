@@ -36,3 +36,4 @@ class KPRIVATECODELIB_API UKPCLPowerOptionsLib: public UBlueprintFunctionLibrary
 		UFUNCTION(BlueprintPure, Category="KMods|BFL")
 		static bool IsPowerVariable(FPowerOptions PowerOption);
 };
+ 

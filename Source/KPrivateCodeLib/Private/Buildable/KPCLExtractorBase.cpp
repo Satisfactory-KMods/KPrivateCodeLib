@@ -797,11 +797,6 @@ void AKPCLExtractorBase::InitInputInventory()
 		}
 }
 
-UFGInventoryComponent* AKPCLExtractorBase::GetOutputInventory() const
-{
-	return mCachedInventorys[ FKPCLInventoryStructure::OutputName ];
-}
-
 void AKPCLExtractorBase::InitOutputInventory()
 {
 	GetOutputInventory( )->OnItemAddedDelegate.AddUniqueDynamic( this, &AKPCLExtractorBase::OnOutputItemAdded );
