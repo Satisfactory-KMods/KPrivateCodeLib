@@ -1,9 +1,12 @@
 #include "OutlineSystem/KPCLOutlineSubsystem.h"
 
+#include "EngineUtils.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Replication/KPCLDefaultRCO.h"
 
 #include "BFL/KBFL_Util.h"
+#include "Engine/PostProcessVolume.h"
+#include "Materials/MaterialParameterCollectionInstance.h"
 #include "OutlineSystem/KPCLOutlineActor.h"
 
 AKPCLOutlineSubsystem* AKPCLOutlineSubsystem::Get(UObject* worldContext) {

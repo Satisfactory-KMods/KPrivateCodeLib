@@ -24,25 +24,3 @@ void UKPCLUnlockNetworkTier::SendToSubsystem( AFGUnlockSubsystem* unlockSubssyte
 		Subsystem->UnlockNetworkTier( mSchematic );
 	}
 }
-
-void UKPCLUnlockDecoration::Unlock( AFGUnlockSubsystem* unlockSubssytem ) {
-	Super::Unlock( unlockSubssytem );
-	SendToSubsystem( unlockSubssytem );
-}
-
-void UKPCLUnlockDecoration::Apply( AFGUnlockSubsystem* unlockSubssytem ) {
-	Super::Apply( unlockSubssytem );
-	SendToSubsystem( unlockSubssytem );
-}
-
-bool UKPCLUnlockDecoration::IsRepeatPurchasesAllowed_Implementation( ) const {
-	return true;
-}
-
-void UKPCLUnlockDecoration::SendToSubsystem( AFGUnlockSubsystem* unlockSubssytem ) {
-	if( unlockSubssytem && ensure( mDecorations.Num() > 0 ) ) {
-		AKPCLUnlockSubsystem* Subsystem = AKPCLUnlockSubsystem::Get( unlockSubssytem->GetWorld( ) );
-		check( Subsystem );
-		Subsystem->UnlockDecorations( mDecorations );
-	}
-}

@@ -1,7 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #include "Replication/KPCLDefaultRCO.h"
 
-#include "Buildable/KPCLBuildableDecorActor.h"
 #include "Buildable/KPCLExtractorBase.h"
 #include "Buildable/KPCLProducerBase.h"
 #include "Looting/KPCLLootChest.h"
@@ -108,12 +107,6 @@ int32 UKPCLDefaultRCO::MoveItemAmount( UFGInventoryComponent* Source, int32 Sour
 		}
 	}
 	return 0;
-}
-
-void UKPCLDefaultRCO::Server_SetNewActorData_Implementation( AKPCLBuildableDecorActor* Target, TSubclassOf< UKPCLDecorationRecipe > Data, AFGCharacterPlayer* Player ) {
-	if( IsValid( Target ) ) {
-		Target->SetNewActorData( Data, Player );
-	}
 }
 
 void UKPCLDefaultRCO::Server_UnlockEndlessShopItems_Implementation( AKPCLUnlockSubsystem* Target, AFGCharacterPlayer* Player, const TArray< TSubclassOf< UKPCLEndlessShopItem > >& UnlockingItems ) {

@@ -124,14 +124,6 @@ class KPRIVATECODELIB_API UKPCLDefaultRCO: public UFGRemoteCallObject {
 		void Server_SetTeleporterData(class AKPCLNetworkTeleporter* Target, FTeleporterInformation NewData);
 		bool Server_SetTeleporterData_Validate(class AKPCLNetworkTeleporter* Target, FTeleporterInformation NewData) { return true; }
 
-		UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
-		void Server_UnlockEndlessShopItems(class AKPCLUnlockSubsystem* Target, AFGCharacterPlayer* Player, const TArray<TSubclassOf<UKPCLEndlessShopItem>>& UnlockingItems);
-		bool Server_UnlockEndlessShopItems_Validate(class AKPCLUnlockSubsystem* Target, AFGCharacterPlayer* Player, const TArray<TSubclassOf<UKPCLEndlessShopItem>>& UnlockingItems) { return true; }
-
-		UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
-		void Server_SetNewActorData(class AKPCLBuildableDecorActor* Target, TSubclassOf<UKPCLDecorationRecipe> Data, AFGCharacterPlayer* Player);
-		bool Server_SetNewActorData_Validate(class AKPCLBuildableDecorActor* Target, TSubclassOf<UKPCLDecorationRecipe> Data, AFGCharacterPlayer* Player) { return true; }
-
 		UPROPERTY(Replicated)
 		bool mDummy = true;
 };
