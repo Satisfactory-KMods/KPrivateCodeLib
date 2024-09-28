@@ -17,86 +17,105 @@
 
 
 // Sets default values
-AKPCLLootChest::AKPCLLootChest( ) : Super( ) {
+AKPCLLootChest::AKPCLLootChest() : Super()
+{
 	PrimaryActorTick.bCanEverTick = 1;
 	PrimaryActorTick.bStartWithTickEnabled = 1;
 
-	mInventory = CreateDefaultSubobject< UFGInventoryComponent >( FKPCLInventoryStructure::InputName );
+	mInventory = CreateDefaultSubobject<UFGInventoryComponent>(FKPCLInventoryStructure::InputName);
 }
 
-void AKPCLLootChest::GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutLifetimeProps ) const {
-	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
+void AKPCLLootChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME( AKPCLLootChest, mLootableTable );
+	DOREPLIFETIME(AKPCLLootChest, mLootableTable);
+	DOREPLIFETIME(AKPCLLootChest, mInventory);
 }
 
-bool AKPCLLootChest::ShouldSave_Implementation( ) const {
+bool AKPCLLootChest::ShouldSave_Implementation() const
+{
 	return true;
 }
 
-void AKPCLLootChest::OnUse_Implementation( AFGCharacterPlayer* byCharacter, const FUseState& state ) {
-	UE_LOG( LogTemp, Error, TEXT("OnUse_Implementation(%d) %d %d"), mLootableTable.Num(), !, mLootableTable.Num() <= 0 )
-	Super::OnUse_Implementation( byCharacter, state );
-}
+void AKPCLLootChest::BeginPlay()
+{
+	Super::BeginPlay();
 
-void AKPCLLootChest::BeginPlay( ) {
-	Super::BeginPlay( );
+	Mesh = FindComponentByClass<UFGColoredInstanceMeshProxy>();
 
-	Mesh = FindComponentByClass< UFGColoredInstanceMeshProxy >( );
+	if (HasAuthority())
+	{
+		GenerateLoot();
 
-	if( HasAuthority( ) ) {
-		GenerateLoot( );
-
-		GetInventory( )->OnItemAddedDelegate.AddUniqueDynamic( this, &AKPCLLootChest::OnInputItemAdded );
-		GetInventory( )->OnItemRemovedDelegate.AddUniqueDynamic( this, &AKPCLLootChest::OnInputItemRemoved );
-		GetInventory( )->OnItemRemovedDelegate.AddDynamic();
+		GetInventory()->OnItemAddedDelegate.AddUniqueDynamic(this, &AKPCLLootChest::OnInputItemAdded);
+		GetInventory()->OnItemRemovedDelegate.AddUniqueDynamic(this, &AKPCLLootChest::OnInputItemRemoved);
 	}
-	
-	if( WasLooted( ) ) {
-		if( Mesh ) {
-			Mesh->DestroyComponent( );
+
+	if (WasLooted())
+	{
+		if (Mesh)
+		{
+			Mesh->DestroyComponent();
 		}
 	}
 }
 
-void AKPCLLootChest::GenerateLoot( ) {
-	if(mLooted || !GetInventory( )->IsEmpty() || !HasAuthority()) return;
-	
-	if( !WasLooted( ) && mLootableTable.Num( ) <= 0 ) {
-		int32 Trys = mRandomTrys.GetRandom( );
+void AKPCLLootChest::GenerateLoot()
+{
+	if (mLooted || !GetInventory()->IsEmpty() || !HasAuthority())
+	{
+		return;
+	}
 
-		for( int32 idx = 0; idx < Trys; ++idx ) {
-			FKPCLLootChestRandomData Data = mRandomData[ UKismetMathLibrary::RandomIntegerInRange( 0, mRandomData.Num( ) - 1 ) ];
-			if( Data.mItemClass ) {
-				mLootableTable.Add( FItemAmount( Data.mItemClass, FMath::Max< int32 >( Data.mAmountRange.GetRandom( ) * FMath::Max< int32 >( 1, UFGItemDescriptor::GetStackSize( Data.mItemClass ) / 100 ) * Data.mAmountMultiplier, 1 ) ) );
+	if (!WasLooted() && mLootableTable.Num() <= 0)
+	{
+		int32 Trys = mRandomTrys.GetRandom();
+
+		for (int32 idx = 0; idx < Trys; ++idx)
+		{
+			FKPCLLootChestRandomData Data = mRandomData[UKismetMathLibrary::RandomIntegerInRange(
+				0, mRandomData.Num() - 1)];
+			if (Data.mItemClass)
+			{
+				mLootableTable.Add(FItemAmount(Data.mItemClass,
+				                               FMath::Max<int32>(
+					                               Data.mAmountRange.GetRandom() * FMath::Max<int32>(
+						                               1, UFGItemDescriptor::GetStackSize(Data.mItemClass) / 100) * Data
+					                               .mAmountMultiplier, 1)));
 			}
 		}
 	}
 
-	if( mLootableTable.Num( ) > 0 ) {
-		TMap< TSubclassOf< UFGItemDescriptor >, int32 > AmountMap;
-		for( FItemAmount LootableTable : mLootableTable ) {
+	if (mLootableTable.Num() > 0)
+	{
+		TMap<TSubclassOf<UFGItemDescriptor>, int32> AmountMap;
+		for (FItemAmount LootableTable : mLootableTable)
+		{
 			int32 Amount = 0;
-			if( AmountMap.Contains( LootableTable.ItemClass ) ) {
-				Amount = AmountMap[ LootableTable.ItemClass ];
+			if (AmountMap.Contains(LootableTable.ItemClass))
+			{
+				Amount = AmountMap[LootableTable.ItemClass];
 			}
 			Amount += LootableTable.Amount;
-			AmountMap.Add( LootableTable.ItemClass, Amount );
+			AmountMap.Add(LootableTable.ItemClass, Amount);
 		}
 
-		mLootableTable.Empty( );
-		for( TTuple< TSubclassOf< UFGItemDescriptor >, int > Map : AmountMap ) {
-			mLootableTable.Add( FItemAmount( Map.Key, Map.Value ) );
+		mLootableTable.Empty();
+		for (TTuple<TSubclassOf<UFGItemDescriptor>, int> Map : AmountMap)
+		{
+			mLootableTable.Add(FItemAmount(Map.Key, Map.Value));
 		}
 	}
 
 	for (FItemAmount Loot : mLootableTable)
 	{
-		GetInventory( )->AddStack(FInventoryStack(Loot.Amount, Loot.ItemClass));
+		GetInventory()->AddStack(FInventoryStack(Loot.Amount, Loot.ItemClass));
 	}
 }
 
-bool AKPCLLootChest::WasLooted( ) const {
+bool AKPCLLootChest::WasLooted() const
+{
 	return mLooted;
 }
 
@@ -105,60 +124,72 @@ UFGInventoryComponent* AKPCLLootChest::GetInventory() const
 	return mInventory;
 }
 
-void AKPCLLootChest::Loot( AFGCharacterPlayer* Player ) {
-	if( !Player ) {
+void AKPCLLootChest::Loot(AFGCharacterPlayer* Player)
+{
+	if (!Player)
+	{
 		return;
 	}
 
-	if( HasAuthority( ) ) {
-		TArray< FItemAmount > NotAddedAmount;
+	if (HasAuthority())
+	{
+		TArray<FItemAmount> NotAddedAmount;
 
-		for( FItemAmount Loot : mLootableTable ) {
-			if( Loot.ItemClass && Loot.Amount > 0 ) {
-				const int32 Added = Player->GetInventory( )->AddStack( FInventoryStack( Loot.Amount, Loot.ItemClass ), true );
+		for (FItemAmount Loot : mLootableTable)
+		{
+			if (Loot.ItemClass && Loot.Amount > 0)
+			{
+				const int32 Added = Player->GetInventory()->
+				                            AddStack(FInventoryStack(Loot.Amount, Loot.ItemClass), true);
 				Loot.Amount -= Added;
 
-				if( Loot.Amount > 0 ) {
-					NotAddedAmount.Add( Loot );
+				if (Loot.Amount > 0)
+				{
+					NotAddedAmount.Add(Loot);
 				}
 			}
 		}
 
 		mLootableTable = NotAddedAmount;
-		OnRep_LootTableUpdate( );
-		ForceNetUpdate( );
+		OnRep_LootTableUpdate();
+		ForceNetUpdate();
 	}
-	else if( UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get( GetWorld( ) ) ) {
-		RCO->Server_Core_LootChest( this, Player );
+	else if (UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get(GetWorld()))
+	{
+		RCO->Server_Core_LootChest(this, Player);
 	}
 }
 
 void AKPCLLootChest::OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-	UFGInventoryComponent* sourceInventory)
+                                        UFGInventoryComponent* sourceInventory)
 {
-	OnRep_LootTableUpdate( );
+	OnRep_LootTableUpdate();
 }
 
 void AKPCLLootChest::OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-	UFGInventoryComponent* sourceInventory)
+                                      UFGInventoryComponent* sourceInventory)
 {
-	OnRep_LootTableUpdate( );
+	OnRep_LootTableUpdate();
 }
 
-void AKPCLLootChest::OnRep_LootTableUpdate( ) {
-	if(!mLooted)
+void AKPCLLootChest::OnRep_LootTableUpdate()
+{
+	if (!mLooted)
 	{
-		mLooted = GetInventory( )->IsEmpty();
+		mLooted = GetInventory()->IsEmpty();
 	}
 
-	if( OnLootTableUpdated.IsBound( ) ) {
-		OnLootTableUpdated.Broadcast( );
+	if (OnLootTableUpdated.IsBound())
+	{
+		OnLootTableUpdated.Broadcast();
 	}
 
-	LootTableUpdated( );
-	if( mLooted ) {
-		if( Mesh ) {
-			Mesh->DestroyComponent( );
+	LootTableUpdated();
+	if (mLooted)
+	{
+		if (Mesh)
+		{
+			Mesh->DestroyComponent();
 		}
 	}
 }

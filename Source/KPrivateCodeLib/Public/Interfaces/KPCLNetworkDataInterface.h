@@ -9,7 +9,8 @@
 
 
 UENUM(BlueprintType)
-enum class ECoreDataSortOption : uint8 {
+enum class ECoreDataSortOption : uint8
+{
 	index UMETA(DisplayName = "Index"),
 	revindex UMETA(DisplayName = "Rev Index"),
 	alphab UMETA(DisplayName = "Alpha"),
@@ -21,14 +22,16 @@ enum class ECoreDataSortOption : uint8 {
 };
 
 UENUM(BlueprintType)
-enum class ECoreDataShowOption : uint8 {
+enum class ECoreDataShowOption : uint8
+{
 	NONE UMETA(DisplayName = "NONE"),
 	all UMETA(DisplayName = "All"),
 	fluid UMETA(DisplayName = "Fluid"),
 	solid UMETA(DisplayName = "Solid")};
 
 USTRUCT(BlueprintType)
-struct FCoreDataSortOptionStruc {
+struct FCoreDataSortOptionStruc
+{
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -51,12 +54,14 @@ struct FCoreDataSortOptionStruc {
 };
 
 USTRUCT(BlueprintType)
-struct FCoreInventoryData {
+struct FCoreInventoryData
+{
 	GENERATED_BODY()
 
 	FCoreInventoryData() = default;
 
-	FCoreInventoryData(TSubclassOf<UFGItemDescriptor> Item, int32 InventoryIndex): mItemForm() {
+	FCoreInventoryData(TSubclassOf<UFGItemDescriptor> Item, int32 InventoryIndex): mItemForm()
+	{
 		mItem = Item;
 		mInventoryIndex = InventoryIndex;
 	}
@@ -70,13 +75,15 @@ struct FCoreInventoryData {
 	UPROPERTY(BlueprintReadOnly)
 	int32 mInventoryIndex;
 
-	bool operator==(TSubclassOf<UFGItemDescriptor> other) const {
+	bool operator==(TSubclassOf<UFGItemDescriptor> other) const
+	{
 		return mItem == other;
 	};
 };
 
 USTRUCT(BlueprintType)
-struct FNetworkUIData {
+struct FNetworkUIData
+{
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -103,27 +110,29 @@ struct FNetworkUIData {
 
 // This class does not need to be modified.
 UINTERFACE()
-class UKPCLNetworkDataInterface: public UInterface {
+class UKPCLNetworkDataInterface : public UInterface
+{
 	GENERATED_BODY()
 };
 
 /**
  * 
  */
-class KPRIVATECODELIB_API IKPCLNetworkDataInterface {
+class KPRIVATECODELIB_API IKPCLNetworkDataInterface
+{
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
-	public:
-		UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="KPCLCustomDataInterface")
-		class AKPCLNetworkCore* GetCore() const;
+public:
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="KPCLCustomDataInterface")
+	class AKPCLNetworkCore* GetCore() const;
 
-		UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="KPCLCustomDataInterface")
-		bool HasCore() const;
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="KPCLCustomDataInterface")
+	bool HasCore() const;
 
-		UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="KPCLCustomDataInterface")
-		class UKPCLNetwork* GetNetwork() const;
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="KPCLCustomDataInterface")
+	class UKPCLNetwork* GetNetwork() const;
 
-		UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="KPCLCustomDataInterface")
-		FNetworkUIData GetUIDData() const;
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="KPCLCustomDataInterface")
+	FNetworkUIData GetUIDData() const;
 };

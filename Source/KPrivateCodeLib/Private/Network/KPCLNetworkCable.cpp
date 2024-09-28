@@ -6,7 +6,8 @@
 #include "Network/KPCLNetwork.h"
 
 
-AKPCLNetworkCable::AKPCLNetworkCable() {
+AKPCLNetworkCable::AKPCLNetworkCable()
+{
 	PrimaryActorTick.bCanEverTick = false;
 	mCircuitType = UKPCLNetwork::StaticClass();
 }

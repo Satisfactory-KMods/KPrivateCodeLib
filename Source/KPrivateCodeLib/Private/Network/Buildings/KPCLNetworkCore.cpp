@@ -33,12 +33,12 @@ AKPCLNetworkCore::AKPCLNetworkCore()
 	PrimaryActorTick.bCanEverTick = false;
 	mDismantleAllChilds = true;
 
-	mInventoryDatas.Add(FKPCLInventoryStructure("Inv_Output"));
-	mInventoryDatas.Add(FKPCLInventoryStructure("Inv_Fluid"));
+	mInputInventory = CreateDefaultSubobject<UFGInventoryComponent>(FKPCLInventoryStructure::InputName);
+	mOutputInventory = CreateDefaultSubobject<UFGInventoryComponent>(FKPCLInventoryStructure::OutputName);
+	mBoosterInventory = CreateDefaultSubobject<UFGInventoryComponent>(FKPCLInventoryStructure::BoosterName);
 
-	mInventoryDatas[0].mDontResizeOnBeginPlay = true;
-	mInventoryDatas[1].mInventorySize = 30;
-	mInventoryDatas[2].mInventorySize = 2;
+	mOutputInventory->SetDefaultSize(30);
+	mBoosterInventory->SetDefaultSize(2);
 
 	mForceNetUpdateOnRegisterPlayer = 1;
 }
@@ -573,6 +573,16 @@ void AKPCLNetworkCore::Factory_Tick(float dt)
 	}
 }
 
+void AKPCLNetworkCore::Factory_TickAuthOnly(float dt)
+{
+	Super::Factory_TickAuthOnly(dt);
+
+	if(mPlayerInventoryHandle.TickHandle(dt, CanConsumeFromPlayerInventory()))
+	{
+		OnConsumeFromPlayerInventory();
+	}
+}
+
 bool AKPCLNetworkCore::CanProduce_Implementation() const
 {
 	if (IsPlayingBuildEffect())
@@ -598,6 +608,28 @@ bool AKPCLNetworkCore::CanProduce_Implementation() const
 
 	return false;
 }
+
+bool AKPCLNetworkCore::CanConsumeFromPlayerInventory() const
+{
+	FInventoryStack Stack;
+	int32 Index;
+	return IsProducing() && GetStackThatCanConsumeFromPlayerInventory(Stack, Index);
+}
+
+void AKPCLNetworkCore::OnConsumeFromPlayerInventory()
+{
+	FInventoryStack Stack;
+	int32 Index;
+	if(GetStackThatCanConsumeFromPlayerInventory(Stack, Index))
+	{
+		GetPlayerBufferInventory()->RemoveFromIndex(Index, 1);
+	}
+}
+
+bool AKPCLNetworkCore::GetStackThatCanConsumeFromPlayerInventory(FInventoryStack& Stack, int32& Index) const
+{
+	return false;
+} 
 
 void AKPCLNetworkCore::TickPlayerNetworkInventory(float dt)
 {
@@ -664,12 +696,12 @@ void AKPCLNetworkCore::ReGroupSlaves()
 
 UFGInventoryComponent* AKPCLNetworkCore::GetPlayerBufferInventory() const
 {
-	return GetInventoryFromIndex(1);
+	return GetOutputInventory();
 }
 
 UFGInventoryComponent* AKPCLNetworkCore::GetFluidBufferInventory() const
 {
-	return GetInventoryFromIndex(2);
+	return GetBoosterInventory();
 }
 
 bool AKPCLNetworkCore::CanRemoveFromCore(const TArray<FItemAmount>& Amounts) const
@@ -752,26 +784,6 @@ int32 AKPCLNetworkCore::GetIndexFromItem(TSubclassOf<UFGItemDescriptor> ItemClas
 		return CoreData->mInventoryIndex;
 	}
 	return INDEX_NONE;
-}
-
-void AKPCLNetworkCore::ReconfigureInventory()
-{
-	Super::ReconfigureInventory();
-
-	if (GetPlayerBufferInventory())
-	{
-		GetPlayerBufferInventory()->OnItemAddedDelegate.AddUniqueDynamic(this, &AKPCLNetworkCore::OnPlayerItemAdded);
-		GetPlayerBufferInventory()->OnItemAddedDelegate.AddUniqueDynamic(this, &AKPCLNetworkCore::OnPlayerItemAdded);
-
-		if (!GetPlayerBufferInventory()->mItemFilter.IsBoundToObject(this))
-		{
-			GetPlayerBufferInventory()->mItemFilter.BindUObject(this, &AKPCLNetworkCore::FilterPlayerInventory);
-		}
-		if (!GetPlayerBufferInventory()->mFormFilter.IsBoundToObject(this))
-		{
-			GetPlayerBufferInventory()->mFormFilter.BindUObject(this, &AKPCLNetworkCore::FormFilterPlayerInventory);
-		}
-	}
 }
 
 bool AKPCLNetworkCore::FilterPlayerInventory(TSubclassOf<UObject> object, int32 idx) const
@@ -875,7 +887,10 @@ void AKPCLNetworkCore::ConfigureCoreInventory()
 
 void AKPCLNetworkCore::UpdateNetworkMax()
 {
-	if(!HasAuthority()) return;
+	if (!HasAuthority())
+	{
+		return;
+	}
 	if (ensure(GetNetworkInfoComponent()))
 	{
 		GetNetworkInfoComponent()->UpdateProcessorCapacity();
@@ -901,9 +916,10 @@ void AKPCLNetworkCore::CheckNetwork()
 	}
 }
 
-void AKPCLNetworkCore::OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved)
+void AKPCLNetworkCore::OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
+                                        UFGInventoryComponent* sourceInventory)
 {
-	Super::OnInputItemAdded(itemClass, numRemoved);
+	Super::OnInputItemAdded(itemClass, numRemoved, sourceInventory);
 
 	if (GetInventory())
 	{
@@ -940,9 +956,10 @@ void AKPCLNetworkCore::OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass
 	}
 }
 
-void AKPCLNetworkCore::OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved)
+void AKPCLNetworkCore::OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
+                                          UFGInventoryComponent* sourceInventory)
 {
-	Super::OnInputItemRemoved(itemClass, numRemoved);
+	Super::OnInputItemRemoved(itemClass, numRemoved, sourceInventory);
 
 	if (GetInventory())
 	{

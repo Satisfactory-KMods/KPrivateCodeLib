@@ -28,7 +28,8 @@ AKPCLNetworkBuildingAttachment::AKPCLNetworkBuildingAttachment()
 	mAbstractMeshAttachments.Add(FAbstractAttachmentMeshes(UFGFactoryConnectionComponent::StaticClass()));
 	mAbstractMeshAttachments.Add(FAbstractAttachmentMeshes(UFGPipeConnectionComponent::StaticClass()));
 	mAbstractMeshAttachments.Add(FAbstractAttachmentMeshes(UKPCLNetworkConnectionComponent::StaticClass()));
-	mNetworkConnectionComponent = CreateDefaultSubobject<UKPCLNetworkConnectionComponent>(TEXT("NetworkConnectionComponent"));
+	mNetworkConnectionComponent = CreateDefaultSubobject<UKPCLNetworkConnectionComponent>(
+		TEXT("NetworkConnectionComponent"));
 	mNetworkConnectionComponent->SetupAttachment(RootComponent);
 	mNetworkConnectionComponent->Mobility = EComponentMobility::Movable;
 }
@@ -45,12 +46,13 @@ void AKPCLNetworkBuildingAttachment::Factory_Tick(float dt)
 
 	// If the attached building is no longer valid, dismantle this attachment
 	// This also removes invalid attachments from the network for example if a mod was removed
-	if(HasAuthority() && !IsValid(GetAttachedBuilding()))
+	if (HasAuthority() && !IsValid(GetAttachedBuilding()))
 	{
 		UE_LOG(LogKPCL, Warning, TEXT("Dismantling %s Because Unknown mAttachedBuilding"), *GetName());
-		FFunctionGraphTask::CreateAndDispatchWhenReady( [&]( ) {
+		FFunctionGraphTask::CreateAndDispatchWhenReady([&]()
+		{
 			Execute_Dismantle(this);
-		}, GET_STATID( STAT_TaskGraph_OtherTasks ), nullptr, ENamedThreads::GameThread );
+		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 	}
 }
 
@@ -61,9 +63,12 @@ void AKPCLNetworkBuildingAttachment::RemoveAttachmentRule(UFGConnectionComponent
 
 void AKPCLNetworkBuildingAttachment::SetOrOverwriteRule(FNetworkAttachmentRules Rule)
 {
-	if(!Rule.mConnection) return;
+	if (!Rule.mConnection)
+	{
+		return;
+	}
 	auto ExistingRule = mNetworkAttachmentRules.FindByKey(Rule);
-	if(ExistingRule)
+	if (ExistingRule)
 	{
 		ExistingRule->mItem = Rule.mItem;
 		ExistingRule->mMaxAmount = Rule.mMaxAmount;
@@ -76,8 +81,11 @@ void AKPCLNetworkBuildingAttachment::SetOrOverwriteRule(FNetworkAttachmentRules 
 
 UFGPowerConnectionComponent* AKPCLNetworkBuildingAttachment::GetParentPowerConnection()
 {
-	if(mCachedPowerConnection) return mCachedPowerConnection;
-	if(IsValid(mAttachedBuilding))
+	if (mCachedPowerConnection)
+	{
+		return mCachedPowerConnection;
+	}
+	if (IsValid(mAttachedBuilding))
 	{
 		mCachedPowerConnection = mAttachedBuilding->GetComponentByClass<UFGPowerConnectionComponent>();
 		return mCachedPowerConnection;
@@ -87,36 +95,44 @@ UFGPowerConnectionComponent* AKPCLNetworkBuildingAttachment::GetParentPowerConne
 
 void AKPCLNetworkBuildingAttachment::OnAttachmentUpdated()
 {
-		UE_LOG(LogKPCL, Warning, TEXT("OnAttachmentUpdated"));
+	UE_LOG(LogKPCL, Warning, TEXT("OnAttachmentUpdated"));
 #if !UE_SERVER
-	if(mInstanceHandles.Num() > 0)
+	if (mInstanceHandles.Num() > 0)
 	{
 		UE_LOG(LogKPCL, Warning, TEXT("Remove Instance Handles"));
-		AAbstractInstanceManager::RemoveInstances( GetWorld(), mInstanceHandles, true );
+		AAbstractInstanceManager::RemoveInstances(GetWorld(), mInstanceHandles, true);
 	}
 
 	UpdatePowerConnectionPosition();
 
 	for (UFGConnectionComponent* AttachmentConnection : GetAllAttachmentConnections())
 	{
-		FTransform Transform = UKismetMathLibrary::MakeRelativeTransform(AttachmentConnection->GetComponentTransform(), GetActorTransform());
-		FAbstractAttachmentMeshes* MeshData = mAbstractMeshAttachments.FindByPredicate([&](const FAbstractAttachmentMeshes& Item)
-		{
-			if(!IsValid(Item.mTargetClass)) return false;
-			if(!IsValid(AttachmentConnection)) return false;
-			return AttachmentConnection->IsA(Item.mTargetClass);
-		});
-		if(MeshData)
+		FTransform Transform = UKismetMathLibrary::MakeRelativeTransform(
+			AttachmentConnection->GetComponentTransform(), GetActorTransform());
+		FAbstractAttachmentMeshes* MeshData = mAbstractMeshAttachments.FindByPredicate(
+			[&](const FAbstractAttachmentMeshes& Item)
+			{
+				if (!IsValid(Item.mTargetClass))
+				{
+					return false;
+				}
+				if (!IsValid(AttachmentConnection))
+				{
+					return false;
+				}
+				return AttachmentConnection->IsA(Item.mTargetClass);
+			});
+		if (MeshData)
 		{
 			UE_LOG(LogKPCL, Warning, TEXT("Creating Abstract Mesh Instance for AttachmentConnection"));
 			FInstanceData InstanceData;
 			InstanceData.StaticMesh = MeshData->mMesh;
 			InstanceData.Mobility = EComponentMobility::Static;
 			InstanceData.RelativeTransform = Transform;
-			InstanceData.NumCustomDataFloats= 20;
+			InstanceData.NumCustomDataFloats = 20;
 			InstanceData.bCastShadows = false;
 			InstanceData.bCastDistanceFieldShadows = false;
-			for(int32 i = 0; i < 20; i++)
+			for (int32 i = 0; i < 20; i++)
 			{
 				InstanceData.DefaultPerInstanceCustomData.Add(0.0f);
 			}
@@ -134,22 +150,32 @@ void AKPCLNetworkBuildingAttachment::OnAttachmentUpdated()
 void AKPCLNetworkBuildingAttachment::UpdatePowerConnectionPosition()
 {
 #if !UE_SERVER
-	if(IsValid(GetParentPowerConnection()) || IsValid(GetAttachedBuilding()))
+	if (IsValid(GetParentPowerConnection()) || IsValid(GetAttachedBuilding()))
 	{
-		FTransform Transform = IsValid(GetParentPowerConnection()) ? GetParentPowerConnection()->GetComponentTransform() : GetAttachedBuilding()->GetActorTransform();
-		FAbstractAttachmentMeshes* MeshData = mAbstractMeshAttachments.FindByPredicate([&](const FAbstractAttachmentMeshes& Item)
-		{
-			return Item.mTargetClass == UFGPowerConnectionComponent::StaticClass();
-		});
-		if(MeshData)
-		{
-			FNetworkPowerOffset* OffsetData = mPowerConnectionOffsets.FindByPredicate([&](const FNetworkPowerOffset& Item)
+		FTransform Transform = IsValid(GetParentPowerConnection())
+			                       ? GetParentPowerConnection()->GetComponentTransform()
+			                       : GetAttachedBuilding()->GetActorTransform();
+		FAbstractAttachmentMeshes* MeshData = mAbstractMeshAttachments.FindByPredicate(
+			[&](const FAbstractAttachmentMeshes& Item)
 			{
-				if(!IsValid(Item.mBuildingClass)) return false;
-				if(!IsValid(GetAttachedBuilding())) return false;
-				return GetAttachedBuilding()->IsA(Item.mBuildingClass);
+				return Item.mTargetClass == UFGPowerConnectionComponent::StaticClass();
 			});
-			if(OffsetData)
+		if (MeshData)
+		{
+			FNetworkPowerOffset* OffsetData = mPowerConnectionOffsets.FindByPredicate(
+				[&](const FNetworkPowerOffset& Item)
+				{
+					if (!IsValid(Item.mBuildingClass))
+					{
+						return false;
+					}
+					if (!IsValid(GetAttachedBuilding()))
+					{
+						return false;
+					}
+					return GetAttachedBuilding()->IsA(Item.mBuildingClass);
+				});
+			if (OffsetData)
 			{
 				Transform = Transform * OffsetData->mOffset;
 			}
@@ -158,11 +184,11 @@ void AKPCLNetworkBuildingAttachment::UpdatePowerConnectionPosition()
 			mNetworkConnectionComponent->SetWorldTransform(Transform);
 			mNetworkConnectionComponent->SetMobility(EComponentMobility::Static);
 
-			TInlineComponentArray< AFGBuildableWire* > out_wires;
-			mNetworkConnectionComponent->GetWires( out_wires );
+			TInlineComponentArray<AFGBuildableWire*> out_wires;
+			mNetworkConnectionComponent->GetWires(out_wires);
 			for (AFGBuildableWire* Out_Wire : out_wires)
 			{
-				if(Out_Wire)
+				if (Out_Wire)
 				{
 					// We want to do that in the next tick to all things are set correctly
 					GetWorldTimerManager().SetTimerForNextTick([&, Out_Wire]()
@@ -172,17 +198,17 @@ void AKPCLNetworkBuildingAttachment::UpdatePowerConnectionPosition()
 				}
 			}
 
-			if(!GetParentPowerConnection())
+			if (!GetParentPowerConnection())
 			{
 				UE_LOG(LogKPCL, Warning, TEXT("Creating Abstract Mesh Instance for PowerPole"));
 				FInstanceData InstanceData;
 				InstanceData.StaticMesh = MeshData->mMesh;
 				InstanceData.Mobility = EComponentMobility::Static;
 				InstanceData.RelativeTransform = Transform;
-				InstanceData.NumCustomDataFloats= 20;
+				InstanceData.NumCustomDataFloats = 20;
 				InstanceData.bCastShadows = false;
 				InstanceData.bCastDistanceFieldShadows = false;
-				for(int32 i = 0; i < 20; i++)
+				for (int32 i = 0; i < 20; i++)
 				{
 					InstanceData.DefaultPerInstanceCustomData.Add(0.0f);
 				}
@@ -209,7 +235,7 @@ TArray<UFGConnectionComponent*> AKPCLNetworkBuildingAttachment::GetAllAttachment
 void AKPCLNetworkBuildingAttachment::CacheDataForAttachment()
 {
 	UE_LOG(LogKPCL, Warning, TEXT("CacheDataForAttachment"));
-	if(HasAuthority() && IsAttached())
+	if (HasAuthority() && IsAttached())
 	{
 		UE_LOG(LogKPCL, Warning, TEXT("IsAttached to %s"), *mAttachedBuilding->GetName());
 		TArray<UFGConnectionComponent*> Connections;
@@ -219,29 +245,31 @@ void AKPCLNetworkBuildingAttachment::CacheDataForAttachment()
 		{
 			if (UFGFactoryConnectionComponent* FactoryConnection = Cast<UFGFactoryConnectionComponent>(Connection))
 			{
-				if(FactoryConnection->GetDirection() == EFactoryConnectionDirection::FCD_INPUT)
+				if (FactoryConnection->GetDirection() == EFactoryConnectionDirection::FCD_INPUT)
 				{
 					mCachedBeltConnectionsInput.Add(FactoryConnection);
 				}
-				else if(FactoryConnection->GetDirection() == EFactoryConnectionDirection::FCD_OUTPUT)
+				else if (FactoryConnection->GetDirection() == EFactoryConnectionDirection::FCD_OUTPUT)
 				{
 					mCachedBeltConnectionsOutput.Add(FactoryConnection);
 				}
 			}
 			else if (UFGPipeConnectionComponent* PipeConnection = Cast<UFGPipeConnectionComponent>(Connection))
 			{
-				if(PipeConnection->GetPipeConnectionType() == EPipeConnectionType::PCT_CONSUMER)
+				if (PipeConnection->GetPipeConnectionType() == EPipeConnectionType::PCT_CONSUMER)
 				{
 					mCachedPipeConnectionsInput.Add(PipeConnection);
 				}
-				else if(PipeConnection->GetPipeConnectionType() == EPipeConnectionType::PCT_PRODUCER)
+				else if (PipeConnection->GetPipeConnectionType() == EPipeConnectionType::PCT_PRODUCER)
 				{
 					mCachedPipeConnectionsOutput.Add(PipeConnection);
 				}
 			}
 		}
 		InitConnections();
-	} else if(!IsAttached()) {
+	}
+	else if (!IsAttached())
+	{
 		UE_LOG(LogKPCL, Error, TEXT("Attachment %s is not attached to a building!"), *GetName());
 	}
 	OnAttachmentUpdated();
@@ -249,7 +277,10 @@ void AKPCLNetworkBuildingAttachment::CacheDataForAttachment()
 
 void AKPCLNetworkBuildingAttachment::InitConnections()
 {
-	if(!HasAuthority() || !IsValid(mAttachedBuilding)) return;
+	if (!HasAuthority() || !IsValid(mAttachedBuilding))
+	{
+		return;
+	}
 	TArray<UFGConnectionComponent*> Connections = GetAllAttachmentConnections();
 	GetInventory()->Resize(FMath::Max(1, Connections.Num()));
 	int32 Idx = 0;
@@ -260,18 +291,23 @@ void AKPCLNetworkBuildingAttachment::InitConnections()
 		{
 			return AttachmentConnection == Item.mParent;
 		});
-		if(!ExistingConnection)
+		if (!ExistingConnection)
 		{
 			FConnectionPair NewPair;
 			NewPair.mParent = AttachmentConnection;
-			if (UFGFactoryConnectionComponent* FactoryConnection = Cast<UFGFactoryConnectionComponent>(AttachmentConnection))
+			if (UFGFactoryConnectionComponent* FactoryConnection = Cast<UFGFactoryConnectionComponent>(
+				AttachmentConnection))
 			{
-				if(FactoryConnection->GetDirection() == EFactoryConnectionDirection::FCD_INPUT || FactoryConnection->GetDirection() == EFactoryConnectionDirection::FCD_OUTPUT)
+				if (FactoryConnection->GetDirection() == EFactoryConnectionDirection::FCD_INPUT || FactoryConnection->
+					GetDirection() == EFactoryConnectionDirection::FCD_OUTPUT)
 				{
-					UFGFactoryConnectionComponent* BuildingConnection = NewObject<UFGFactoryConnectionComponent>(this, FName("Slave_" + FactoryConnection->GetName()));
+					UFGFactoryConnectionComponent* BuildingConnection = NewObject<UFGFactoryConnectionComponent>(
+						this, FName("Slave_" + FactoryConnection->GetName()));
 					NewPair.mBuilding = BuildingConnection;
 
-					BuildingConnection->AttachToComponent(GetRootComponent(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, false), NAME_None);
+					BuildingConnection->AttachToComponent(GetRootComponent(),
+					                                      FAttachmentTransformRules(
+						                                      EAttachmentRule::KeepRelative, false), NAME_None);
 					BuildingConnection->mDirection = FactoryConnection->GetCompatibleSnapDirection();
 					BuildingConnection->SetRelativeTransform(FactoryConnection->GetRelativeTransform());
 					BuildingConnection->SetupAttachment(GetRootComponent());
@@ -283,15 +319,23 @@ void AKPCLNetworkBuildingAttachment::InitConnections()
 					FactoryConnection->SetConnection(BuildingConnection);
 				}
 			}
-			else if (UFGPipeConnectionComponent* PipeConnection = Cast<UFGPipeConnectionComponent>(AttachmentConnection))
+			else if (UFGPipeConnectionComponent* PipeConnection = Cast<
+				UFGPipeConnectionComponent>(AttachmentConnection))
 			{
-				if(PipeConnection->GetPipeConnectionType() == EPipeConnectionType::PCT_CONSUMER || PipeConnection->GetPipeConnectionType() == EPipeConnectionType::PCT_PRODUCER)
+				if (PipeConnection->GetPipeConnectionType() == EPipeConnectionType::PCT_CONSUMER || PipeConnection->
+					GetPipeConnectionType() == EPipeConnectionType::PCT_PRODUCER)
 				{
-					UFGPipeConnectionComponent* BuildingConnection = NewObject<UFGPipeConnectionComponent>(this, FName("Slave_" + PipeConnection->GetName()));
+					UFGPipeConnectionComponent* BuildingConnection = NewObject<UFGPipeConnectionComponent>(
+						this, FName("Slave_" + PipeConnection->GetName()));
 					NewPair.mBuilding = BuildingConnection;
 
-					BuildingConnection->AttachToComponent(GetRootComponent(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, false), NAME_None);
-					BuildingConnection->SetPipeConnectionType(PipeConnection->GetPipeConnectionType() == EPipeConnectionType::PCT_CONSUMER ? EPipeConnectionType::PCT_PRODUCER : EPipeConnectionType::PCT_CONSUMER);
+					BuildingConnection->AttachToComponent(GetRootComponent(),
+					                                      FAttachmentTransformRules(
+						                                      EAttachmentRule::KeepRelative, false), NAME_None);
+					BuildingConnection->SetPipeConnectionType(
+						PipeConnection->GetPipeConnectionType() == EPipeConnectionType::PCT_CONSUMER
+							? EPipeConnectionType::PCT_PRODUCER
+							: EPipeConnectionType::PCT_CONSUMER);
 					BuildingConnection->SetupAttachment(GetRootComponent());
 					BuildingConnection->SetRelativeTransform(PipeConnection->GetRelativeTransform());
 					BuildingConnection->SetInventory(GetInventory());
@@ -303,10 +347,10 @@ void AKPCLNetworkBuildingAttachment::InitConnections()
 				}
 			}
 
-			if( IsValid(NewPair.mBuilding))
+			if (IsValid(NewPair.mBuilding))
 			{
 				mConnections.Add(NewPair);
-			} 
+			}
 		}
 		Idx++;
 	}
@@ -315,7 +359,7 @@ void AKPCLNetworkBuildingAttachment::InitConnections()
 void AKPCLNetworkBuildingAttachment::AttachTo(AFGBuildable* Building, bool ConnectFromHologram)
 {
 	mAttachedBuilding = Building;
-	if(!ConnectFromHologram)
+	if (!ConnectFromHologram)
 	{
 		CacheDataForAttachment();
 	}
@@ -327,7 +371,7 @@ bool AKPCLNetworkBuildingAttachment::GetRequiredItems(TArray<FItemAmount>& Items
 }
 
 bool AKPCLNetworkBuildingAttachment::PushToNetwork(TArray<FItemAmount>& ToPush, float MaxSolidBytes,
-	float MaxFluidBytes)
+                                                   float MaxFluidBytes)
 {
 	return false;
 }
@@ -336,4 +380,3 @@ bool AKPCLNetworkBuildingAttachment::GetFromNetwork(const TArray<FItemAmount>& T
 {
 	return false;
 }
-

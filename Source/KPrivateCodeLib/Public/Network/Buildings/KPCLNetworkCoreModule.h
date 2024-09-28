@@ -6,29 +6,31 @@
 #include "KPCLNetworkCoreModule.generated.h"
 
 UENUM(BlueprintType)
-enum class EKPCLDirection : uint8 {
+enum class EKPCLDirection : uint8
+{
 	Output,
 	Input,
 	Storage
 };
 
 UCLASS()
-class KPRIVATECODELIB_API AKPCLNetworkCoreModule: public AKPCLNetworkBuildingBase {
+class KPRIVATECODELIB_API AKPCLNetworkCoreModule : public AKPCLNetworkBuildingBase
+{
 	GENERATED_BODY()
 
-	public:
-		AKPCLNetworkCoreModule();
+public:
+	AKPCLNetworkCoreModule();
 
-		void         GetStats(EKPCLDirection& Direction, int32& FluidMax, int32& SolidMax) const;
-		virtual void OnTierUpdated() override;
+	void GetStats(EKPCLDirection& Direction, int32& FluidMax, int32& SolidMax) const;
+	virtual void OnTierUpdated() override;
 
-	private:
-		UPROPERTY(EditDefaultsOnly, Category="KMods|Network")
-		EKPCLDirection mDirection = EKPCLDirection::Input;
+private:
+	UPROPERTY(EditDefaultsOnly, Category="KMods|Network")
+	EKPCLDirection mDirection = EKPCLDirection::Input;
 
-		UPROPERTY(EditDefaultsOnly, Category="KMods|Network")
-		int32 mFluidMax = 30000;
+	UPROPERTY(EditDefaultsOnly, Category="KMods|Network")
+	int32 mFluidMax = 30000;
 
-		UPROPERTY(EditDefaultsOnly, Category="KMods|Network")
-		int32 mSolidMax = 15;
+	UPROPERTY(EditDefaultsOnly, Category="KMods|Network")
+	int32 mSolidMax = 15;
 };

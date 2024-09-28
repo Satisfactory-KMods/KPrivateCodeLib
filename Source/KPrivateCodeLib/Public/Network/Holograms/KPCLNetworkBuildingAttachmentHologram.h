@@ -18,7 +18,7 @@ public:
 
 	void SetTarget(AFGBuildable* Target);
 
-	virtual void GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutLifetimeProps ) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void UpdateMeshes();
 	void SetupOutlines();

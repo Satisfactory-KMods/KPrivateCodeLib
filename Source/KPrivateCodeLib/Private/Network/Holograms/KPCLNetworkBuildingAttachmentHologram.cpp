@@ -19,15 +19,16 @@ AKPCLNetworkBuildingAttachmentHologram::AKPCLNetworkBuildingAttachmentHologram()
 
 void AKPCLNetworkBuildingAttachmentHologram::SetTarget(AFGBuildable* Target)
 {
-	if(mTarget != Target)
+	if (mTarget != Target)
 	{
 		mTarget = Target;
-		if(IsValid(mTarget))
+		if (IsValid(mTarget))
 		{
 			SetActorTransform(mTarget->GetTransform());
 			UpdateMeshes();
 			OnSnap();
-		} else
+		}
+		else
 		{
 			ClearAllMeshes();
 		}
@@ -49,34 +50,42 @@ void AKPCLNetworkBuildingAttachmentHologram::UpdateMeshes()
 
 	UFGPowerConnectionComponent* CachedPowerConnection = mTarget->GetComponentByClass<UFGPowerConnectionComponent>();
 
-	if(IsValid(CachedPowerConnection) || IsValid(mTarget))
+	if (IsValid(CachedPowerConnection) || IsValid(mTarget))
 	{
-		FTransform Transform = CachedPowerConnection ? CachedPowerConnection->GetComponentTransform() : mTarget->GetActorTransform();
-		FAbstractAttachmentMeshes* MeshData = Attachment->mAbstractMeshAttachments.FindByPredicate([&](const FAbstractAttachmentMeshes& Item)
-		{
-			return Item.mTargetClass == UFGPowerConnectionComponent::StaticClass();
-		});
-
-		if(MeshData)
-		{
-			FNetworkPowerOffset* OffsetData = Attachment->mPowerConnectionOffsets.FindByPredicate([&](const FNetworkPowerOffset& Item)
+		FTransform Transform = CachedPowerConnection
+			                       ? CachedPowerConnection->GetComponentTransform()
+			                       : mTarget->GetActorTransform();
+		FAbstractAttachmentMeshes* MeshData = Attachment->mAbstractMeshAttachments.FindByPredicate(
+			[&](const FAbstractAttachmentMeshes& Item)
 			{
-				if(!IsValid(Item.mBuildingClass)) return false;
-				return mTarget->IsA(Item.mBuildingClass);
+				return Item.mTargetClass == UFGPowerConnectionComponent::StaticClass();
 			});
-			if(OffsetData)
+
+		if (MeshData)
+		{
+			FNetworkPowerOffset* OffsetData = Attachment->mPowerConnectionOffsets.FindByPredicate(
+				[&](const FNetworkPowerOffset& Item)
+				{
+					if (!IsValid(Item.mBuildingClass))
+					{
+						return false;
+					}
+					return mTarget->IsA(Item.mBuildingClass);
+				});
+			if (OffsetData)
 			{
 				Transform = Transform + OffsetData->mOffset;
 			}
 
 			UE_LOG(LogKPCL, Error, TEXT("Set Relative Transform for Power Connection Component"));
 			mConnectionComponent->SetWorldTransform(Transform);
-			if(!CachedPowerConnection)
+			if (!CachedPowerConnection)
 			{
 				CreateMesh(Transform, MeshData->mMesh);
 			}
 		}
-	} else
+	}
+	else
 	{
 		UE_LOG(LogKPCL, Error, TEXT("No Power Connection Component found"));
 	}
@@ -87,13 +96,20 @@ void AKPCLNetworkBuildingAttachmentHologram::UpdateMeshes()
 	for (UFGConnectionComponent* AttachmentConnection : ConnectionComponents)
 	{
 		FTransform Transform = AttachmentConnection->GetComponentTransform();
-		FAbstractAttachmentMeshes* MeshData = Attachment->mAbstractMeshAttachments.FindByPredicate([&](const FAbstractAttachmentMeshes& Item)
-		{
-			if(!IsValid(Item.mTargetClass)) return false;
-			if(!IsValid(AttachmentConnection)) return false;
-			return AttachmentConnection->GetClass()->IsChildOf(Item.mTargetClass);
-		});
-		if(MeshData)
+		FAbstractAttachmentMeshes* MeshData = Attachment->mAbstractMeshAttachments.FindByPredicate(
+			[&](const FAbstractAttachmentMeshes& Item)
+			{
+				if (!IsValid(Item.mTargetClass))
+				{
+					return false;
+				}
+				if (!IsValid(AttachmentConnection))
+				{
+					return false;
+				}
+				return AttachmentConnection->GetClass()->IsChildOf(Item.mTargetClass);
+			});
+		if (MeshData)
 		{
 			CreateMesh(Transform, MeshData->mMesh);
 		}
@@ -103,17 +119,18 @@ void AKPCLNetworkBuildingAttachmentHologram::UpdateMeshes()
 void AKPCLNetworkBuildingAttachmentHologram::SetupOutlines()
 {
 	AFGCharacterPlayer* Player = UKBFL_Player::GetFGCharacter(GetWorld());
-	if(IsValid(Player))
+	if (IsValid(Player))
 	{
 		UFGOutlineComponent* OutlineComponent = Player->GetOutline();
-		if(IsValid(OutlineComponent))
+		if (IsValid(OutlineComponent))
 		{
-			if(IsValid(mTarget))
+			if (IsValid(mTarget))
 			{
 				OutlineComponent->ShowOutline(mTarget, EOutlineColor::OC_HOLOGRAMLINE);
-			} else
+			}
+			else
 			{
-				OutlineComponent->HideOutline();
+				OutlineComponent->HideOutline(mTarget);
 			}
 		}
 	}
@@ -123,7 +140,7 @@ void AKPCLNetworkBuildingAttachmentHologram::ClearAllMeshes()
 {
 	TArray<UStaticMeshComponent*> Meshes;
 	GetComponents<UStaticMeshComponent>(Meshes);
-	for(UStaticMeshComponent* Mesh : Meshes)
+	for (UStaticMeshComponent* Mesh : Meshes)
 	{
 		Mesh->DestroyComponent();
 	}
@@ -154,4 +171,3 @@ void AKPCLNetworkBuildingAttachmentHologram::ConfigureComponents(AFGBuildable* i
 	Attachment->AttachTo(mTarget, true);
 	Super::ConfigureActor(inBuildable);
 }
-

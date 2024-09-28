@@ -1,25 +1,32 @@
 ﻿#include "Components/KPCLBetterIndicator.h"
 
-#include "Buildable/KPCLProducerBase_2Slots.h"
-
-UKPCLBetterIndicator::UKPCLBetterIndicator() {
+UKPCLBetterIndicator::UKPCLBetterIndicator()
+{
 	mCustomExtraData = {3.0f, .0f, 0.473958f, 0.026989f};
 }
 
-float UKPCLBetterIndicator::GetEmissive() const {
-	if(mEmissiveIntensityOverwrite < 0.0f) {
+float UKPCLBetterIndicator::GetEmissive() const
+{
+	if (mEmissiveIntensityOverwrite < 0.0f)
+	{
 		return mEmissiveIntensity;
 	}
 	return mEmissiveIntensityOverwrite;
 }
 
-void UKPCLBetterIndicator::SetState(ENewProductionState NewState, bool MarkStateDirty) {
-	if(mCurrentState != NewState) {
+void UKPCLBetterIndicator::SetState(ENewProductionState NewState, bool MarkStateDirty)
+{
+	if (mCurrentState != NewState)
+	{
 		mCurrentState = NewState;
-		if(IsInGameThread()) {
+		if (IsInGameThread())
+		{
 			OnIndicatorStateChanged.Broadcast(mCurrentState);
-		} else {
-			AsyncTask(ENamedThreads::GameThread, [&]() {
+		}
+		else
+		{
+			AsyncTask(ENamedThreads::GameThread, [&]()
+			{
 				OnIndicatorStateChanged.Broadcast(mCurrentState);
 			});
 		}
@@ -29,23 +36,29 @@ void UKPCLBetterIndicator::SetState(ENewProductionState NewState, bool MarkState
 	ApplyNewColorData(FKPCLColorData(4, mPulsStates.Contains(NewState)), MarkStateDirty);
 }
 
-void UKPCLBetterIndicator::SetEmissiveOverwrite(float NewIntensity, bool MarkStateDirty) {
-	if(mEmissiveIntensityOverwrite != NewIntensity) {
+void UKPCLBetterIndicator::SetEmissiveOverwrite(float NewIntensity, bool MarkStateDirty)
+{
+	if (mEmissiveIntensityOverwrite != NewIntensity)
+	{
 		mEmissiveIntensityOverwrite = NewIntensity;
-		if(MarkStateDirty) {
+		if (MarkStateDirty)
+		{
 			ApplyNewData();
 		}
 	}
 }
 
-FLinearColor UKPCLBetterIndicator::GetColorByState(ENewProductionState State) const {
+FLinearColor UKPCLBetterIndicator::GetColorByState(ENewProductionState State) const
+{
 	return mStateColors[static_cast<uint8>(State)];
 }
 
-FLinearColor UKPCLBetterIndicator::GetCurrentColor() const {
+FLinearColor UKPCLBetterIndicator::GetCurrentColor() const
+{
 	return GetColorByState(mCurrentState);
 }
 
-ENewProductionState UKPCLBetterIndicator::GetState() const {
+ENewProductionState UKPCLBetterIndicator::GetState() const
+{
 	return mCurrentState;
 }

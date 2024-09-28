@@ -3,13 +3,16 @@
 #include "KPCLNetworkStructures.generated.h"
 
 USTRUCT(BlueprintType)
-struct KPRIVATECODELIB_API FTeleporterInformation {
+struct KPRIVATECODELIB_API FTeleporterInformation
+{
 	GENERATED_BODY()
 
-	FTeleporterInformation() {
+	FTeleporterInformation()
+	{
 	};
 
-	FTeleporterInformation(int32 OverwriteIconID) {
+	FTeleporterInformation(int32 OverwriteIconID)
+	{
 		mIconID = OverwriteIconID;
 	}
 

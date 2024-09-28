@@ -11,9 +11,10 @@
  * only for indicator
  */
 UCLASS(ClassGroup = ( Custom ), meta = ( BlueprintSpawnableComponent ))
-class KPRIVATECODELIB_API UKPCLNetworkConnectionComponent: public UFGPowerConnectionComponent {
+class KPRIVATECODELIB_API UKPCLNetworkConnectionComponent : public UFGPowerConnectionComponent
+{
 	GENERATED_BODY()
 
-	public:
-		UKPCLNetworkConnectionComponent();
+public:
+	UKPCLNetworkConnectionComponent();
 };

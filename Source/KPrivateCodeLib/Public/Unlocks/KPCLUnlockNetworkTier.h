@@ -11,14 +11,14 @@
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, abstract, DefaultToInstanced)
-class KPRIVATECODELIB_API UKPCLUnlockNetworkTier: public UFGUnlockInfoOnly {
+class KPRIVATECODELIB_API UKPCLUnlockNetworkTier : public UFGUnlockInfoOnly
+{
 	GENERATED_BODY()
 
 	virtual void Unlock(AFGUnlockSubsystem* unlockSubssytem) override;
 	virtual void Apply(AFGUnlockSubsystem* unlockSubssytem) override;
-	void         SendToSubsystem(AFGUnlockSubsystem* unlockSubssytem);
+	void SendToSubsystem(AFGUnlockSubsystem* unlockSubssytem);
 
-	private:
-		UPROPERTY(EditAnywhere)
-		TSubclassOf<UFGSchematic> mSchematic;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UFGSchematic> mSchematic;
 };

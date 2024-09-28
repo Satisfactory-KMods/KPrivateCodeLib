@@ -16,6 +16,8 @@ AKPCLNetworkConnectionBuilding::AKPCLNetworkConnectionBuilding()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bBindNetworkComponent = true;
+
+	mInventory = CreateDefaultSubobject<UFGInventoryComponent>(FKPCLInventoryStructure::InputName);
 }
 
 void AKPCLNetworkConnectionBuilding::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -116,7 +118,8 @@ void AKPCLNetworkConnectionBuilding::CollectBelts()
 		}
 		else
 		{
-			UKBFLCppInventoryHelper::PullBelt(GetInventory(), 0, 0.f, mInformations.mItemsToGrab, GetConv(0, KPCLInput));
+			UKBFLCppInventoryHelper::PullBelt(GetInventory(), 0, 0.f, mInformations.mItemsToGrab,
+			                                  GetConv(0, KPCLInput));
 		}
 	}
 }
@@ -135,7 +138,8 @@ void AKPCLNetworkConnectionBuilding::CollectAndPushPipes(float dt, bool IsPush)
 			}
 			else
 			{
-				UKBFLCppInventoryHelper::PullPipe(GetInventory(), 0, dt, mInformations.mItemsToGrab, GetPipe(0, KPCLInput));
+				UKBFLCppInventoryHelper::PullPipe(GetInventory(), 0, dt, mInformations.mItemsToGrab,
+				                                  GetPipe(0, KPCLInput));
 			}
 		}
 	}

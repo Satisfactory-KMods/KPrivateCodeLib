@@ -12,16 +12,17 @@
  * Base for all descriptors in the game like resource, equipment etc.
  */
 UCLASS(Blueprintable, Abstract, HideCategories=(Icon, Preview), meta=(AutoJSON=true))
-class KPRIVATECODELIB_API UKPCLRegistryObject: public UObject {
+class KPRIVATECODELIB_API UKPCLRegistryObject : public UObject
+{
 	GENERATED_BODY()
 
-	public:
-		virtual TArray<TSubclassOf<UFGSchematic>> GetSchematicsToRegister();
-		virtual TArray<TSubclassOf<UFGRecipe>>    GetRecipesToRegister();
+public:
+	virtual TArray<TSubclassOf<UFGSchematic>> GetSchematicsToRegister();
+	virtual TArray<TSubclassOf<UFGRecipe>> GetRecipesToRegister();
 
-		static bool ShouldRegister(TSubclassOf<UKPCLRegistryObject> InClass);
+	static bool ShouldRegister(TSubclassOf<UKPCLRegistryObject> InClass);
 
-	protected:
-		UPROPERTY(EditDefaultsOnly, Category="Dependencies")
-		bool mShouldRegister = false;
+protected:
+	UPROPERTY(EditDefaultsOnly, Category="Dependencies")
+	bool mShouldRegister = false;
 };

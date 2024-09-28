@@ -12,10 +12,10 @@ enum class EKPCLInventoryType : uint8
 };
 
 USTRUCT()
-struct KPRIVATECODELIB_API FKPCLInventoryStructure {
+struct KPRIVATECODELIB_API FKPCLInventoryStructure
+{
 	GENERATED_BODY()
 
-public:
 	inline static FName InputName = "InputInventory";
 	inline static FName OutputName = "OutputInventory";
 	inline static FName BoosterName = "BoosterInventory";

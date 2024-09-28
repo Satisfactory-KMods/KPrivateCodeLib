@@ -78,7 +78,7 @@ UKPCLNetwork* AKPCLNetworkBuildingBase::GetNetwork_Internal() const
 AKPCLNetworkBuildingBase::AKPCLNetworkBuildingBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	mPowerInfoClass = UKPCLNetworkInfoComponent::StaticClass();
+	mPowerInfo = CreateDefaultSubobject<UKPCLNetworkInfoComponent>(TEXT("NetworkConnection"));
 }
 
 void AKPCLNetworkBuildingBase::MultiCast_OnNetworkCoreChanged_Implementation(bool HasCore)
@@ -271,16 +271,6 @@ void AKPCLNetworkBuildingBase::UnregisterInteractingPlayer_Implementation(AFGCha
 			}
 		}
 	}
-}
-
-void AKPCLNetworkBuildingBase::OnReplicationDetailActorCreated()
-{
-	Super::OnReplicationDetailActorCreated();
-}
-
-void AKPCLNetworkBuildingBase::OnReplicationDetailActorRemoved()
-{
-	Super::OnReplicationDetailActorRemoved();
 }
 
 bool AKPCLNetworkBuildingBase::CanProduce_Implementation() const

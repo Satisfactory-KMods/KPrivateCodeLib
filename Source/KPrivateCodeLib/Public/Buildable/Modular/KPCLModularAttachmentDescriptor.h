@@ -10,6 +10,7 @@
  * 
  */
 UCLASS(Blueprintable, BlueprintType)
-class KPRIVATECODELIB_API UKPCLModularAttachmentDescriptor: public UObject {
+class KPRIVATECODELIB_API UKPCLModularAttachmentDescriptor : public UObject
+{
 	GENERATED_BODY()
 };

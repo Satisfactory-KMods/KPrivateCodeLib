@@ -3,12 +3,14 @@
 
 #include "Network/Buildings/KPCLNetworkStorage.h"
 
-AKPCLNetworkStorage::AKPCLNetworkStorage() {
+AKPCLNetworkStorage::AKPCLNetworkStorage()
+{
 	PrimaryActorTick.bCanEverTick = false;
 }
 
 // Called when the game starts or when spawned
-void AKPCLNetworkStorage::BeginPlay() {
+void AKPCLNetworkStorage::BeginPlay()
+{
 	Super::BeginPlay();
 
 	OnTierUpdated();

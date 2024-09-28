@@ -6,15 +6,19 @@
 
 DEFINE_LOG_CATEGORY(LogKPCL);
 
-void PlayerStateBeginPlayer(CallScope<void(*)(AFGPlayerState*)>& scope, AFGPlayerState* State) {
-	if(State->GetWorld()) {
-		if(AKPCLUnlockSubsystem* Sub = AKPCLUnlockSubsystem::Get(State->GetWorld())) {
+void PlayerStateBeginPlayer(CallScope<void(*)(AFGPlayerState*)>& scope, AFGPlayerState* State)
+{
+	if (State->GetWorld())
+	{
+		if (AKPCLUnlockSubsystem* Sub = AKPCLUnlockSubsystem::Get(State->GetWorld()))
+		{
 			Sub->RegisterPlayerState(State);
 		}
 	}
 }
 
-void FKPrivateCodeLib::StartupModule() {
+void FKPrivateCodeLib::StartupModule()
+{
 #if !WITH_EDITOR
 	// Config
 	const TArray<FString> ModModuleNames = {

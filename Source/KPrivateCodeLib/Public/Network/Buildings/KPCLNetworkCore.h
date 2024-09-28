@@ -8,15 +8,18 @@
 #include "KPCLNetworkCore.generated.h"
 
 USTRUCT(BlueprintType)
-struct FKPCLNetworkMaxData {
+struct FKPCLNetworkMaxData
+{
 	GENERATED_BODY()
 
-	FKPCLNetworkMaxData() {
+	FKPCLNetworkMaxData()
+	{
 		mItemClass = nullptr;
 		mMaxItemCount = -1;
 	}
 
-	FKPCLNetworkMaxData(TSubclassOf<UFGItemDescriptor> Class, int32 Count) {
+	FKPCLNetworkMaxData(TSubclassOf<UFGItemDescriptor> Class, int32 Count)
+	{
 		mItemClass = Class;
 		mMaxItemCount = Count;
 	}
@@ -27,11 +30,13 @@ struct FKPCLNetworkMaxData {
 	UPROPERTY(EditAnywhere, SaveGame, BlueprintReadWrite)
 	int32 mMaxItemCount;
 
-	friend bool operator==(const FKPCLNetworkMaxData& A, const FKPCLNetworkMaxData& B) {
+	friend bool operator==(const FKPCLNetworkMaxData& A, const FKPCLNetworkMaxData& B)
+	{
 		return A.mItemClass == B.mItemClass;
 	}
 
-	friend bool operator!=(const FKPCLNetworkMaxData& A, const FKPCLNetworkMaxData& B) {
+	friend bool operator!=(const FKPCLNetworkMaxData& A, const FKPCLNetworkMaxData& B)
+	{
 		return A.mItemClass != B.mItemClass;
 	}
 };
@@ -40,195 +45,207 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCoreItemStateStateChanged);
 
 
 UCLASS()
-class KPRIVATECODELIB_API AKPCLNetworkCore: public AKPCLNetworkBuildingBase {
+class KPRIVATECODELIB_API AKPCLNetworkCore : public AKPCLNetworkBuildingBase
+{
 	GENERATED_BODY()
 
-	public:
-		AKPCLNetworkCore();
+public:
+	AKPCLNetworkCore();
 
-	protected:
-		// START: AActor
-		virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-		virtual void PostInitializeComponents() override;
-		virtual void BeginPlay() override;
-		virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-		// END: AActor
+protected:
+	// START: AActor
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void PostInitializeComponents() override;
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	// END: AActor
 
-		// START: Modular Building
-		void TryConnectNetworks(AFGBuildable* OtherBuildable) const;
+	// START: Modular Building
+	void TryConnectNetworks(AFGBuildable* OtherBuildable) const;
 
-		virtual void onProducingFinal_Implementation() override;
+	virtual void onProducingFinal_Implementation() override;
 
-		virtual void CollectAndPushPipes(float dt, bool IsPush) override;
-		// END: Modular Building
+	virtual void CollectAndPushPipes(float dt, bool IsPush) override;
+	// END: Modular Building
 
-		// START: KPCL
-		virtual void OnTierUpdated() override;
-		virtual bool IsCore() const override;
+	// START: KPCL
+	virtual void OnTierUpdated() override;
+	virtual bool IsCore() const override;
 
-		/** Overwrite the Power handle to translate network to power */
-		virtual void HandlePower(float dt) override;
-		// END: KPCL
+	/** Overwrite the Power handle to translate network to power */
+	virtual void HandlePower(float dt) override;
+	// END: KPCL
 
-		// START: AFGFactoryBuilding
-		virtual void GetDismantleRefund_Implementation(TArray<FInventoryStack>& out_refund, bool noBuildCostEnabled) const override;
-		virtual void Factory_Tick(float dt) override;
-		virtual bool CanProduce_Implementation() const override;
-		// END: AFGFactoryBuilding
+	// START: AFGFactoryBuilding
+	virtual void
+	GetDismantleRefund_Implementation(TArray<FInventoryStack>& out_refund, bool noBuildCostEnabled) const override;
+	virtual void Factory_Tick(float dt) override;
+	virtual void Factory_TickAuthOnly(float dt) override;
+	virtual bool CanProduce_Implementation() const override;
+	// END: AFGFactoryBuilding
 
-		virtual void TickPlayerNetworkInventory(float dt);
-		virtual void TickPlayerBufferInventory(float dt);
-		virtual void ReGroupSlaves();
+	// START: Player HANDLE
+	bool CanConsumeFromPlayerInventory() const;
+	void OnConsumeFromPlayerInventory();
+	bool GetStackThatCanConsumeFromPlayerInventory(FInventoryStack& Stack, int32& Index) const;
 
-		// Start Player Inventory
-	public:
-		UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
-		UFGInventoryComponent* GetPlayerBufferInventory() const;
+	UPROPERTY(EditDefaultsOnly, SaveGame, Replicated, Category="KMods")
+	FFullProductionHandle mPlayerInventoryHandle;
+	// END: Player HANDLE
 
-		UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
-		UFGInventoryComponent* GetFluidBufferInventory() const;
+	virtual void TickPlayerNetworkInventory(float dt);
+	virtual void TickPlayerBufferInventory(float dt);
+	virtual void ReGroupSlaves();
 
-		UFUNCTION(BlueprintPure, Category="KMods|Network")
-		virtual bool CanRemoveFromCore(const TArray<FItemAmount>& Amounts) const;
+	// Start Player Inventory
+public:
+	UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
+	UFGInventoryComponent* GetPlayerBufferInventory() const;
 
-		UFUNCTION(BlueprintPure, Category="KMods|Network")
-		virtual int32 GetAmountFromItemClass(TSubclassOf<UFGItemDescriptor> ItemClass) const;
+	UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
+	UFGInventoryComponent* GetFluidBufferInventory() const;
 
-		// Host Only
-		UFUNCTION(BlueprintPure, Category="KMods|Network")
-		virtual bool  RemoveFromCore(const TArray<FItemAmount>& Amounts);
-		virtual int32 GetIndexFromItem(TSubclassOf<UFGItemDescriptor> ItemClass) const;
+	UFUNCTION(BlueprintPure, Category="KMods|Network")
+	virtual bool CanRemoveFromCore(const TArray<FItemAmount>& Amounts) const;
 
-	protected:
-		virtual void ReconfigureInventory() override;
+	UFUNCTION(BlueprintPure, Category="KMods|Network")
+	virtual int32 GetAmountFromItemClass(TSubclassOf<UFGItemDescriptor> ItemClass) const;
 
-		UFUNCTION()
-		virtual bool FilterPlayerInventory(TSubclassOf<UObject> object, int32 idx) const;
+	// Host Only
+	UFUNCTION(BlueprintPure, Category="KMods|Network")
+	virtual bool RemoveFromCore(const TArray<FItemAmount>& Amounts);
+	virtual int32 GetIndexFromItem(TSubclassOf<UFGItemDescriptor> ItemClass) const;
 
-		UFUNCTION()
-		virtual bool FormFilterPlayerInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const;
+protected:
+	UFUNCTION()
+	virtual bool FilterPlayerInventory(TSubclassOf<UObject> object, int32 idx) const;
 
-		UFUNCTION()
-		virtual void OnPlayerItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved);
+	virtual bool FilterOutputInventory(TSubclassOf<UObject> object, int32 idx) const override
+	{
+		return FilterPlayerInventory(object, idx);
+	};
 
-		UFUNCTION()
-		virtual void OnPlayerItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved);
+	UFUNCTION()
+	virtual bool FormFilterPlayerInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const;
 
-	public:
+	virtual bool FormFilterOutputInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const override
+	{
+		return FormFilterPlayerInventory(object, idx);
+	};
 
-		UFUNCTION(BlueprintCallable, Category="KMods|Network")
-		void GetCoreData(FCoreDataSortOptionStruc SortOption, TArray<FCoreInventoryData>& Data);
+	UFUNCTION()
+	virtual void OnPlayerItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved);
 
-		UFUNCTION(BlueprintCallable, Category="KMods|Network")
-		void GetTotalBytes(float& Fluid, float& Solid) const;
+	virtual void OnOutputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
+	                                 UFGInventoryComponent* sourceInventory) override
+	{
+		return OnPlayerItemRemoved(itemClass, numRemoved);
+	}
 
-		UFUNCTION(BlueprintCallable, Category="KMods|Network")
-		void GetUsedBytes(float& Fluid, float& Solid) const;
+	UFUNCTION()
+	virtual void OnPlayerItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved);
 
-		UFUNCTION(BlueprintCallable, Category="KMods|Network")
-		void GetFreeBytes(float& Fluid, float& Solid) const;
+	virtual void OnOutputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
+	                               UFGInventoryComponent* sourceInventory) override
+	{
+		return OnPlayerItemAdded(itemClass, numRemoved);
+	}
 
-		UFUNCTION(BlueprintCallable, Category="KMods|Network")
-		void GetFreeBytesPrt(float& Fluid, float& Solid) const;
+public:
+	UFUNCTION(BlueprintCallable, Category="KMods|Network")
+	void GetCoreData(FCoreDataSortOptionStruc SortOption, TArray<FCoreInventoryData>& Data);
 
-		/** Get the index of a Item */
-		UFUNCTION(BlueprintPure, Category="KMods|Network")
-		int32 GetAllowedIndex(TSubclassOf<UFGItemDescriptor> Item) const;
+	UFUNCTION(BlueprintCallable, Category="KMods|Network")
+	void GetTotalBytes(float& Fluid, float& Solid) const;
 
-		UFUNCTION(BlueprintPure, Category="KMods|Network")
-		static float GetBytesForItemClass(TSubclassOf<UFGItemDescriptor> itemClass, float Num = 1.0f);
+	UFUNCTION(BlueprintCallable, Category="KMods|Network")
+	void GetUsedBytes(float& Fluid, float& Solid) const;
 
-		UFUNCTION(BlueprintPure, Category="KMods|Network")
-		static int32 GetMaxItemsByBytes(TSubclassOf<UFGItemDescriptor> itemClass, float FluidBytes, float SolidBytes);
+	UFUNCTION(BlueprintCallable, Category="KMods|Network")
+	void GetFreeBytes(float& Fluid, float& Solid) const;
 
-		UFUNCTION(BlueprintPure, Category="KMods|Network")
-		static float GetBytesForItemAmount(FItemAmount Amount, bool& IsFluid);
+	UFUNCTION(BlueprintCallable, Category="KMods|Network")
+	void GetFreeBytesPrt(float& Fluid, float& Solid) const;
 
-		UFUNCTION(BlueprintCallable, Category="KMods|Network")
-		void Core_SetMaxItemCount(TSubclassOf<UFGItemDescriptor> Item, int32 Max);
+	/** Get the index of a Item */
+	UFUNCTION(BlueprintPure, Category="KMods|Network")
+	int32 GetAllowedIndex(TSubclassOf<UFGItemDescriptor> Item) const;
 
-		UFUNCTION(BlueprintCallable, Category="KMods|Network")
-		bool GetStackFromNetwork(TSubclassOf<UFGItemDescriptor> Item, FInventoryStack& Stack, int32& Index);
+	UFUNCTION(BlueprintPure, Category="KMods|Network")
+	static float GetBytesForItemClass(TSubclassOf<UFGItemDescriptor> itemClass, float Num = 1.0f);
 
-		UFUNCTION(BlueprintCallable, Category="KMods|Network")
-		FKPCLNetworkMaxData Core_GetMaxItemCount(TSubclassOf<UFGItemDescriptor> Item);
+	UFUNCTION(BlueprintPure, Category="KMods|Network")
+	static int32 GetMaxItemsByBytes(TSubclassOf<UFGItemDescriptor> itemClass, float FluidBytes, float SolidBytes);
 
-		UPROPERTY(BlueprintAssignable)
-		FOnCoreItemStateStateChanged mOnCoreItemStateStateChanged;
+	UFUNCTION(BlueprintPure, Category="KMods|Network")
+	static float GetBytesForItemAmount(FItemAmount Amount, bool& IsFluid);
 
-		UFUNCTION(BlueprintPure, Category="KMods|Network")
-		int32 GetCurrentInputAmount() const;
+	UFUNCTION(BlueprintCallable, Category="KMods|Network")
+	void Core_SetMaxItemCount(TSubclassOf<UFGItemDescriptor> Item, int32 Max);
 
-	private:
-		/** Configure the Inventory to all items */
-		void ConfigureCoreInventory();
+	UFUNCTION(BlueprintCallable, Category="KMods|Network")
+	bool GetStackFromNetwork(TSubclassOf<UFGItemDescriptor> Item, FInventoryStack& Stack, int32& Index);
 
-		/** Configure the Inventory to all items */
-		void UpdateNetworkMax();
+	UFUNCTION(BlueprintCallable, Category="KMods|Network")
+	FKPCLNetworkMaxData Core_GetMaxItemCount(TSubclassOf<UFGItemDescriptor> Item);
 
-		/** Check the network for Dirty and get alle Connections */
-		void CheckNetwork();
+	UPROPERTY(BlueprintAssignable)
+	FOnCoreItemStateStateChanged mOnCoreItemStateStateChanged;
 
-		/** Call all relevant things on slaves */
-		void PullBuilding(AKPCLNetworkConnectionBuilding* NetworkConnection, float dt);
+	UFUNCTION(BlueprintPure, Category="KMods|Network")
+	int32 GetCurrentInputAmount() const;
 
-		/** Call all relevant things on slaves */
-		void HandleManuConnections(AKPCLNetworkBuildingAttachment* NetworkConnection, float dt);
+private:
+	/** Configure the Inventory to all items */
+	void ConfigureCoreInventory();
 
-		virtual void OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved) override;
-		virtual void OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved) override;
+	/** Configure the Inventory to all items */
+	void UpdateNetworkMax();
 
-		void CacheBytes();
+	/** Check the network for Dirty and get alle Connections */
+	void CheckNetwork();
 
-	private:
-		friend class UKPCLNetwork;
-		friend class AKPCLUnlockSubsystem;
-		friend class UKPCLNetworkPlayerComponent;
+	/** Call all relevant things on slaves */
+	void PullBuilding(AKPCLNetworkConnectionBuilding* NetworkConnection, float dt);
 
-		inline static int32 mFluidItemsPerBytes = 10000;
-		inline static int32 mSolidItemsPerBytes = 100;
+	/** Call all relevant things on slaves */
+	void HandleManuConnections(AKPCLNetworkBuildingAttachment* NetworkConnection, float dt);
 
-		UPROPERTY(EditDefaultsOnly, Category="KMods|Cooling")
-		FItemAmount mInputConsume = {UFGNoneDescriptor::StaticClass(), 10};
+	virtual void OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
+	                              UFGInventoryComponent* sourceInventory) override;
+	virtual void OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
+	                                UFGInventoryComponent* sourceInventory) override;
 
-		UPROPERTY(EditDefaultsOnly, Category="KMods|Cooling")
-		int32 mMaxProduceAmount = 5000;
+	void CacheBytes();
 
-		UPROPERTY(EditDefaultsOnly, Category="KMods|Cooling")
-		int32 mMaxConsumeAmount = 5000;
+	friend class UKPCLNetwork;
+	friend class AKPCLUnlockSubsystem;
+	friend class UKPCLNetworkPlayerComponent;
 
-		UPROPERTY(EditDefaultsOnly, Category="KMods|Cooling")
-		int32 mByteCalcDiv = 2;
+	UPROPERTY(EditDefaultsOnly, Category="KMods|Cooling")
+	int32 mByteCalcDiv = 2;
 
-		UPROPERTY(Replicated)
-		TArray<AKPCLNetworkConnectionBuilding*> mNetworkConnections;
+	UPROPERTY(Replicated)
+	TArray<AKPCLNetworkConnectionBuilding*> mNetworkConnections;
 
-		UPROPERTY(Replicated)
-		TArray<AKPCLNetworkBuildingAttachment*> mNetworkManuConnections;
+	UPROPERTY(SaveGame)
+	UFGInventoryComponent* mInputInventory = nullptr;
 
-		// Queue for calling the Player Logic!
-		TQueue<UKPCLNetworkPlayerComponent* , EQueueMode::Mpsc> mNetworkPlayerComponentsThisFrame;
+	UPROPERTY(SaveGame)
+	UFGInventoryComponent* mOutputInventory = nullptr;
 
-		UPROPERTY(Replicated)
-		TArray<FCoreInventoryData> mSlotMappingAll;
+	UPROPERTY(SaveGame)
+	UFGInventoryComponent* mBoosterInventory = nullptr;
 
-		UPROPERTY(Replicated, SaveGame)
-		TArray<FKPCLNetworkMaxData> mItemCountMap;
+	// --------------------------
+	// Editor Settings
+	// --------------------------
+	FCriticalSection mMutexLock;
 
-		UPROPERTY(Replicated)
-		float mUsedSolidBytes = 0;
-
-		UPROPERTY(Replicated)
-		float mUsedFluidBytes = 0;
-
-		UPROPERTY(Replicated)
-		float mTotalSolidBytes = 0;
-
-		UPROPERTY(Replicated)
-		float mTotalFluidBytes = 0;
-
-		// --------------------------
-		// Editor Settings
-		// --------------------------
-		FCriticalSection mMutexLock;
+public:
+	UPROPERTY(SaveGame, BlueprintReadWrite, meta = ( FGReplicated ))
+	TArray<FKPCLFaxitNetworkStatData> mItemStats;
+	
+	UPROPERTY(SaveGame, BlueprintReadWrite, meta = ( FGReplicated ))
+	TArray<FItemAmount> mStorage;
 };

@@ -5,6 +5,7 @@
 
 #include "Network/KPCLNetwork.h"
 
-UKPCLNetworkConnectionComponent::UKPCLNetworkConnectionComponent() {
+UKPCLNetworkConnectionComponent::UKPCLNetworkConnectionComponent()
+{
 	mCircuitType = UKPCLNetwork::StaticClass();
 }

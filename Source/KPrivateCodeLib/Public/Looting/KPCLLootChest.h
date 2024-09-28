@@ -12,13 +12,16 @@
 #include "KPCLLootChest.generated.h"
 
 USTRUCT(BlueprintType)
-struct FKPCLRange {
+struct FKPCLRange
+{
 	GENERATED_BODY()
 
-	FKPCLRange() {
+	FKPCLRange()
+	{
 	}
 
-	FKPCLRange(int32 A, int32 B) {
+	FKPCLRange(int32 A, int32 B)
+	{
 		mMin = A;
 		mMax = A;
 	}
@@ -29,13 +32,15 @@ struct FKPCLRange {
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	int32 mMax = 15;
 
-	int32 GetRandom() const {
+	int32 GetRandom() const
+	{
 		return UKismetMathLibrary::RandomIntegerInRange(mMin, mMax);
 	}
 };
 
 USTRUCT(BlueprintType)
-struct FKPCLLootChestRandomData {
+struct FKPCLLootChestRandomData
+{
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -51,63 +56,65 @@ struct FKPCLLootChestRandomData {
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLootTableUpdated);
 
 UCLASS()
-class KPRIVATECODELIB_API AKPCLLootChest: public AFGInteractActor, public IFGSaveInterface {
+class KPRIVATECODELIB_API AKPCLLootChest : public AFGInteractActor, public IFGSaveInterface
+{
 	GENERATED_BODY()
 
-	public:
-		/** Decide on what properties to replicate */
-		virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-		virtual bool ShouldSave_Implementation() const override;
-		virtual void OnUse_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& state) override;
+public:
+	/** Decide on what properties to replicate */
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual bool ShouldSave_Implementation() const override;
 
-		// Sets default values for this actor's properties
-		AKPCLLootChest();
+	// Sets default values for this actor's properties
+	AKPCLLootChest();
 
-		virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
 
-		void GenerateLoot();
+	void GenerateLoot();
 
-		UFUNCTION(BlueprintPure)
-		bool WasLooted() const;
+	UFUNCTION(BlueprintPure)
+	bool WasLooted() const;
 
-		UFUNCTION(BlueprintPure)
-		UFGInventoryComponent* GetInventory() const;
+	UFUNCTION(BlueprintPure)
+	UFGInventoryComponent* GetInventory() const;
 
-		UFUNCTION(BlueprintCallable)
-		void Loot(AFGCharacterPlayer* Player);
+	UFUNCTION(BlueprintCallable)
+	void Loot(AFGCharacterPlayer* Player);
 
-		UPROPERTY(BlueprintAssignable)
-		FOnLootTableUpdated OnLootTableUpdated;
+	UPROPERTY(BlueprintAssignable)
+	FOnLootTableUpdated OnLootTableUpdated;
 
-		UFUNCTION(BlueprintImplementableEvent)
-		void LootTableUpdated();
+	UFUNCTION(BlueprintImplementableEvent)
+	void LootTableUpdated();
 
-	private:
-		UFUNCTION()
-		 void OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved, UFGInventoryComponent* sourceInventory);
+private:
+	UFUNCTION()
+	void OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
+	                        UFGInventoryComponent* sourceInventory);
 
-		UFUNCTION()
-		 void OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved, UFGInventoryComponent* sourceInventory);
-	
-		friend class UKPCLLootChestSpawnDesc;
+	UFUNCTION()
+	void OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
+	                      UFGInventoryComponent* sourceInventory);
 
-		UFUNCTION()
-		void OnRep_LootTableUpdate();
+	friend class UKPCLLootChestSpawnDesc;
 
-		UPROPERTY(SaveGame)
-		UFGInventoryComponent* mInventory;
+	UFUNCTION()
+	void OnRep_LootTableUpdate();
 
-		UPROPERTY(EditAnywhere, SaveGame, ReplicatedUsing=OnRep_LootTableUpdate)
-		TArray<FItemAmount> mLootableTable;
-		UPROPERTY(EditAnywhere, Category="KMods")
-		TArray<FKPCLLootChestRandomData> mRandomData;
+	UPROPERTY(SaveGame, Replicated)
+	UFGInventoryComponent* mInventory;
 
-		UPROPERTY(EditAnywhere, Category="KMods")
-		FKPCLRange mRandomTrys = FKPCLRange(5, 20);
+	UPROPERTY(EditAnywhere, SaveGame, ReplicatedUsing=OnRep_LootTableUpdate)
+	TArray<FItemAmount> mLootableTable;
+	UPROPERTY(EditAnywhere, Category="KMods")
+	TArray<FKPCLLootChestRandomData> mRandomData;
 
-		UPROPERTY()
-		UFGColoredInstanceMeshProxy* Mesh;
+	UPROPERTY(EditAnywhere, Category="KMods")
+	FKPCLRange mRandomTrys = FKPCLRange(5, 20);
 
-		UPROPERTY(SaveGame)
-		bool mLooted = false;
+	UPROPERTY()
+	UFGColoredInstanceMeshProxy* Mesh;
+
+	UPROPERTY(SaveGame)
+	bool mLooted = false;
 };

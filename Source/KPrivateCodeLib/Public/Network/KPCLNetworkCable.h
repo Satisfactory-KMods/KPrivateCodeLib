@@ -8,9 +8,10 @@
 #include "KPCLNetworkCable.generated.h"
 
 UCLASS(Abstract)
-class KPRIVATECODELIB_API AKPCLNetworkCable: public AFGBuildableWire {
+class KPRIVATECODELIB_API AKPCLNetworkCable : public AFGBuildableWire
+{
 	GENERATED_BODY()
 
-	public:
-		AKPCLNetworkCable();
+public:
+	AKPCLNetworkCable();
 };

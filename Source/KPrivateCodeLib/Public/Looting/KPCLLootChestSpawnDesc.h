@@ -9,7 +9,8 @@
 #include "KPCLLootChestSpawnDesc.generated.h"
 
 USTRUCT(BlueprintType)
-struct FKPCLLootChestContent {
+struct FKPCLLootChestContent
+{
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -20,23 +21,24 @@ struct FKPCLLootChestContent {
  * 
  */
 UCLASS()
-class KPRIVATECODELIB_API UKPCLLootChestSpawnDesc: public UKBFLActorSpawnDescriptor {
+class KPRIVATECODELIB_API UKPCLLootChestSpawnDesc : public UKBFLActorSpawnDescriptor
+{
 	GENERATED_BODY()
 
-	protected:
-		virtual void ForeachLocations(TArray<AActor*>& ActorArray) override;
+protected:
+	virtual void ForeachLocations(TArray<AActor*>& ActorArray) override;
 
-		virtual TArray<TSubclassOf<AActor>> GetSearchingActorClasses() override;
-		virtual TSubclassOf<AActor>         GetActorClass() override;
-		virtual TSubclassOf<AActor>         GetActorFreeClass() override;
+	virtual TArray<TSubclassOf<AActor>> GetSearchingActorClasses() override;
+	virtual TSubclassOf<AActor> GetActorClass() override;
+	virtual TSubclassOf<AActor> GetActorFreeClass() override;
 
-		UPROPERTY(EditDefaultsOnly, Category="Actor")
-		TSubclassOf<AKPCLLootChest> mLootChestClass;
+	UPROPERTY(EditDefaultsOnly, Category="Actor")
+	TSubclassOf<AKPCLLootChest> mLootChestClass;
 
-	public:
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Actor")
-		TArray<FTransform> mLootChestLocations;
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Actor")
+	TArray<FTransform> mLootChestLocations;
 
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Actor")
-		TArray<FKPCLLootChestContent> mLootChestContent;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Actor")
+	TArray<FKPCLLootChestContent> mLootChestContent;
 };

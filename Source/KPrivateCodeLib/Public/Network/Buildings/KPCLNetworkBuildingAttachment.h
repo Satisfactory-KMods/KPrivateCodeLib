@@ -54,7 +54,7 @@ struct FNetworkAttachmentRules
 	UPROPERTY(SaveGame, EditAnywhere, Category = "KMods|Network")
 	int32 mMaxAmount;
 
-	bool operator== (const FNetworkAttachmentRules& Other) const
+	bool operator==(const FNetworkAttachmentRules& Other) const
 	{
 		return Other.mConnection == mConnection;
 	}
@@ -86,10 +86,16 @@ struct FAbstractAttachmentMeshes
 	UPROPERTY(EditAnywhere, Category = "KMods|Network")
 	UStaticMesh* mMesh;
 
-	bool operator== (const UFGConnectionComponent*& Other) const
+	bool operator==(const UFGConnectionComponent*& Other) const
 	{
-		if(!IsValid(mTargetClass)) return false;
-		if(!IsValid(Other)) return false;
+		if (!IsValid(mTargetClass))
+		{
+			return false;
+		}
+		if (!IsValid(Other))
+		{
+			return false;
+		}
 		return Other->GetClass()->IsChildOf(mTargetClass);
 	}
 };
@@ -125,17 +131,17 @@ public:
 	UFUNCTION(BlueprintPure, Category = "KMods|Network")
 	bool IsAttached() const { return IsValid(mAttachedBuilding); }
 
-	bool GetRequiredItems(TArray<FItemAmount>& Items) ;
+	bool GetRequiredItems(TArray<FItemAmount>& Items);
 	bool PushToNetwork(TArray<FItemAmount>& ToPush, float MaxSolidBytes, float MaxFluidBytes);
 	bool GetFromNetwork(const TArray<FItemAmount>& ToReceive);
 
-	UFUNCTION(BlueprintPure	, Category = "KMods|Network")
+	UFUNCTION(BlueprintPure, Category = "KMods|Network")
 	TArray<FNetworkAttachmentRules> GetAttachmentRules() const { return mNetworkAttachmentRules; }
 
-	UFUNCTION(BlueprintCallable	, Category = "KMods|Network")
+	UFUNCTION(BlueprintCallable, Category = "KMods|Network")
 	void RemoveAttachmentRule(UFGConnectionComponent* Connection);
 
-	UFUNCTION(BlueprintCallable	, Category = "KMods|Network")
+	UFUNCTION(BlueprintCallable, Category = "KMods|Network")
 	void SetOrOverwriteRule(FNetworkAttachmentRules Rule);
 
 
@@ -153,7 +159,6 @@ public:
 	/**
 	 *Replication
 	 */
-public:
 	UFUNCTION()
 	void OnAttachmentUpdated();
 	void UpdatePowerConnectionPosition();
@@ -191,5 +196,4 @@ private:
 
 	UPROPERTY(SaveGame, Replicated)
 	TArray<FConnectionPair> mConnections;
-
 };
