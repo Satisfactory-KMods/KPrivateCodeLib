@@ -4,6 +4,7 @@
 #include "Network/Buildings/KPCLNetworkCore.h"
 
 #include "FGResourceSinkSubsystem.h"
+#include "KPCLNetworkDrive.h"
 #include "KPrivateCodeLibModule.h"
 #include "Logging.h"
 
@@ -28,6 +29,8 @@
 
 #undef GetForm
 
+class UKPCLNetworkDrive;
+
 AKPCLNetworkCore::AKPCLNetworkCore()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -35,12 +38,9 @@ AKPCLNetworkCore::AKPCLNetworkCore()
 
 	mInputInventory = CreateDefaultSubobject<UFGInventoryComponent>(FKPCLInventoryStructure::InputName);
 	mOutputInventory = CreateDefaultSubobject<UFGInventoryComponent>(FKPCLInventoryStructure::OutputName);
-	mBoosterInventory = CreateDefaultSubobject<UFGInventoryComponent>(FKPCLInventoryStructure::BoosterName);
 
-	mOutputInventory->SetDefaultSize(30);
-	mBoosterInventory->SetDefaultSize(2);
-
-	mForceNetUpdateOnRegisterPlayer = 1;
+	mInputInventory->SetDefaultSize(4);
+	mOutputInventory->SetDefaultSize(5);
 }
 
 void AKPCLNetworkCore::TryConnectNetworks(AFGBuildable* OtherBuildable) const
@@ -62,71 +62,23 @@ void AKPCLNetworkCore::TryConnectNetworks(AFGBuildable* OtherBuildable) const
 	}
 }
 
-void AKPCLNetworkCore::onProducingFinal_Implementation()
-{
-	Super::onProducingFinal_Implementation();
-	GetFluidBufferInventory()->RemoveFromIndex(0, GetCurrentInputAmount());
-}
-
-void AKPCLNetworkCore::CollectAndPushPipes(float dt, bool IsPush)
-{
-	Super::CollectAndPushPipes(dt, IsPush);
-
-	if (IsPush)
-	{
-		UKBFLCppInventoryHelper::PushPipe(GetFluidBufferInventory(), 1, dt, GetPipe(0, KPCLOutput));
-		return;
-	}
-
-	UKBFLCppInventoryHelper::PullPipe(GetFluidBufferInventory(), 0, dt, mInputConsume.ItemClass, GetPipe(0, KPCLInput));
-}
-
-void AKPCLNetworkCore::OnTierUpdated()
-{
-	Super::OnTierUpdated();
-	if (HasAuthority())
-	{
-		UpdateNetworkMax();
-	}
-}
-
 // Called when the game starts or when spawned
 void AKPCLNetworkCore::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if(HasAuthority()) {
+		mNetworkRef = mFaxitSubsystem->CreateOrAddNetworkNative(GetName(), this);
+		UpdateStorageState();
 
-	if (HasAuthority())
-	{
-		if (AKPCLUnlockSubsystem* Sub = AKPCLUnlockSubsystem::Get(GetWorld()))
+
+		if(mNetworkRef)
 		{
-			Sub->OnNexusConstruct(this);
-		}
-
-		ConfigureCoreInventory();
-
-		GetFluidBufferInventory()->AddArbitrarySlotSize(0, FMath::Max(mMaxConsumeAmount * 2, 50000));
-		GetFluidBufferInventory()->SetAllowedItemOnIndex(0, mInputConsume.ItemClass);
-
-		FInventoryStack Stack;
-		if (GetFluidBufferInventory()->GetStackFromIndex(0, Stack))
-		{
-			if (Stack.Item.GetItemClass() != mInputConsume.ItemClass)
+			for (AKPCLNetworkBuildingBase* Building : mNetworkRef->mNetworkBuildings)
 			{
-				GetFluidBufferInventory()->RemoveAllFromIndex(0);
+				Building->SetNetworkCore(this);
 			}
 		}
-
-		if (GetNetworkInfoComponent() && GetNetworkConnectionComponent())
-		{
-			GetNetworkConnectionComponent()->SetPowerInfo(GetNetworkInfoComponent());
-		}
-
-		if (GetPowerConnectionExplicit() && GetPowerInfoExplicit())
-		{
-			GetPowerConnectionExplicit()->SetPowerInfo(GetPowerInfoExplicit());
-		}
-
-		UpdateNetworkMax();
 	}
 }
 
@@ -140,6 +92,7 @@ void AKPCLNetworkCore::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		{
 			Sub->OnNexusDeconstruct(this);
 		}
+		mFaxitSubsystem->DestoryNetwork(this);
 	}
 }
 
@@ -148,17 +101,16 @@ void AKPCLNetworkCore::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AKPCLNetworkCore, mNetworkConnections);
-	DOREPLIFETIME(AKPCLNetworkCore, mSlotMappingAll);
-	DOREPLIFETIME(AKPCLNetworkCore, mTotalFluidBytes);
-	DOREPLIFETIME(AKPCLNetworkCore, mTotalSolidBytes);
-	DOREPLIFETIME(AKPCLNetworkCore, mUsedFluidBytes);
-	DOREPLIFETIME(AKPCLNetworkCore, mUsedSolidBytes);
-	DOREPLIFETIME(AKPCLNetworkCore, mItemCountMap);
 }
 
 void AKPCLNetworkCore::GetDismantleRefund_Implementation(TArray<FInventoryStack>& out_refund,
                                                          bool noBuildCostEnabled) const
 {
+	if(noBuildCostEnabled)
+	{
+		return;
+	}
+	
 	if (TSubclassOf<UFGRecipe> Recipe = GetBuiltWithRecipe())
 	{
 		for (FItemAmount ItemAmount : UFGRecipe::GetIngredients(Recipe))
@@ -194,163 +146,6 @@ bool AKPCLNetworkCore::IsCore() const
 	return true;
 }
 
-void AKPCLNetworkCore::OnPlayerItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved)
-{
-}
-
-void AKPCLNetworkCore::OnPlayerItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved)
-{
-}
-
-void AKPCLNetworkCore::GetCoreData(FCoreDataSortOptionStruc SortOption, TArray<FCoreInventoryData>& Data)
-{
-	Data.Empty();
-	TArray<FCoreInventoryData> CoreData;
-	switch (SortOption.mShow)
-	{
-	case ECoreDataShowOption::fluid:
-		for (FCoreInventoryData SlotMapping : mSlotMappingAll)
-		{
-			if (SlotMapping.mItemForm == EResourceForm::RF_GAS || SlotMapping.mItemForm == EResourceForm::RF_LIQUID)
-			{
-				CoreData.Add(SlotMapping);
-			}
-		}
-		break;
-	case ECoreDataShowOption::solid:
-		for (FCoreInventoryData SlotMapping : mSlotMappingAll)
-		{
-			if (SlotMapping.mItemForm == EResourceForm::RF_SOLID)
-			{
-				CoreData.Add(SlotMapping);
-			}
-		}
-		break;
-	default:
-		CoreData = mSlotMappingAll;
-	}
-
-
-	AFGResourceSinkSubsystem* SinkSubsystem = AFGResourceSinkSubsystem::Get(GetWorld());
-	auto RM = AFGRecipeManager::Get(GetWorld());
-	for (FCoreInventoryData InventoryData : CoreData)
-	{
-		if (ensure(InventoryData.mItem))
-		{
-			if (SortOption.mSinkableFilter)
-			{
-				if (SinkSubsystem->GetResourceSinkPointsForItem(InventoryData.mItem) <= 0)
-				{
-					continue;
-				}
-			}
-
-			if (!SortOption.mShowEmptySlots && ensure(GetInventory()))
-			{
-				if (GetInventory()->IsIndexEmpty(InventoryData.mInventoryIndex))
-				{
-					continue;
-				}
-			}
-
-			bool HasRecipe = true;
-			if (SortOption.mFilteredUnlocked && GetInventory()->IsIndexEmpty(InventoryData.mInventoryIndex))
-			{
-				TArray<TSubclassOf<UFGRecipe>> RecipeArray = RM->FindRecipesByIngredient(InventoryData.mItem);
-				if (RecipeArray.Num() <= 0)
-				{
-					RecipeArray = RM->FindRecipesByProduct(InventoryData.mItem);
-				}
-				HasRecipe = RecipeArray.Num() > 0;
-			}
-
-			if (SortOption.mFilteredUnlocked && HasRecipe && SortOption.mNameFilter.IsEmpty())
-			{
-				Data.Add(InventoryData);
-			}
-			else if ((SortOption.mFilteredUnlocked && HasRecipe && !SortOption.mNameFilter.IsEmpty()) || !SortOption.
-				mFilteredUnlocked)
-			{
-				if ((InventoryData.mItem->GetName().Contains(*SortOption.mNameFilter) ||
-					UFGItemDescriptor::GetAbbreviatedDisplayName(InventoryData.mItem).ToString().
-					Contains(*SortOption.mNameFilter) || UFGItemDescriptor::GetItemName(InventoryData.mItem).ToString().
-					Contains(*SortOption.mNameFilter)) && HasRecipe)
-				{
-					Data.Add(InventoryData);
-				}
-			}
-		}
-	}
-
-	CoreData.Empty();
-
-	Data.Sort([&](const FCoreInventoryData& A, const FCoreInventoryData& B)
-	{
-		switch (SortOption.mSorting)
-		{
-		case ECoreDataSortOption::alphab:
-			return UFGItemDescriptor::GetItemName(A.mItem).ToString() < UFGItemDescriptor::GetItemName(B.mItem).
-				ToString();
-
-		case ECoreDataSortOption::revalphab:
-			return UFGItemDescriptor::GetItemName(A.mItem).ToString() > UFGItemDescriptor::GetItemName(B.mItem).
-				ToString();
-
-		case ECoreDataSortOption::form:
-			return UFGItemDescriptor::GetForm(A.mItem) < UFGItemDescriptor::GetForm(B.mItem);
-
-		case ECoreDataSortOption::revform:
-			return UFGItemDescriptor::GetForm(A.mItem) > UFGItemDescriptor::GetForm(B.mItem);
-
-		case ECoreDataSortOption::formalphab:
-			return UFGItemDescriptor::GetItemName(A.mItem).ToString() < UFGItemDescriptor::GetItemName(B.mItem).
-				ToString() && UFGItemDescriptor::GetForm(A.mItem) < UFGItemDescriptor::GetForm(B.mItem);
-
-		case ECoreDataSortOption::revformalphab:
-			return UFGItemDescriptor::GetItemName(A.mItem).ToString() > UFGItemDescriptor::GetItemName(B.mItem).
-				ToString() && UFGItemDescriptor::GetForm(A.mItem) > UFGItemDescriptor::GetForm(B.mItem);
-
-		case ECoreDataSortOption::revindex:
-			return A.mInventoryIndex > B.mInventoryIndex;
-
-		default:
-			return A.mInventoryIndex < B.mInventoryIndex;
-		}
-	});
-}
-
-void AKPCLNetworkCore::GetTotalBytes(float& Fluid, float& Solid) const
-{
-	Fluid = FMath::Max(0.0f, mTotalFluidBytes);
-	Solid = FMath::Max(0.0f, mTotalSolidBytes);
-}
-
-void AKPCLNetworkCore::GetUsedBytes(float& Fluid, float& Solid) const
-{
-	Fluid = FMath::Max(0.0f, mUsedFluidBytes);
-	Solid = FMath::Max(0.0f, mUsedSolidBytes);
-}
-
-void AKPCLNetworkCore::GetFreeBytes(float& Fluid, float& Solid) const
-{
-	Fluid = FMath::Max(mTotalFluidBytes - mUsedFluidBytes, 0.0f);
-	Solid = FMath::Max(mTotalSolidBytes - mUsedSolidBytes, 0.0f);
-}
-
-void AKPCLNetworkCore::GetFreeBytesPrt(float& Fluid, float& Solid) const
-{
-	float FreeFluid;
-	float FreeSolid;
-	float MaxFluid;
-	float MaxSolid;
-
-	GetUsedBytes(FreeFluid, FreeSolid);
-	GetTotalBytes(MaxFluid, MaxSolid);
-
-	Fluid = UKismetMathLibrary::SafeDivide(FreeFluid, MaxFluid);
-	Solid = UKismetMathLibrary::SafeDivide(FreeSolid, MaxSolid);
-}
-
 void AKPCLNetworkCore::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -381,232 +176,27 @@ void AKPCLNetworkCore::PostInitializeComponents()
 	}
 }
 
-int32 AKPCLNetworkCore::GetAllowedIndex(TSubclassOf<UFGItemDescriptor> Item) const
-{
-	if (GetInventory())
-	{
-		for (int32 i = 0; i < GetInventory()->GetSizeLinear(); ++i)
-		{
-			if (GetInventory()->GetAllowedItemOnIndex(i) == Item)
-			{
-				return i;
-			}
-		}
-	}
-
-	return INDEX_NONE;
-}
-
-float AKPCLNetworkCore::GetBytesForItemClass(TSubclassOf<UFGItemDescriptor> itemClass, float Num)
-{
-	if (ensureAlways(itemClass) && Num > 0)
-	{
-		const EResourceForm Form = UFGItemDescriptor::GetForm(itemClass);
-
-		float ByteSize;
-		if (Form == EResourceForm::RF_GAS || Form == EResourceForm::RF_LIQUID)
-		{
-			ByteSize = Num / mFluidItemsPerBytes;
-		}
-		else
-		{
-			ByteSize = Num / mSolidItemsPerBytes;
-		}
-
-		if (ByteSize > 0)
-		{
-			return ByteSize;
-		}
-	}
-	return -1.f;
-}
-
-int32 AKPCLNetworkCore::GetMaxItemsByBytes(TSubclassOf<UFGItemDescriptor> itemClass, float FluidBytes, float SolidBytes)
-{
-	if (ensureAlways(itemClass) && (FluidBytes > 0.f || SolidBytes > 0.f))
-	{
-		const EResourceForm Form = UFGItemDescriptor::GetForm(itemClass);
-
-		int32 MaxItems;
-		if (Form == EResourceForm::RF_GAS || Form == EResourceForm::RF_LIQUID)
-		{
-			MaxItems = FMath::Floor(FluidBytes * mFluidItemsPerBytes);
-		}
-		else
-		{
-			MaxItems = FMath::Floor(SolidBytes * mSolidItemsPerBytes);
-		}
-
-		if (MaxItems > 0)
-		{
-			return MaxItems;
-		}
-	}
-	return 0;
-}
-
-float AKPCLNetworkCore::GetBytesForItemAmount(FItemAmount Amount, bool& IsFluid)
-{
-	if (ensureAlways(Amount.ItemClass) && Amount.Amount > 0)
-	{
-		const EResourceForm Form = UFGItemDescriptor::GetForm(Amount.ItemClass);
-
-		if (Form == EResourceForm::RF_GAS || Form == EResourceForm::RF_LIQUID)
-		{
-			IsFluid = true;
-			return 1 / mFluidItemsPerBytes * Amount.Amount;
-		}
-
-		IsFluid = false;
-		return 1 / mSolidItemsPerBytes * Amount.Amount;
-	}
-	return 0.f;
-}
-
-void AKPCLNetworkCore::Core_SetMaxItemCount(TSubclassOf<UFGItemDescriptor> Item, int32 Max)
-{
-	if (!IsValid(Item))
-	{
-		return;
-	}
-
-	if (HasAuthority())
-	{
-		if (Max > 0)
-		{
-			UE_LOG(LogKLIB, Warning, TEXT("Removed Item Limit: %d"), mItemCountMap.Remove(FKPCLNetworkMaxData(Item, 0)))
-			UE_LOG(LogKLIB, Warning, TEXT("Add Item Limit: %d"), mItemCountMap.Add(FKPCLNetworkMaxData(Item, Max)))
-		}
-		else
-		{
-			UE_LOG(LogKLIB, Warning, TEXT("Removed Item Limit: %d"), mItemCountMap.Remove(FKPCLNetworkMaxData(Item, 0)))
-		}
-	}
-	else
-	{
-		if (UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get(GetWorld()))
-		{
-			RCO->Server_Core_SetMaxItemCount(this, Item, Max);
-		}
-	}
-}
-
-bool AKPCLNetworkCore::GetStackFromNetwork(TSubclassOf<UFGItemDescriptor> Item, FInventoryStack& Stack, int32& Index)
-{
-	if (GetInventory())
-	{
-		if (FCoreInventoryData* CoreData = mSlotMappingAll.FindByKey(Item))
-		{
-			Index = CoreData->mInventoryIndex;
-			return GetInventory()->GetStackFromIndex(Index, Stack);
-		}
-	}
-
-	Stack = FInventoryStack();
-	Index = -1;
-	return false;
-}
-
-FKPCLNetworkMaxData AKPCLNetworkCore::Core_GetMaxItemCount(TSubclassOf<UFGItemDescriptor> Item)
-{
-	if (const FKPCLNetworkMaxData* Data = mItemCountMap.FindByKey(FKPCLNetworkMaxData(Item, 0)))
-	{
-		return *Data;
-	}
-	return FKPCLNetworkMaxData();
-}
-
-int32 AKPCLNetworkCore::GetCurrentInputAmount() const
-{
-	const float TotalBytes = (mTotalSolidBytes + mTotalFluidBytes) / mByteCalcDiv;
-	return FMath::Max(FMath::Min(mMaxProduceAmount, FMath::TruncToInt(mInputConsume.Amount * TotalBytes)),
-	                  mInputConsume.Amount);
-}
-
 void AKPCLNetworkCore::Factory_Tick(float dt)
 {
 	Super::Factory_Tick(dt);
 
 	if (HasAuthority())
 	{
-		if (IsProducing())
+		if(mPlayerInventoryHandle.TickHandle(dt, CanConsumeFromPlayerInventory()))
 		{
-			CheckNetwork();
-			TickPlayerBufferInventory(dt);
-
-			if (mNetworkConnections.Num() > 0)
-			{
-				const int32 NumPerGroup = FMath::Max(FMath::DivideAndRoundUp(mNetworkConnections.Num(), 8), 1);
-				ParallelFor(8, [&](int32 Index)
-				{
-					TArray<AKPCLNetworkConnectionBuilding*> Buildings;
-					for (int32 Member = Index * NumPerGroup; Member < FMath::Min(
-						     (Index + 1) * NumPerGroup, mNetworkConnections.Num()); Member++)
-					{
-						if (ensure(mNetworkConnections[Member]))
-						{
-							PullBuilding(mNetworkConnections[Member], dt);
-						}
-					}
-				});
-			}
-
-			if (mNetworkManuConnections.Num() > 0)
-			{
-				const int32 NumPerGroup = FMath::Max(FMath::DivideAndRoundUp(mNetworkManuConnections.Num(), 8), 1);
-				ParallelFor(8, [&](int32 Index)
-				{
-					TArray<AKPCLNetworkConnectionBuilding*> Buildings;
-					for (int32 Member = Index * NumPerGroup; Member < FMath::Min(
-						     (Index + 1) * NumPerGroup, mNetworkManuConnections.Num()); Member++)
-					{
-						if (ensure(mNetworkManuConnections[Member]))
-						{
-							HandleManuConnections(mNetworkManuConnections[Member], dt);
-						}
-					}
-				});
-			}
-
-			TickPlayerNetworkInventory(dt);
+			OnConsumeFromPlayerInventory();
 		}
-	}
-}
 
-void AKPCLNetworkCore::Factory_TickAuthOnly(float dt)
-{
-	Super::Factory_TickAuthOnly(dt);
-
-	if(mPlayerInventoryHandle.TickHandle(dt, CanConsumeFromPlayerInventory()))
-	{
-		OnConsumeFromPlayerInventory();
+		if(mItemFlushTimer.Tick(dt))
+		{
+			FlushOverflow();
+		}
 	}
 }
 
 bool AKPCLNetworkCore::CanProduce_Implementation() const
 {
-	if (IsPlayingBuildEffect())
-	{
-		return false;
-	}
-
-	UKPCLNetwork* Network = nullptr;
-	if (GetNetworkInfoComponent() && GetNetworkInfoComponent()->IsConnected())
-	{
-		Network = Cast<UKPCLNetwork>(GetNetworkInfoComponent()->GetPowerCircuit());
-	}
-
-	if (!GetPowerInfo() || !Network)
-	{
-		return false;
-	}
-
-	if (GetPowerInfo()->HasPower() && GetFluidBufferInventory())
-	{
-		return GetFluidBufferInventory()->HasItems(mInputConsume.ItemClass, GetCurrentInputAmount());
-	}
-
-	return false;
+	return HasPower();
 }
 
 bool AKPCLNetworkCore::CanConsumeFromPlayerInventory() const
@@ -629,69 +219,123 @@ void AKPCLNetworkCore::OnConsumeFromPlayerInventory()
 bool AKPCLNetworkCore::GetStackThatCanConsumeFromPlayerInventory(FInventoryStack& Stack, int32& Index) const
 {
 	return false;
-} 
-
-void AKPCLNetworkCore::TickPlayerNetworkInventory(float dt)
-{
-	while (!mNetworkPlayerComponentsThisFrame.IsEmpty())
-	{
-		UKPCLNetworkPlayerComponent* Comp;
-		mNetworkPlayerComponentsThisFrame.Dequeue(Comp);
-
-		if (IsValid(Comp))
-		{
-			Comp->ReceiveTickFromNetwork(this);
-		}
-	}
 }
 
-void AKPCLNetworkCore::TickPlayerBufferInventory(float dt)
+FItemAmount AKPCLNetworkCore::GetItemOrCreateAmount(TSubclassOf<UFGItemDescriptor> Item)
 {
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	if (!GetPlayerBufferInventory() || !GetInventory())
-	{
-		return;
-	}
-
-	if (GetPlayerBufferInventory()->IsEmpty())
-	{
-		return;
-	}
-
-	float Solid;
-	float Fluid;
-	GetFreeBytes(Fluid, Solid);
-
-	if (Solid > 0.0f || Fluid > 0.0f)
-	{
-		const int32 BufferIndex = GetPlayerBufferInventory()->GetFirstIndexWithItem();
-		FInventoryStack Stack;
-		if (GetPlayerBufferInventory()->GetStackFromIndex(BufferIndex, Stack))
-		{
-			if (FCoreInventoryData* CoreData = mSlotMappingAll.FindByKey(Stack.Item.GetItemClass()))
-			{
-				int32 ItemIdx = CoreData->mInventoryIndex;
-
-				const int32 MaxAmount = GetMaxItemsByBytes(Stack.Item.GetItemClass(), Fluid, Solid);
-				Stack.NumItems = FMath::Min(MaxAmount, Stack.NumItems);
-
-				if (Stack.HasItems())
-				{
-					GetPlayerBufferInventory()->RemoveFromIndex(BufferIndex,
-					                                            GetInventory()->AddStackToIndex(ItemIdx, Stack, true));
-				}
-			}
-		}
-	}
+	return *GetItemAmountRef(Item);
 }
 
-void AKPCLNetworkCore::ReGroupSlaves()
+FItemAmount* AKPCLNetworkCore::GetItemAmountRef(TSubclassOf<UFGItemDescriptor> Item)
 {
-	// Todo: Testing?
+	FItemAmount* foundItemAmount = mStorage.FindByPredicate( [Item](const FItemAmount& itemAmount)
+		{
+			return itemAmount.ItemClass == Item;
+		} );
+
+	if(!foundItemAmount)
+	{
+		mStorage.Add(FItemAmount(Item, 0));
+		return mStorage.FindByPredicate( [Item](const FItemAmount& itemAmount)
+		{
+			return itemAmount.ItemClass == Item;
+		} );
+	}
+	
+	return foundItemAmount;
+}
+
+int32 AKPCLNetworkCore::GetMaxItemAmount(TSubclassOf<UFGItemDescriptor> Item) const
+{
+	return UFGItemDescriptor::GetStackSize(Item) * mStackSizeMultiplier;
+}
+
+TArray<FItemAmount> AKPCLNetworkCore::GetItemAmounts() const
+{
+	return mStorage;
+}
+
+int32 AKPCLNetworkCore::IsStorageFull(TSubclassOf<UFGItemDescriptor> Item)
+{
+	FItemAmount* ItemAmount = GetItemAmountRef(Item);
+	int32 MaxAmount = GetMaxItemAmount(Item);
+
+	return ItemAmount->Amount >= MaxAmount;
+}
+
+int32 AKPCLNetworkCore::IsStorageFull(FItemAmount* ItemAmount)
+{
+	int32 MaxAmount = GetMaxItemAmount(ItemAmount->ItemClass);
+
+	return ItemAmount->Amount >= MaxAmount;
+}
+
+int32 AKPCLNetworkCore::IsStorageEmpty(TSubclassOf<UFGItemDescriptor> Item)
+{
+	FItemAmount* ItemAmount = GetItemAmountRef(Item);
+	return ItemAmount->Amount <= 0;
+}
+
+int32 AKPCLNetworkCore::IsStorageEmpty(FItemAmount* ItemAmount)
+{
+	return ItemAmount->Amount <= 0;
+}
+
+int32 AKPCLNetworkCore::TryToStoreItem(UFGInventoryComponent* Inventory, TSubclassOf<UFGItemDescriptor> Item, int32 Amount)
+{
+	FInventoryStack Stack;
+	int32 InventoryAmount = Inventory->GetNumItems(Item);
+
+	int32 AmountToStore = FMath::Min(Amount, InventoryAmount);
+	if(AmountToStore <= 0) return 0;
+
+	int32 StoredAmount = TryToStoreItemAmount(Item, AmountToStore);
+	if(StoredAmount <= 0) return 0;
+
+	Inventory->Remove(Item, StoredAmount);
+	return StoredAmount;
+}
+
+int32 AKPCLNetworkCore::TryToStoreItemAmount(TSubclassOf<UFGItemDescriptor> Item, int32 Amount)
+{
+	FItemAmount* ItemAmount = GetItemAmountRef(Item);
+	int32 MaxAmount = GetMaxItemAmount(Item);
+
+	if(IsStorageFull(ItemAmount)) return 0;
+
+	int32 StoredAmount = FMath::Min(Amount, MaxAmount - ItemAmount->Amount);
+
+	ItemAmount->Amount += StoredAmount;
+
+	NotifyStorageChange();
+	return StoredAmount;
+}
+
+int32 AKPCLNetworkCore::TryToGrabItem(UFGInventoryComponent* Inventory, TSubclassOf<UFGItemDescriptor> Item, int32 Amount)
+{
+	FItemAmount* ItemAmount = GetItemAmountRef(Item);
+	if(ItemAmount->Amount <= 0) return 0;
+
+	int32 MaxGrabAmount = FMath::Min(Amount, ItemAmount->Amount);
+
+	FInventoryStack Stack = FInventoryStack(MaxGrabAmount, Item);
+	int AddedAmount = Inventory->AddStack(Stack, true);
+	ItemAmount->Amount -= MaxGrabAmount;
+
+	NotifyStorageChange();
+	return AddedAmount;
+}
+
+int32 AKPCLNetworkCore::TryToGrabItemAmount(TSubclassOf<UFGItemDescriptor> Item, int32 Amount)
+{
+	FItemAmount* ItemAmount = GetItemAmountRef(Item);
+	if(ItemAmount->Amount <= 0) return 0;
+
+	int32 MaxGrabAmount = FMath::Min(Amount, ItemAmount->Amount);
+	ItemAmount->Amount -= MaxGrabAmount;
+
+	NotifyStorageChange();
+	return Amount;
 }
 
 UFGInventoryComponent* AKPCLNetworkCore::GetPlayerBufferInventory() const
@@ -699,482 +343,140 @@ UFGInventoryComponent* AKPCLNetworkCore::GetPlayerBufferInventory() const
 	return GetOutputInventory();
 }
 
-UFGInventoryComponent* AKPCLNetworkCore::GetFluidBufferInventory() const
+void AKPCLNetworkCore::TickNetwork(float dt, FKPCLFaxitNetwork* Network)
 {
-	return GetBoosterInventory();
-}
-
-bool AKPCLNetworkCore::CanRemoveFromCore(const TArray<FItemAmount>& Amounts) const
-{
-	if (GetInventory())
+	if(IsProducing() && Network)
 	{
-		for (FItemAmount Amount : Amounts)
+		for (AKPCLNetworkBuildingBase* Building : Network->mNetworkBuildings)
 		{
-			if (const FCoreInventoryData* CoreData = mSlotMappingAll.FindByKey(Amount.ItemClass))
-			{
-				FInventoryStack Stack;
-				GetInventory()->GetStackFromIndex(CoreData->mInventoryIndex, Stack);
-				if (Stack.NumItems < Amount.Amount || !Stack.HasItems())
-				{
-					return false;
-				}
-			}
-			else
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-	return false;
-}
-
-int32 AKPCLNetworkCore::GetAmountFromItemClass(TSubclassOf<UFGItemDescriptor> ItemClass) const
-{
-	if (IsValid(GetInventory()) && IsValid(ItemClass))
-	{
-		if (const FCoreInventoryData* CoreData = mSlotMappingAll.FindByKey(ItemClass))
-		{
-			FInventoryStack Stack;
-			GetInventory()->GetStackFromIndex(CoreData->mInventoryIndex, Stack);
-			if (Stack.HasItems())
-			{
-				return Stack.NumItems;
-			}
+			Building->TickNetwork(dt, Network);		
 		}
 	}
-
-	return 0;
 }
 
-bool AKPCLNetworkCore::RemoveFromCore(const TArray<FItemAmount>& Amounts)
-{
-	if (!HasAuthority())
-	{
-		UE_LOG(LogKPCL, Error, TEXT("Try to call AKPCLNetworkCore::RemoveFromCore witout Authority!"))
-		return false;
-	}
-
-	if (CanRemoveFromCore(Amounts))
-	{
-		for (FItemAmount Amount : Amounts)
-		{
-			FKPCLItemTransferQueue Queue;
-
-			Queue.mAmount = Amount;
-			Queue.mAddAmount = false;
-			Queue.mInventoryIndex = GetIndexFromItem(Amount.ItemClass);
-
-			mInventoryQueue.Enqueue(Queue);
-		}
-		return true;
-	}
-	return false;
-}
-
-int32 AKPCLNetworkCore::GetIndexFromItem(TSubclassOf<UFGItemDescriptor> ItemClass) const
-{
-	if (!IsValid(ItemClass))
-	{
-		return INDEX_NONE;
-	}
-
-	if (const FCoreInventoryData* CoreData = mSlotMappingAll.FindByKey(ItemClass))
-	{
-		return CoreData->mInventoryIndex;
-	}
-	return INDEX_NONE;
-}
-
-bool AKPCLNetworkCore::FilterPlayerInventory(TSubclassOf<UObject> object, int32 idx) const
-{
-	return true;
-}
-
-bool AKPCLNetworkCore::FormFilterPlayerInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const
+bool AKPCLNetworkCore::FormFilterOutputInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const
 {
 	if (IsValid(object))
 	{
 		return UFGItemDescriptor::GetForm(object) == EResourceForm::RF_SOLID;
 	}
-
 	return false;
 }
 
-void AKPCLNetworkCore::HandlePower(float dt)
+bool AKPCLNetworkCore::FilterInputInventory(TSubclassOf<UObject> object, int32 idx) const
 {
-	mPowerOptions.bHasPower = HasPower();
-	mPowerOptions.StructureTick(dt, IsProducing());
-	GetNetworkInfoComponent()->SetTargetConsumption(mPowerOptions.GetPowerConsume());
-	GetNetworkInfoComponent()->SetMaximumTargetConsumption(mPowerOptions.GetMaxPowerConsume());
-
-	GetNetworkInfoComponent()->SetBaseProduction(50000000.f);
-	GetNetworkInfoComponent()->SetBytes(0);
-
-	UKPCLNetwork* Network = Execute_GetNetwork(this);
-	if (IsValid(Network))
+	if (IsValid(object))
 	{
-		FPowerCircuitStats Stats = FPowerCircuitStats();
-		Network->GetStats(Stats);
-		GetPowerInfo()->SetTargetConsumption(IsProducing() ? FMath::Max(Stats.PowerConsumed, 0.1f) : 0.1f);
-		GetPowerInfo()->SetMaximumTargetConsumption(IsProducing()
-			                                            ? FMath::Max(Stats.MaximumPowerConsumption, 0.1f)
-			                                            : 0.1f);
-	}
-}
-
-void AKPCLNetworkCore::ConfigureCoreInventory()
-{
-	auto AssetSubsystem = UKBFLAssetDataSubsystem::Get(GetWorld());
-	TArray<TSubclassOf<UFGItemDescriptor>> Items;
-
-	for (auto Item : AssetSubsystem->GetAllItems())
-	{
-		if (UFGItemDescriptor::GetForm(Item) != EResourceForm::RF_INVALID && UFGItemDescriptor::GetForm(Item) !=
-			EResourceForm::RF_HEAT && !Item->IsChildOf(UFGBuildDescriptor::StaticClass()) && !Item->
-			IsChildOf(UFGFactoryCustomizationDescriptor::StaticClass()) && !UFGItemDescriptor::GetItemName(Item).
-			IsEmpty() && !Item->IsChildOf(UFGNoneDescriptor::StaticClass()) && !Item->
-			IsChildOf(UFGAnyUndefinedDescriptor::StaticClass()) && !Item->
-			IsChildOf(UFGOverflowDescriptor::StaticClass()) && !Item->IsChildOf(
-				UFGWildCardDescriptor::StaticClass()))
+		if (const TSubclassOf<UKPCLNetworkDrive> Drive{object})
 		{
-			Items.Add(Item);
+			return true;
 		}
 	}
-
-	if (Items.Num() > 0)
-	{
-		TArray<FInventoryStack> Stacks = GetInventory()->mInventoryStacks;
-		GetInventory()->Empty();
-		GetInventory()->Resize(Items.Num());
-
-		for (int i = 0; i < Items.Num(); ++i)
-		{
-			if (Items.IsValidIndex(i))
-			{
-				TSubclassOf<UFGItemDescriptor> Item = Items[i];
-				if (ensure(Item))
-				{
-					EResourceForm Form = UFGItemDescriptor::GetForm(Item);
-					FCoreInventoryData Data = FCoreInventoryData(Item, i);
-					Data.mItemForm = Form == EResourceForm::RF_SOLID
-						                 ? EResourceForm::RF_SOLID
-						                 : EResourceForm::RF_LIQUID;
-
-					mSlotMappingAll.Add(Data);
-					UKPCLBlueprintFunctionLib::SetAllowOnIndex_ThreadSafe(GetInventory(), i, Item);
-					GetInventory()->AddArbitrarySlotSize(i, INT32_MAX);
-				}
-			}
-			else
-			{
-				UKPCLBlueprintFunctionLib::SetAllowOnIndex_ThreadSafe(GetInventory(), i,
-				                                                      UFGNoneDescriptor::StaticClass());
-			}
-		}
-
-		for (FInventoryStack Stack : Stacks)
-		{
-			if (Stack.HasItems())
-			{
-				GetInventory()->AddStack(Stack, true);
-			}
-		}
-
-		CacheBytes();
-	}
-}
-
-void AKPCLNetworkCore::UpdateNetworkMax()
-{
-	if (!HasAuthority())
-	{
-		return;
-	}
-	if (ensure(GetNetworkInfoComponent()))
-	{
-		GetNetworkInfoComponent()->UpdateProcessorCapacity();
-	}
-}
-
-void AKPCLNetworkCore::CheckNetwork()
-{
-	UKPCLNetwork* Network = Execute_GetNetwork(this);
-	if (Network->IsNetworkDirty())
-	{
-		mNetworkConnections = Network->GetNetworkConnectionBuildings();
-		mNetworkManuConnections = Network->GetNetworkAttachments();
-		ReGroupSlaves();
-	}
-
-	mTotalFluidBytes = Network->GetBytes(true);
-	mTotalSolidBytes = Network->GetBytes(false);
-
-	if (GetNetworkInfoComponent())
-	{
-		GetNetworkInfoComponent()->SetBaseProduction(1000000000.f);
-	}
-}
-
-void AKPCLNetworkCore::OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-                                        UFGInventoryComponent* sourceInventory)
-{
-	Super::OnInputItemAdded(itemClass, numRemoved, sourceInventory);
-
-	if (GetInventory())
-	{
-		if (GetInventory()->GetNumItems(itemClass) == numRemoved && false)
-		{
-			FSimpleDelegateGraphTask::CreateAndDispatchWhenReady(FSimpleDelegateGraphTask::FDelegate::CreateLambda([&]()
-			{
-				if (mOnCoreItemStateStateChanged.IsBound())
-				{
-					mOnCoreItemStateStateChanged.Broadcast();
-				}
-			}), TStatId(), nullptr, ENamedThreads::GameThread);
-		}
-	}
-
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	const float ByteSize = GetBytesForItemClass(itemClass, numRemoved);
-	const bool Fluid = UFGItemDescriptor::GetStackSize(itemClass) > 5000;
-
-	if (ByteSize > 0.0f)
-	{
-		if (Fluid)
-		{
-			mUsedFluidBytes += ByteSize;
-		}
-		else
-		{
-			mUsedSolidBytes += ByteSize;
-		}
-	}
+	return false;
 }
 
 void AKPCLNetworkCore::OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
                                           UFGInventoryComponent* sourceInventory)
 {
 	Super::OnInputItemRemoved(itemClass, numRemoved, sourceInventory);
+	UpdateStorageState();
+}
 
-	if (GetInventory())
-	{
-		if (GetInventory()->GetNumItems(itemClass) <= 0 && false)
-		{
-			FSimpleDelegateGraphTask::CreateAndDispatchWhenReady(FSimpleDelegateGraphTask::FDelegate::CreateLambda([&]()
-			{
-				if (mOnCoreItemStateStateChanged.IsBound())
-				{
-					mOnCoreItemStateStateChanged.Broadcast();
-				}
-			}), TStatId(), nullptr, ENamedThreads::GameThread);
-		}
-	}
+void AKPCLNetworkCore::OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
+                                        UFGInventoryComponent* sourceInventory)
+{
+	Super::OnInputItemAdded(itemClass, numRemoved, sourceInventory);
+	UpdateStorageState();
+}
 
-	if (!HasAuthority())
+void AKPCLNetworkCore::UpdateStorageState()
+{
+	if(!IsValid(GetInventory()))
 	{
 		return;
 	}
 
-	const float ByteSize = GetBytesForItemClass(itemClass, numRemoved);
-	const bool Fluid = UFGItemDescriptor::GetStackSize(itemClass) > 5000;
-
-	if (ByteSize > 0.0f)
+	for(int32 i = 0; i < GetInventory()->GetSizeLinear(); i++)
 	{
-		if (Fluid)
+		GetInventory()->AddArbitrarySlotSize(i,1);
+	}
+	
+	TArray<FInventoryStack> Stacks;
+	GetInventory()->GetInventoryStacks(Stacks, false);
+
+	float NewDrivePower = 0.f;
+	int32 NewMultiplier = 1;
+	for (FInventoryStack Stack : Stacks)
+	{
+		if (const TSubclassOf<UKPCLNetworkDrive> Drive{Stack.Item.GetItemClass()})
 		{
-			mUsedFluidBytes -= ByteSize;
+			NewMultiplier += UKPCLNetworkDrive::GetMultiplier(Drive);
+			NewDrivePower += UKPCLNetworkDrive::GetPowerConsume(Drive);
 		}
-		else
+	}
+
+	mStackSizeMultiplier = FMath::Max(mStackSizeMultiplier, 1);
+	mDrivePower = NewDrivePower;
+	CheckStorageState();
+}
+
+void AKPCLNetworkCore::CheckStorageState()
+{
+	bool NewFlushState = false;
+	for (FItemAmount Storage : mStorage)
+	{
+		if(Storage.Amount <= 0) continue;
+		int32 MaxAmount = GetMaxItemAmount(Storage.ItemClass);
+		if(Storage.Amount > MaxAmount)
 		{
-			mUsedSolidBytes -= ByteSize;
+			NewFlushState = true;
+			break;
 		}
+	}
+
+	if(NewFlushState != mItemFlushTimer.mIsActive)
+	{
+		mItemFlushTimer.mIsActive = NewFlushState;
+		mItemFlushTimer.Reset();
 	}
 }
 
-void AKPCLNetworkCore::CacheBytes()
+void AKPCLNetworkCore::FlushOverflow()
 {
-	if (!HasAuthority())
+	for (FItemAmount& Storage : mStorage)
 	{
-		return;
-	}
-
-	fgcheck(GetInventory());
-
-	TArray<FInventoryStack> out_stacks;
-	GetInventory()->GetInventoryStacks(out_stacks);
-	float TotalSolidByteSize = 0.0f;
-	float TotalFluidByteSize = 0.0f;
-	for (FInventoryStack Out_Stack : out_stacks)
-	{
-		float SlotSize = GetBytesForItemClass(Out_Stack.Item.GetItemClass(), Out_Stack.NumItems);
-		const bool Fluid = UFGItemDescriptor::GetStackSize(Out_Stack.Item.GetItemClass()) > 5000;
-
-		if (SlotSize > 0.0f)
-		{
-			if (Fluid)
-			{
-				TotalFluidByteSize += SlotSize;
-			}
-			else
-			{
-				TotalSolidByteSize += SlotSize;
-			}
-		}
-	}
-
-	mUsedFluidBytes = TotalFluidByteSize;
-	mUsedSolidBytes = TotalSolidByteSize;
-}
-
-void AKPCLNetworkCore::HandleManuConnections(AKPCLNetworkBuildingAttachment* NetworkConnection, float dt)
-{
-	TArray<FItemAmount> Amounts;
-	if (NetworkConnection->GetRequiredItems(Amounts))
-	{
-		for (FItemAmount Amount : Amounts)
-		{
-			if (const FCoreInventoryData* CoreData = mSlotMappingAll.FindByKey(Amount.ItemClass))
-			{
-				TArray<FItemAmount> PushedItems;
-				const int32 ItemIdx = CoreData->mInventoryIndex;
-
-				mMutexLock.Lock();
-				FInventoryStack Stack;
-				GetInventory()->GetStackFromIndex(ItemIdx, Stack);
-
-				if (Stack.HasItems())
-				{
-					Stack.NumItems = FMath::Min(Stack.NumItems, Amount.Amount);
-					GetInventory()->RemoveFromIndex(ItemIdx, Stack.NumItems);
-					PushedItems.Add(FItemAmount(Stack.Item.GetItemClass(), Stack.NumItems));
-				}
-				mMutexLock.Unlock();
-
-				NetworkConnection->GetFromNetwork(PushedItems);
-			}
-		}
-	}
-
-	float Solid;
-	float Fluid;
-	GetFreeBytes(Fluid, Solid);
-	if (Solid > 0.0f || Fluid > 0.0f)
-	{
-		if (NetworkConnection->PushToNetwork(Amounts, Solid, Fluid))
-		{
-			for (FItemAmount Amount : Amounts)
-			{
-				if (const FCoreInventoryData* CoreData = mSlotMappingAll.FindByKey(Amount.ItemClass))
-				{
-					TArray<FItemAmount> PushedItems;
-					const int32 ItemIdx = CoreData->mInventoryIndex;
-
-					FInventoryStack Stack;
-					Stack.NumItems = Amount.Amount;
-					Stack.Item.SetItemClass(Amount.ItemClass);
-
-					if (Stack.HasItems())
-					{
-						mMutexLock.Lock();
-						GetInventory()->AddStackToIndex(ItemIdx, Stack);
-						mMutexLock.Unlock();
-					}
-				}
-			}
-		}
+		if(Storage.Amount <= 0) continue;
+		int32 MaxAmount = GetMaxItemAmount(Storage.ItemClass);
+		Storage.Amount = FMath::Min(Storage.Amount, MaxAmount);
 	}
 }
 
-void AKPCLNetworkCore::PullBuilding(AKPCLNetworkConnectionBuilding* NetworkConnection, float dt)
+void AKPCLNetworkCore::NotifyStorageChange()
 {
-	if (!ensure(GetInventory() && NetworkConnection))
+	OnStorageChanged.Broadcast();
+}
+
+void AKPCLNetworkCore::HandlePower(float dt)
+{
+	mPowerOptions.bHasPower = HasPower();
+	mPowerOptions.StructureTick(dt, IsProducing());
+	GetNetworkInfoComponent()->SetTargetConsumption(mPowerOptions.GetPowerConsume() + mDrivePower);
+	GetNetworkInfoComponent()->SetMaximumTargetConsumption(mPowerOptions.GetMaxPowerConsume() + mDrivePower);
+
+	GetNetworkInfoComponent()->SetBaseProduction(50000000.f);
+
+	UKPCLNetwork* Network = Execute_GetNetwork(this);
+	if (IsValid(Network))
 	{
-		return;
-	}
-
-	//NetworkConnection->CollectItems(dt);
-
-	FNetworkConnectionInformations Infos;
-	NetworkConnection->GetConnectionInformations(Infos);
-
-	FInventoryStack Stack;
-	FInventoryStack InfoStack;
-
-	if (Infos.CanPush())
-	{
-		if (FCoreInventoryData* CoreData = mSlotMappingAll.FindByKey(Infos.mItemsToGrab))
-		{
-			mMutexLock.Lock();
-			int32 ItemIdx = CoreData->mInventoryIndex;
-			GetInventory()->GetStackFromIndex(ItemIdx, Stack);
-
-			if (Stack.HasItems())
-			{
-				if (NetworkConnection->TryToReceiveItems(Stack))
-				{
-					GetInventory()->RemoveFromIndex(ItemIdx, Stack.NumItems);
-				}
-			}
-			mMutexLock.Unlock();
-		}
-	}
-	else if (Infos.bIsInput)
-	{
-		TSubclassOf<UFGItemDescriptor> Item = NetworkConnection->PeekItemClass();
-		if (FKPCLNetworkMaxData* Data = mItemCountMap.FindByKey(FKPCLNetworkMaxData(Item, 0)))
-		{
-			if (Data->mItemClass)
-			{
-				FCoreInventoryData* CoreData = mSlotMappingAll.FindByKey(Data->mItemClass);
-				if (ensureAlways(CoreData))
-				{
-					mMutexLock.Lock();
-					GetInventory()->GetStackFromIndex(CoreData->mInventoryIndex, Stack);
-					mMutexLock.Unlock();
-					if (Stack.NumItems >= Data->mMaxItemCount)
-					{
-						NetworkConnection->TryToGrabItems(Stack, .0f, .0f);
-						return;
-					}
-				}
-			}
-		}
-
-		Stack = FInventoryStack();
-		float Solid;
-		float Fluid;
-		GetFreeBytes(Fluid, Solid);
-		if (Solid > 0.0f || Fluid > 0.0f)
-		{
-			FInventoryStack CheckStack;
-
-			if (NetworkConnection->GetStack(CheckStack))
-			{
-				if (!CheckStack.HasItems())
-				{
-					return;
-				}
-
-				if (FCoreInventoryData* CoreData = mSlotMappingAll.FindByKey(CheckStack.Item.GetItemClass()))
-				{
-					int32 ItemIdx = CoreData->mInventoryIndex;
-
-					if (NetworkConnection->TryToGrabItems(Stack, Solid, Fluid))
-					{
-						if (Stack.HasItems())
-						{
-							mMutexLock.Lock();
-							GetInventory()->AddStackToIndex(ItemIdx, Stack);
-							mMutexLock.Unlock();
-						}
-					}
-				}
-			}
-		}
+		FPowerCircuitStats Stats = FPowerCircuitStats();
+		Network->GetStats(Stats);
+		
+		mNetworkPower = FMath::Max(Stats.PowerConsumed, 0.1f);
+		mMaxNetworkPower = FMath::Max(Stats.MaximumPowerConsumption, 0.1f);
+		
+		GetPowerInfo()->SetTargetConsumption(IsProducing() ? mNetworkPower : 0.1f);
+		GetPowerInfo()->SetMaximumTargetConsumption(IsProducing()
+			                                            ? mMaxNetworkPower
+			                                            : 0.1f);
 	}
 }

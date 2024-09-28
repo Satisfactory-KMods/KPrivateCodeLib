@@ -10,28 +10,6 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDistanceUpdated, int32, Distance);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRulesUpdated);
-
-USTRUCT(BlueprintType)
-struct FKPCLPlayerInventoryRules
-{
-	GENERATED_BODY()
-
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadWrite)
-	FItemAmount mItemAmount;
-
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadWrite)
-	bool mShouldPullFromNetwork;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 mUIOnly_Index = -1;
-
-	bool IsValid() const
-	{
-		return mItemAmount.Amount >= 0 && mItemAmount.ItemClass != nullptr;
-	}
-};
-
 UENUM(BlueprintType)
 enum EKPCLPlayerRuleFilter
 {
@@ -57,12 +35,6 @@ protected:
 
 private:
 	void DoDistanceCheck();
-
-	void ReceiveTickFromNetwork(AKPCLNetworkCore* Core);
-	void ReValidSchematics();
-
-	UFUNCTION()
-	void OnSchematicUnlocked(TSubclassOf<UFGSchematic> Schematic);
 
 public:
 	void CustomTick(float dt);
@@ -105,28 +77,10 @@ public:
 	bool DistanceAccessUnlocked() const;
 
 	/**
-	* @return true if we are available to auto pull items from the nearest network
-	*/
-	UFUNCTION(BlueprintPure, Category="Network")
-	bool PullLogicUnlocked() const;
-
-	/**
-	* @return true if we are available to auto push items from the nearest network
-	*/
-	UFUNCTION(BlueprintPure, Category="Network")
-	bool PushLogicUnlocked() const;
-
-	/**
 	* @return true if we are available access a network
 	*/
 	UFUNCTION(BlueprintPure, Category="Network")
 	bool CanAccessTo() const;
-
-	/**
-	* @return true if we are available to auto push items from the nearest network
-	*/
-	UFUNCTION(BlueprintPure, Category="Network")
-	bool SinkOverFlowUnlocked() const;
 
 	UFUNCTION(BlueprintPure, Category="Network")
 	int32 GetDistanceStrength() const;
@@ -137,23 +91,8 @@ public:
 	template <class T>
 	T* GetNextBuilding_Native() const;
 
-	UFUNCTION(BlueprintCallable, Category="Network")
-	TArray<FKPCLPlayerInventoryRules> GetRules(EKPCLPlayerRuleFilter Filter = All) const;
-
-	UFUNCTION(BlueprintCallable, Category="Network")
-	void AddRule(FKPCLPlayerInventoryRules Rule);
-
-	UFUNCTION(BlueprintCallable, Category="Network")
-	void RemoveRule(int32 RuleIndex);
-
-	UFUNCTION(BlueprintCallable, Category="Network")
-	void EditRule(int32 RuleIndex, FKPCLPlayerInventoryRules Rule);
-
 	UPROPERTY(BlueprintAssignable, Category="Network")
 	FOnDistanceUpdated mOnDistanceUpdated;
-
-	UPROPERTY(BlueprintAssignable, Category="Network")
-	FOnRulesUpdated mOnRulesUpdated;
 
 protected:
 	UFUNCTION()
@@ -175,19 +114,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="KMods|NetworkPullAndPushManager")
 	FSmartTimer mTimerForPushAndPullLogic = FSmartTimer(.25f);
-
-	UPROPERTY(EditDefaultsOnly, Category="KMods|Permissions")
-	TSubclassOf<UFGSchematic> mSchematicForOverflowSink;
-
-	UPROPERTY(EditDefaultsOnly, Category="KMods|Permissions")
-	TSubclassOf<UFGSchematic> mSchematicsToUnlockDistanceAccess;
-
-	UPROPERTY(EditDefaultsOnly, Category="KMods|Permissions")
-	TSubclassOf<UFGSchematic> mSchematicsToUnlockAutoPull;
-
-	UPROPERTY(EditDefaultsOnly, Category="KMods|Permissions")
-	TSubclassOf<UFGSchematic> mSchematicsToUnlockAutoPush;
-
 private:
 	// we want that the Core is friend because we want that he QUEUE items to pull or push;
 	friend AKPCLNetworkCore;
@@ -208,9 +134,6 @@ private:
 
 	UPROPERTY(Replicated)
 	AFGBuildable* mNextBuilding;
-
-	UPROPERTY(Replicated, ReplicatedUsing=OnRep_RulesUpdated, SaveGame)
-	TArray<FKPCLPlayerInventoryRules> mInventoryRules;
 
 	UPROPERTY(Replicated, SaveGame)
 	bool mIsAllowedToSetOverflow = false;

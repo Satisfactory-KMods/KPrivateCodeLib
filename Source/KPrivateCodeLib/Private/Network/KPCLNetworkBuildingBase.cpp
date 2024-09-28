@@ -34,24 +34,21 @@ FNetworkUIData AKPCLNetworkBuildingBase::GetUIDData_Implementation() const
 	return mNetworkUIData;
 }
 
-void AKPCLNetworkBuildingBase::PreSaveGame_Implementation(int32 saveVersion, int32 gameVersion)
+void AKPCLNetworkBuildingBase::SetNetworkCore(AKPCLNetworkCore* Core)
 {
-	DequeueItems();
-	DequeueSink();
-
-	Super::PreSaveGame_Implementation(saveVersion, gameVersion);
+	mNetworkCore = Core;
 }
 
 bool AKPCLNetworkBuildingBase::HasCore_Internal() const
 {
-	return IsValid(GetCore_Internal()) && IsProducing();
+	return GetCore_Internal() && IsProducing();
 }
 
 AKPCLNetworkCore* AKPCLNetworkBuildingBase::GetCore_Internal() const
 {
 	if (!HasAuthority())
 	{
-		return Cast<AKPCLNetworkCore>(mCore);
+		return Cast<AKPCLNetworkCore>(mNetworkCore);
 	}
 
 	if (UKPCLNetwork* Network = Execute_GetNetwork(this))
@@ -60,7 +57,7 @@ AKPCLNetworkCore* AKPCLNetworkBuildingBase::GetCore_Internal() const
 		{
 			return Network->GetCore();
 		}
-		return Cast<AKPCLNetworkCore>(mCore);
+		return Cast<AKPCLNetworkCore>(mNetworkCore);
 	}
 	return nullptr;
 }
@@ -72,6 +69,15 @@ UKPCLNetwork* AKPCLNetworkBuildingBase::GetNetwork_Internal() const
 		return Cast<UKPCLNetwork>(GetNetworkInfoComponent()->GetPowerCircuit());
 	}
 	return nullptr;
+}
+
+void AKPCLNetworkBuildingBase::OnNetworkDestoryed_Internal()
+{
+	mNetworkCore = nullptr;
+}
+
+void AKPCLNetworkBuildingBase::OnNetworkAdded_Internal(AKPCLNetworkCore* Core)
+{
 }
 
 
@@ -88,6 +94,8 @@ void AKPCLNetworkBuildingBase::MultiCast_OnNetworkCoreChanged_Implementation(boo
 void AKPCLNetworkBuildingBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	mFaxitSubsystem = AKPCLFaxitSubsystem::Get(GetWorld());
 
 	TArray<UFGPowerInfoComponent*> Infos;
 	GetComponents<UFGPowerInfoComponent>(Infos);
@@ -114,17 +122,11 @@ void AKPCLNetworkBuildingBase::BeginPlay()
 			{
 				GetNetworkConnectionComponent()->OnConnectionChanged.AddUObject(
 					this, &AKPCLNetworkBuildingBase::OnCircuitChanged);
-				GetNetworkInfoComponent()->CoreStateChanged.AddUObject(
-					this, &AKPCLNetworkBuildingBase::OnHasCoreChanged);
-				GetNetworkInfoComponent()->MaxTransferChanged.AddUObject(this, &AKPCLNetworkBuildingBase::OnMaxChanged);
 			}
 		}
 
 		AKPCLUnlockSubsystem* UnlockSubsystem = AKPCLUnlockSubsystem::Get(GetWorld());
 		check(UnlockSubsystem);
-
-		mUnlockedTier = UnlockSubsystem->GetNetworkTier();
-		UnlockSubsystem->OnNetworkTierUnlocked.AddUniqueDynamic(this, &AKPCLNetworkBuildingBase::OnTierUnlocked);
 	}
 
 	OnNetworkCoreChanged(Execute_GetCore(this) != nullptr);
@@ -132,95 +134,24 @@ void AKPCLNetworkBuildingBase::BeginPlay()
 
 void AKPCLNetworkBuildingBase::Factory_Tick(float dt)
 {
-	DequeueItems();
-	DequeueSink();
-
 	Super::Factory_Tick(dt);
 
 	if (HasAuthority())
 	{
-		if (mCore != Execute_GetCore(this))
+		if (mNetworkCore != Execute_GetCore(this))
 		{
-			mCore = Execute_GetCore(this);
+			mNetworkCore = Execute_GetCore(this);
 
 			if (IsInGameThread())
 			{
-				MultiCast_OnNetworkCoreChanged(mCore != nullptr);
+				MultiCast_OnNetworkCoreChanged(mNetworkCore != nullptr);
 			}
 			else
 			{
 				AsyncTask(ENamedThreads::GameThread, [&]()
 				{
-					MultiCast_OnNetworkCoreChanged(mCore != nullptr);
+					MultiCast_OnNetworkCoreChanged(mNetworkCore != nullptr);
 				});
-			}
-		}
-	}
-}
-
-void AKPCLNetworkBuildingBase::DequeueItems()
-{
-	if (HasAuthority() && GetInventory())
-	{
-		if (!mInventoryQueue.IsEmpty())
-		{
-			while (!mInventoryQueue.IsEmpty())
-			{
-				FKPCLItemTransferQueue QueueItem;
-				mInventoryQueue.Dequeue(QueueItem);
-				if (QueueItem.IsValid())
-				{
-					if (QueueItem.mAddAmount)
-					{
-						UKBFLCppInventoryHelper::AddItemsInInventory(GetInventory(), QueueItem.mAmount.ItemClass,
-						                                             QueueItem.mAmount.Amount);
-					}
-					else
-					{
-						FInventoryStack Stack;
-						GetInventory()->GetStackFromIndex(QueueItem.mInventoryIndex, Stack);
-						if (Stack.HasItems())
-						{
-							Stack.NumItems = FMath::Min(Stack.NumItems, QueueItem.mAmount.Amount);
-							GetInventory()->RemoveFromIndex(QueueItem.mInventoryIndex, Stack.NumItems);
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-void AKPCLNetworkBuildingBase::DequeueSink()
-{
-	if (HasAuthority() && GetInventory())
-	{
-		AFGResourceSinkSubsystem* Sub = GetSinkSub();
-		if (IsValid(Sub))
-		{
-			while (!mSinkQueue.IsEmpty())
-			{
-				FKPCLSinkQueue Sink;
-				if (mSinkQueue.Dequeue(Sink))
-				{
-					if (IsValid(Sink.mAmount.ItemClass) && Sink.mAmount.Amount > 0 && Sink.mIndex != INDEX_NONE)
-					{
-						if (UFGItemDescriptor::GetForm(Sink.mAmount.ItemClass) == EResourceForm::RF_SOLID)
-						{
-							if (GetInventory()->IsValidIndex(Sink.mIndex))
-							{
-								for (int32 C = 0; C < Sink.mAmount.Amount; ++C)
-								{
-									if (!Sub->AddPoints_ThreadSafe(Sink.mAmount.ItemClass))
-									{
-										break;
-									}
-								}
-								GetInventory()->RemoveFromIndex(Sink.mIndex, Sink.mAmount.Amount);
-							}
-						}
-					}
-				}
 			}
 		}
 	}
@@ -228,11 +159,33 @@ void AKPCLNetworkBuildingBase::DequeueSink()
 
 bool AKPCLNetworkBuildingBase::Factory_IsProducing() const
 {
-	if (IsValid(mCore) && mCore != this && !IsCore())
+	if (IsValid(mNetworkCore) && mNetworkCore != this && !IsCore())
 	{
-		return mCore->IsProducing();
+		return mNetworkCore->IsProducing();
 	}
 	return Super::Factory_IsProducing();
+}
+
+void AKPCLNetworkBuildingBase::TickNetwork(float dt, FKPCLFaxitNetwork* Network)
+{
+}
+
+int32 AKPCLNetworkBuildingBase::SinkItems(FItemAmount Items)
+{
+	int32 Removed = 0;
+	AFGResourceSinkSubsystem* Sub = GetSinkSub();
+	if (IsValid(Sub))
+	{
+		for (int32 C = 0; C < Items.Amount; ++C)
+		{
+			if (!Sub->AddPoints_ThreadSafe(Items.ItemClass))
+			{
+				break;
+			}
+			Removed++;
+		}
+	}
+	return Removed;
 }
 
 void AKPCLNetworkBuildingBase::RegisterInteractingPlayer_Implementation(AFGCharacterPlayer* player)
@@ -280,30 +233,15 @@ bool AKPCLNetworkBuildingBase::CanProduce_Implementation() const
 		return false;
 	}
 
-	if (mCore)
+	if (mNetworkCore)
 	{
-		return mCore->IsProducing();
+		return mNetworkCore->IsProducing();
 	}
 	return false;
 }
 
 void AKPCLNetworkBuildingBase::OnCircuitChanged(UFGCircuitConnectionComponent* Component)
 {
-}
-
-void AKPCLNetworkBuildingBase::OnTierUnlocked(int32 Tier)
-{
-	if (mUnlockedTier != FMath::Clamp(Tier, 0, mMaxTier))
-	{
-		mUnlockedTier = FMath::Clamp(Tier, 0, mMaxTier);
-		OnTierUpdated();
-	}
-}
-
-
-int32 AKPCLNetworkBuildingBase::GetTier() const
-{
-	return FMath::Clamp(mUnlockedTier, 0, mMaxTier);
 }
 
 bool AKPCLNetworkBuildingBase::IsCore() const
@@ -375,11 +313,10 @@ void AKPCLNetworkBuildingBase::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AKPCLNetworkBuildingBase, mCore);
-	DOREPLIFETIME(AKPCLNetworkBuildingBase, mUnlockedTier);
+	DOREPLIFETIME(AKPCLNetworkBuildingBase, mNetworkCore);
 }
 
 AFGResourceSinkSubsystem* AKPCLNetworkBuildingBase::GetSinkSub()
 {
-	return nullptr;
+	return AFGResourceSinkSubsystem::Get(GetWorld());
 }

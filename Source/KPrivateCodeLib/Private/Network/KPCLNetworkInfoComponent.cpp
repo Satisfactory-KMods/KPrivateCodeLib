@@ -11,14 +11,7 @@ void UKPCLNetworkInfoComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UKPCLNetworkInfoComponent, mNetworkBytes);
-	DOREPLIFETIME(UKPCLNetworkInfoComponent, mNetworkHasCore);
-	DOREPLIFETIME(UKPCLNetworkInfoComponent, bHandleBytesAsFluid);
-}
-
-int32 UKPCLNetworkInfoComponent::GetBytes() const
-{
-	return mNetworkBytes;
+	DOREPLIFETIME(UKPCLNetworkInfoComponent, mNetworkCoresInNetwork);
 }
 
 bool UKPCLNetworkInfoComponent::HasCore() const
@@ -27,125 +20,26 @@ bool UKPCLNetworkInfoComponent::HasCore() const
 	{
 		return false;
 	}
-	return mNetworkHasCore;
+	return mNetworkCoresInNetwork.Num() >= 1;
 }
 
-void UKPCLNetworkInfoComponent::UpdateProcessorCapacity()
+int32 UKPCLNetworkInfoComponent::CoreCount() const
 {
-	UKPCLNetwork* Network = GetNetwork();
-	if (ensure(Network))
-	{
-		int32 TotalInFluid = 0;
-		int32 TotalInSolid = 0;
-		int32 TotalOutFluid = 0;
-		int32 TotalOutSolid = 0;
-
-		Network->GetProccessorCapacity(TotalInFluid, TotalInSolid, TotalOutFluid, TotalOutSolid);
-
-		SetMax(TotalInFluid, TotalOutFluid, true);
-		SetMax(TotalInSolid, TotalOutSolid, false);
-	}
+	return  mNetworkCoresInNetwork.Num();
 }
 
-bool UKPCLNetworkInfoComponent::IsCore() const
+void UKPCLNetworkInfoComponent::SetCors(TArray<AKPCLNetworkCore*> Cores)
 {
-	if (AKPCLNetworkBuildingBase* Base = Cast<AKPCLNetworkBuildingBase>(GetOwner()))
-	{
-		return Base->IsCore();
-	}
-	return false;
-}
-
-void UKPCLNetworkInfoComponent::SetHasCore(bool Has)
-{
-	if (mNetworkHasCore != Has)
-	{
-		mNetworkHasCore = Has;
-		FSimpleDelegateGraphTask::CreateAndDispatchWhenReady(FSimpleDelegateGraphTask::FDelegate::CreateLambda([=]()
+	if (mNetworkCoresInNetwork.Num() != Cores.Num()) {
+		FSimpleDelegateGraphTask::CreateAndDispatchWhenReady(FSimpleDelegateGraphTask::FDelegate::CreateLambda([=, Cores]()
 		{
 			if (CoreStateChanged.IsBound())
 			{
-				CoreStateChanged.Broadcast(mNetworkHasCore);
+				CoreStateChanged.Broadcast(Cores.Num() > 0);
 			}
 		}), TStatId(), nullptr, ENamedThreads::GameThread);
 	}
-}
-
-void UKPCLNetworkInfoComponent::SetMax(int32 MaxInput, int32 MaxOutput, bool IsFluid)
-{
-	if (IsFluid)
-	{
-		if (MaxInput != mMaxInputFluid || MaxOutput != mMaxOutputFluid)
-		{
-			mMaxInputFluid = MaxInput;
-			mMaxOutputFluid = MaxOutput;
-			FSimpleDelegateGraphTask::CreateAndDispatchWhenReady(FSimpleDelegateGraphTask::FDelegate::CreateLambda([=]()
-			{
-				if (MaxTransferChanged.IsBound())
-				{
-					MaxTransferChanged.Broadcast();
-				}
-			}), TStatId(), nullptr, ENamedThreads::GameThread);
-		}
-	}
-	else
-	{
-		if (MaxInput != mMaxInputSolid || MaxOutput != mMaxOutputSolid)
-		{
-			mMaxInputSolid = MaxInput;
-			mMaxOutputSolid = MaxOutput;
-			FSimpleDelegateGraphTask::CreateAndDispatchWhenReady(FSimpleDelegateGraphTask::FDelegate::CreateLambda([=]()
-			{
-				if (MaxTransferChanged.IsBound())
-				{
-					MaxTransferChanged.Broadcast();
-				}
-			}), TStatId(), nullptr, ENamedThreads::GameThread);
-		}
-	}
-}
-
-int32 UKPCLNetworkInfoComponent::GetMaxInput(bool IsFluid) const
-{
-	if (!IsConnected() || !HasCore())
-	{
-		return 0;
-	}
-
-	if (!GetOwner()->HasAuthority())
-	{
-		if (GetNetwork())
-		{
-			return GetNetwork()->GetMaxInput(IsFluid);
-		}
-		return 0;
-	}
-
-	return IsFluid ? mMaxInputFluid : mMaxInputSolid;
-}
-
-int32 UKPCLNetworkInfoComponent::GetMaxOutput(bool IsFluid) const
-{
-	if (!IsConnected() || !HasCore())
-	{
-		return 0;
-	}
-
-	if (!GetOwner()->HasAuthority())
-	{
-		if (GetNetwork())
-		{
-			return GetNetwork()->GetMaxOutput(IsFluid);
-		}
-		return 0;
-	}
-
-	return IsFluid ? mMaxOutputFluid : mMaxOutputSolid;
-}
-
-void UKPCLNetworkInfoComponent::SetBytes(int32 Bytes)
-{
-	mNetworkBytes = FMath::Clamp<int32>(Bytes, 0, INT32_MAX);
+	mNetworkCoresInNetwork = Cores;
 }
 
 UKPCLNetwork* UKPCLNetworkInfoComponent::GetNetwork() const
@@ -157,12 +51,19 @@ UKPCLNetwork* UKPCLNetworkInfoComponent::GetNetwork() const
 	return nullptr;
 }
 
-void UKPCLNetworkInfoComponent::SetHandleBytesAsFluid(bool IsFluid)
+class AKPCLNetworkCore* UKPCLNetworkInfoComponent::GetFirstCores() const
 {
-	bHandleBytesAsFluid = IsFluid;
+	return mNetworkCoresInNetwork.Num() > 0 ? mNetworkCoresInNetwork[0] : nullptr;
 }
 
-bool UKPCLNetworkInfoComponent::IsFluidBytesHandler() const
+class AKPCLNetworkCore* UKPCLNetworkInfoComponent::GetFirstCores(bool& Valid) const
 {
-	return bHandleBytesAsFluid;
+	AKPCLNetworkCore* Core = mNetworkCoresInNetwork.Num() > 0 ? mNetworkCoresInNetwork[0] : nullptr;
+	Valid = IsValid(Core);
+	return Core;
+}
+
+TArray<class AKPCLNetworkCore*> UKPCLNetworkInfoComponent::GetCores() const
+{
+	return mNetworkCoresInNetwork;
 }

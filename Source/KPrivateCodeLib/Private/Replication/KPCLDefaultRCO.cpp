@@ -78,23 +78,6 @@ void UKPCLDefaultRCO::Server_FlushFluids_Implementation(AFGBuildable* Building)
 	}
 }
 
-void UKPCLDefaultRCO::Server_SetSinkOverflowItem_Implementation(AKPCLNetworkBuildingBase* Building, bool NewAllowed)
-{
-	AKPCLNetworkConnectionBuilding* ConnectionBuilding = Cast<AKPCLNetworkConnectionBuilding>(Building);
-	if (ensure(ConnectionBuilding))
-	{
-		ConnectionBuilding->SetIsAllowedToSinkOverflow(NewAllowed);
-		ConnectionBuilding->ForceNetUpdate();
-		return;
-	}
-
-	AKPCLNetworkBuildingAttachment* ManufacturerConnection = Cast<AKPCLNetworkBuildingAttachment>(Building);
-	if (ensure(ManufacturerConnection))
-	{
-		//ManufacturerConnection->SetIsAllowedToSinkOverflow( NewAllowed );
-		ManufacturerConnection->ForceNetUpdate();
-	}
-}
 
 void UKPCLDefaultRCO::Server_Core_LootChest_Implementation(AKPCLLootChest* Target, AFGCharacterPlayer* Player)
 {
@@ -133,51 +116,11 @@ int32 UKPCLDefaultRCO::MoveItemAmount(UFGInventoryComponent* Source, int32 Sourc
 	return 0;
 }
 
-void UKPCLDefaultRCO::Server_EditRuleFromNetworkComponent_Implementation(
-	UKPCLNetworkPlayerComponent* Target, int32 RuleIndex, FKPCLPlayerInventoryRules Rule)
-{
-	if (IsValid(Target))
-	{
-		Target->EditRule(RuleIndex, Rule);
-		Target->GetOwner()->ForceNetUpdate();
-	}
-}
-
-void UKPCLDefaultRCO::Server_AddRuleFromNetworkComponent_Implementation(UKPCLNetworkPlayerComponent* Target,
-                                                                        FKPCLPlayerInventoryRules Rule)
-{
-	if (IsValid(Target))
-	{
-		Target->AddRule(Rule);
-		Target->GetOwner()->ForceNetUpdate();
-	}
-}
-
-void UKPCLDefaultRCO::Server_RemoveRuleFromNetworkComponent_Implementation(
-	UKPCLNetworkPlayerComponent* Target, int32 RuleIndex)
-{
-	if (IsValid(Target))
-	{
-		Target->RemoveRule(RuleIndex);
-		Target->GetOwner()->ForceNetUpdate();
-	}
-}
-
 void UKPCLDefaultRCO::Server_MoveItemAmount_Implementation(UFGInventoryComponent* Source, int32 SourceIndex,
                                                            UFGInventoryComponent* Target, FItemAmount Amount,
                                                            bool ResizeToFit)
 {
 	MoveItemAmount(Source, SourceIndex, Target, Amount, ResizeToFit);
-}
-
-void UKPCLDefaultRCO::Server_Core_SetMaxItemCount_Implementation(AKPCLNetworkCore* Target,
-                                                                 TSubclassOf<UFGItemDescriptor> Item, int32 Max)
-{
-	if (ensure(Target))
-	{
-		Target->Core_SetMaxItemCount(Item, Max);
-		Target->ForceNetUpdate();
-	}
 }
 
 void UKPCLDefaultRCO::Server_UpdateCustomSwatchData_Implementation(AKPCLSwatchSystem* Target, FCustomSwatchData Data,

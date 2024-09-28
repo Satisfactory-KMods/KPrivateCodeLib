@@ -9,22 +9,14 @@
 
 #include "Network/KPCLNetworkInfoComponent.h"
 #include "Network/Buildings/KPCLNetworkCore.h"
+#include "Buildings/KPCLNetworkConnectionBuilding.h"
 
 void UKPCLNetwork::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UKPCLNetwork, mCoreBuilding);
-	DOREPLIFETIME(UKPCLNetwork, mNetworkBytesForSolids);
-	DOREPLIFETIME(UKPCLNetwork, mNetworkBytesForFluids);
 	DOREPLIFETIME(UKPCLNetwork, mConnectionBuildings);
-	DOREPLIFETIME(UKPCLNetwork, mConnectionAttachments);
-	DOREPLIFETIME(UKPCLNetwork, mNetworkProcessors);
-
-	DOREPLIFETIME(UKPCLNetwork, mNetworkMaxInputFluid);
-	DOREPLIFETIME(UKPCLNetwork, mNetworkMaxInputSolid);
-	DOREPLIFETIME(UKPCLNetwork, mNetworkMaxOutputFluid);
-	DOREPLIFETIME(UKPCLNetwork, mNetworkMaxOutputSolid);
+	DOREPLIFETIME(UKPCLNetwork, mCoreBuildings);
 }
 
 void UKPCLNetwork::TickCircuit(float dt)
@@ -41,75 +33,17 @@ void UKPCLNetwork::TickCircuit(float dt)
 		{
 			ResetFuse();
 		}
-
-		if (!IsValid(GetCore()))
-		{
-			return;
-		}
-
-		UpdateBytesInNetwork();
 	}
 }
 
-void UKPCLNetwork::UpdateBytesInNetwork()
+void UKPCLNetwork::UpdateDataInInfos()
 {
-	FCriticalSection Mutex;
-	ReBuildGroups();
-
-	if (!IsValid(GetCore()))
+	for (UFGPowerInfoComponent* Group : mPowerInfos)
 	{
-		return;
+		UKPCLNetworkInfoComponent* InfoComponent = Cast<UKPCLNetworkInfoComponent>(Group);
+
+		InfoComponent->SetCors(mCoreBuildings);
 	}
-
-	const UKPCLNetworkInfoComponent* Core = GetCore()->GetNetworkInfoComponent();
-
-	GetProccessorCapacity(mNetworkMaxInputSolid, mNetworkMaxInputFluid, mNetworkMaxOutputFluid, mNetworkMaxInputSolid);
-
-	int32 NewBytes = 0;
-	int32 NewFluidBytes = 0;
-
-	for (TArray<UKPCLNetworkInfoComponent*> Group : mNetworkGroups)
-	{
-		const int32 NumPerGroup = FMath::Max(FMath::DivideAndRoundUp(Group.Num(), 7), 1);
-		ParallelFor(7, [&, Group](int32 Index)
-		{
-			int32 Bytes = 0;
-			int32 FluidBytes = 0;
-
-			for (int32 Member = Index * NumPerGroup; Member < FMath::Min((Index + 1) * NumPerGroup, Group.Num()); Member
-			     ++)
-			{
-				if (UKPCLNetworkInfoComponent* NetWorkInfo = Cast<UKPCLNetworkInfoComponent>(Group[Member]))
-				{
-					NetWorkInfo->SetHasCore(NetworkHasCore());
-					if (NetWorkInfo->IsFluidBytesHandler())
-					{
-						FluidBytes += NetWorkInfo->GetBytes();
-					}
-					else
-					{
-						Bytes += NetWorkInfo->GetBytes();
-					}
-
-					if (NetWorkInfo == Core)
-					{
-						continue;
-					}
-
-					NetWorkInfo->SetMax(mNetworkMaxInputFluid, mNetworkMaxOutputFluid, true);
-					NetWorkInfo->SetMax(mNetworkMaxInputSolid, mNetworkMaxOutputSolid);
-				}
-			}
-
-			Mutex.Lock();
-			NewBytes += Bytes;
-			NewFluidBytes += FluidBytes;
-			Mutex.Unlock();
-		});
-	}
-
-	mNetworkBytesForFluids = NewFluidBytes;
-	mNetworkBytesForSolids = NewBytes;
 }
 
 void UKPCLNetwork::OnCircuitChanged()
@@ -117,18 +51,15 @@ void UKPCLNetwork::OnCircuitChanged()
 	Super::OnCircuitChanged();
 
 	FCriticalSection Mutex;
-	AKPCLNetworkCore* NewCore = nullptr;
 
 	TArray<AKPCLNetworkConnectionBuilding*> AllBuildings;
-	TArray<AKPCLNetworkBuildingAttachment*> AllManuBuildings;
-	TArray<AKPCLNetworkCoreModule*> AllProcessors;
+	TArray<AKPCLNetworkCore*> AllCores;
 
 	const int32 NumPerGroup = FMath::Max(FMath::DivideAndRoundUp(mPowerInfos.Num(), 7), 1);
 	ParallelFor(7, [&](int32 Index)
 	{
+		TArray<AKPCLNetworkCore*> Cores;
 		TArray<AKPCLNetworkConnectionBuilding*> Buildings;
-		TArray<AKPCLNetworkBuildingAttachment*> ManuBuildings;
-		TArray<AKPCLNetworkCoreModule*> Processors;
 
 		for (int32 Member = Index * NumPerGroup; Member < FMath::Min((Index + 1) * NumPerGroup, mPowerInfos.Num());
 		     Member++)
@@ -142,24 +73,10 @@ void UKPCLNetwork::OnCircuitChanged()
 					{
 						Buildings.Add(Owner);
 					}
-					else if (AKPCLNetworkBuildingAttachment* ManuOwner = Cast<AKPCLNetworkBuildingAttachment>(
+					else if (AKPCLNetworkCore* ManuOwner = Cast<AKPCLNetworkCore>(
 						mPowerInfos[Member]->GetOwner()))
 					{
-						ManuBuildings.Add(ManuOwner);
-					}
-					else if (AKPCLNetworkCoreModule* Processor = Cast<AKPCLNetworkCoreModule>(
-						mPowerInfos[Member]->GetOwner()))
-					{
-						Processors.Add(Processor);
-					}
-					else if (AKPCLNetworkCore* Core = Cast<AKPCLNetworkCore>(mPowerInfos[Member]->GetOwner()))
-					{
-						if (Core->IsCore())
-						{
-							Mutex.Lock();
-							NewCore = Core;
-							Mutex.Unlock();
-						}
+						Cores.Add(ManuOwner);
 					}
 					else
 					{
@@ -172,188 +89,40 @@ void UKPCLNetwork::OnCircuitChanged()
 
 		Mutex.Lock();
 		AllBuildings.Append(Buildings);
-		AllManuBuildings.Append(ManuBuildings);
-		AllProcessors.Append(Processors);
+		AllCores.Append(Cores);
 		Mutex.Unlock();
 	});
 
 	mConnectionBuildings = AllBuildings;
-	mConnectionAttachments = AllManuBuildings;
-	mNetworkProcessors = AllProcessors;
-
-	mCoreBuilding = NewCore;
-	if (IsValid(mCoreBuilding))
-	{
-	}
-
-	bNetworkBuildingsAreDirty = true;
-	bNetworkGroupsAreDirty = true;
-
-	//UpdateBytesInNetwork();
+	mCoreBuildings = AllCores;
+	UpdateDataInInfos();
 }
 
 bool UKPCLNetwork::NetworkHasCore() const
 {
-	return mCoreBuilding != nullptr;
+	return mCoreBuildings.Num() >= 1;
+}
+
+bool UKPCLNetwork::NetworkHasCoreToMuchCores() const
+{
+	return mCoreBuildings.Num() > 1;
 }
 
 bool UKPCLNetwork::CoreStateIsOk() const
 {
-	if (mCoreBuilding)
+	if (IsValid(GetCore()))
 	{
-		return mCoreBuilding->IsProducing();
+		return GetCore()->IsProducing();
 	}
 	return false;
 }
 
 AKPCLNetworkCore* UKPCLNetwork::GetCore() const
 {
-	return mCoreBuilding;
-}
-
-int32 UKPCLNetwork::GetBytes(bool AsFluid) const
-{
-	if (NetworkHasCore())
-	{
-		if (AsFluid)
-		{
-			return mNetworkBytesForFluids;
-		}
-		return mNetworkBytesForSolids;
-	}
-	return 0;
-}
-
-int32 UKPCLNetwork::GetProcessorCapacity() const
-{
-	int32 Capacity = 0;
-	for (int32 i = 0; i < mNetworkProcessors.Num(); ++i)
-	{
-		if (IsValid(mNetworkProcessors[i]) && mNetworkProcessors[i]->IsProducing())
-		{
-			Capacity++;
-		}
-
-		/**
-		*  We only need to check the first 8 running processors and ignore all the other
-		*  to limit the capacity for each faxit network!
-		*/
-		if (Capacity >= 8)
-		{
-			return Capacity;
-		}
-	}
-	return Capacity;
-}
-
-bool UKPCLNetwork::IsNetworkDirty() const
-{
-	return bNetworkBuildingsAreDirty;
+	return mCoreBuildings.Num() > 0 ? mCoreBuildings[0] : nullptr;
 }
 
 TArray<AKPCLNetworkConnectionBuilding*> UKPCLNetwork::GetNetworkConnectionBuildings()
 {
-	bNetworkBuildingsAreDirty = false;
 	return mConnectionBuildings;
-}
-
-TArray<AKPCLNetworkBuildingAttachment*> UKPCLNetwork::GetNetworkAttachments()
-{
-	bNetworkBuildingsAreDirty = false;
-	return mConnectionAttachments;
-}
-
-TArray<AKPCLNetworkCoreModule*> UKPCLNetwork::GetNetworkProcessors()
-{
-	return mNetworkProcessors;
-}
-
-int32 UKPCLNetwork::GetMaxInput(bool IsFluid) const
-{
-	return IsFluid ? mNetworkMaxInputFluid : mNetworkMaxInputSolid;
-}
-
-int32 UKPCLNetwork::GetMaxOutput(bool IsFluid) const
-{
-	return IsFluid ? mNetworkMaxOutputFluid : mNetworkMaxOutputSolid;
-}
-
-void UKPCLNetwork::GetProccessorCapacity(int32& TotalInFluid, int32& TotalInSolid, int32& TotalOutFluid,
-                                         int32& TotalOutSolid) const
-{
-	int32 Capacity = 0;
-	for (int32 i = 0; i < mNetworkProcessors.Num(); ++i)
-	{
-		AKPCLNetworkCoreModule* CoreModule = mNetworkProcessors[i];
-		if (ensure(IsValid(CoreModule) && !CoreModule->IsUnreachable() && CoreModule->IsProducing()))
-		{
-			Capacity++;
-
-			EKPCLDirection Direction;
-			int32 Fluid;
-			int32 Solid;
-			CoreModule->GetStats(Direction, Fluid, Solid);
-
-			if (Direction == EKPCLDirection::Input)
-			{
-				TotalInFluid += Fluid;
-				TotalInSolid += Solid;
-			}
-			else if (Direction == EKPCLDirection::Output)
-			{
-				TotalOutFluid += Fluid;
-				TotalOutSolid += Solid;
-			}
-
-			if (Capacity >= 8)
-			{
-				return;
-			}
-		}
-	}
-}
-
-void UKPCLNetwork::ReBuildGroups()
-{
-	FCriticalSection Mutex;
-	if (bNetworkGroupsAreDirty)
-	{
-		mNetworkGroups.Empty();
-		mNetworkGroups.SetNum(100);
-
-		if (mPowerInfos.Num() <= 0)
-		{
-			return;
-		}
-
-		const int32 NumPerGroup = FMath::Max(FMath::DivideAndRoundUp(mPowerInfos.Num(), 7), 1);
-		ParallelFor(7, [&](int32 Index)
-		{
-			TArray<TArray<UKPCLNetworkInfoComponent*>> Grouping;
-			Grouping.SetNum(100);
-			for (int32 Member = Index * NumPerGroup; Member < FMath::Min((Index + 1) * NumPerGroup, mPowerInfos.Num());
-			     Member++)
-			{
-				const int32 GroupIndex = fmod(Index, 100);
-				if (UKPCLNetworkInfoComponent* Mem = Cast<UKPCLNetworkInfoComponent>(mPowerInfos[Member]))
-				{
-					Grouping[GroupIndex].Add(Mem);
-				}
-			}
-
-			for (int i = 0; i < Grouping.Num(); ++i)
-			{
-				if (Grouping[i].Num() <= 0)
-				{
-					continue;
-				}
-
-				Mutex.Lock();
-				mNetworkGroups[i].Append(Grouping[i]);
-				Mutex.Unlock();
-			}
-		});
-
-		bNetworkGroupsAreDirty = false;
-	}
 }

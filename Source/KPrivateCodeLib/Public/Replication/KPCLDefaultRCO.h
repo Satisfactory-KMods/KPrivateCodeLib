@@ -86,10 +86,6 @@ public:
 	}
 
 	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
-	void Server_SetSinkOverflowItem(class AKPCLNetworkBuildingBase* Building, bool NewAllowed);
-	bool Server_SetSinkOverflowItem_Validate(AKPCLNetworkBuildingBase* Building, bool NewAllowed) { return true; }
-
-	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
 	void Server_RemoveCustomSwatchData(AKPCLSwatchSystem* Target, int32 Idx);
 	bool Server_RemoveCustomSwatchData_Validate(AKPCLSwatchSystem* Target, int32 Idx) { return true; }
 
@@ -110,12 +106,6 @@ public:
 	bool Server_Core_LootChest_Validate(class AKPCLLootChest* Target, AFGCharacterPlayer* Player) { return true; }
 
 	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
-	void Server_Core_SetMaxItemCount(class AKPCLNetworkCore* Target, TSubclassOf<UFGItemDescriptor> Item, int32 Max);
-
-	bool Server_Core_SetMaxItemCount_Validate(class AKPCLNetworkCore* Target, TSubclassOf<UFGItemDescriptor> Item,
-	                                          int32 Max) { return true; }
-
-	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
 	void Server_MoveItemAmount(class UFGInventoryComponent* Source, int32 SourceIndex, UFGInventoryComponent* Target,
 	                           FItemAmount Amount, bool ResizeToFit);
 
@@ -128,28 +118,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	static int32 MoveItemAmount(class UFGInventoryComponent* Source, int32 SourceIndex, UFGInventoryComponent* Target,
 	                            FItemAmount Amount, bool ResizeToFit);
-
-	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
-	void Server_RemoveRuleFromNetworkComponent(class UKPCLNetworkPlayerComponent* Target, int32 RuleIndex);
-
-	bool Server_RemoveRuleFromNetworkComponent_Validate(class UKPCLNetworkPlayerComponent* Target, int32 RuleIndex)
-	{
-		return true;
-	}
-
-	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
-	void Server_AddRuleFromNetworkComponent(class UKPCLNetworkPlayerComponent* Target, FKPCLPlayerInventoryRules Rule);
-
-	bool Server_AddRuleFromNetworkComponent_Validate(class UKPCLNetworkPlayerComponent* Target,
-	                                                 FKPCLPlayerInventoryRules Rule) { return true; }
-
-	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
-	void Server_EditRuleFromNetworkComponent(class UKPCLNetworkPlayerComponent* Target, int32 RuleIndex,
-	                                         FKPCLPlayerInventoryRules Rule);
-
-	bool Server_EditRuleFromNetworkComponent_Validate(class UKPCLNetworkPlayerComponent* Target, int32 RuleIndex,
-	                                                  FKPCLPlayerInventoryRules Rule) { return true; }
-
+	
 	UPROPERTY(Replicated)
 	bool mDummy = true;
 };

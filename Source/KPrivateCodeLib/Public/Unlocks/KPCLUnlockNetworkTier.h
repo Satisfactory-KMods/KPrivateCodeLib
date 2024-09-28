@@ -7,9 +7,16 @@
 #include "Unlocks/FGUnlockInfoOnly.h"
 #include "KPCLUnlockNetworkTier.generated.h"
 
-/**
- * 
- */
+UENUM(BlueprintType)
+enum class EKPCLUnlockTier : uint8
+{
+	Overflow,
+	RemoteAccess,
+	NetworkSolidSpeedLevel,
+	NetworkFluidSpeedLevel,
+	NetworkMachineLevel
+};
+
 UCLASS(Blueprintable, EditInlineNew, abstract, DefaultToInstanced)
 class KPRIVATECODELIB_API UKPCLUnlockNetworkTier : public UFGUnlockInfoOnly
 {
@@ -19,6 +26,9 @@ class KPRIVATECODELIB_API UKPCLUnlockNetworkTier : public UFGUnlockInfoOnly
 	virtual void Apply(AFGUnlockSubsystem* unlockSubssytem) override;
 	void SendToSubsystem(AFGUnlockSubsystem* unlockSubssytem);
 
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UFGSchematic> mSchematic;
+	UPROPERTY(EditDefaultsOnly, Category="Faxit")
+	int32 mTierValue = 1;
+
+	UPROPERTY(EditDefaultsOnly, Category="Faxit")
+	EKPCLUnlockTier mTierType = EKPCLUnlockTier::NetworkSolidSpeedLevel;
 };

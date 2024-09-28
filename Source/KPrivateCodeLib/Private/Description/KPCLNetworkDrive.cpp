@@ -2,31 +2,13 @@
 
 #include "Description/KPCLNetworkDrive.h"
 
-int32 UKPCLNetworkDrive::GetFicsitBytes(TSubclassOf<UKPCLNetworkDrive> InClass)
+int32 UKPCLNetworkDrive::GetMultiplier(TSubclassOf<UKPCLNetworkDrive> InClass)
 {
 	if (IsValid(InClass))
 	{
-		return InClass.GetDefaultObject()->mFicsitBytes;
+		return InClass.GetDefaultObject()->mFaxitStorageMultiplier;
 	}
 	return 0;
-}
-
-bool UKPCLNetworkDrive::GetIsFluidDrive(TSubclassOf<UKPCLNetworkDrive> InClass)
-{
-	if (IsValid(InClass))
-	{
-		return InClass.GetDefaultObject()->mFluidDrive;
-	}
-	return false;
-}
-
-int32 UKPCLNetworkDrive::GetDriveTier(TSubclassOf<UKPCLNetworkDrive> InClass)
-{
-	if (IsValid(InClass))
-	{
-		return InClass.GetDefaultObject()->mDriveTier;
-	}
-	return 1;
 }
 
 float UKPCLNetworkDrive::GetPowerConsume(TSubclassOf<UKPCLNetworkDrive> InClass)
@@ -40,17 +22,27 @@ float UKPCLNetworkDrive::GetPowerConsume(TSubclassOf<UKPCLNetworkDrive> InClass)
 
 FText UKPCLNetworkDrive::GetItemDescriptionInternal() const
 {
-	return GetItemDescriptionInternal_BP();
+	FText MainTxt = GetItemDescriptionInternal_BP();
+
+	FFormatNamedArguments FormatPatternArgs;
+	FormatPatternArgs.Empty();
+	FormatPatternArgs.Add(TEXT("Multiplier"), FText::FromString(FString::FromInt(mFaxitStorageMultiplier)));
+	return FText::Format(MainTxt, FormatPatternArgs);
 }
 
 FText UKPCLNetworkDrive::GetItemNameInternal() const
 {
-	FText MainTxt = Super::GetItemNameInternal();
+	FText MainTxt = GetItemNameInternal_BP();
 
 	FFormatNamedArguments FormatPatternArgs;
 	FormatPatternArgs.Empty();
-	FormatPatternArgs.Add(TEXT("Tier"), FText::FromString(FString::FromInt(mDriveTier)));
+	FormatPatternArgs.Add(TEXT("Multiplier"), FText::FromString(FString::FromInt(mFaxitStorageMultiplier)));
 	return FText::Format(MainTxt, FormatPatternArgs);
+}
+
+FText UKPCLNetworkDrive::GetItemNameInternal_BP_Implementation() const
+{
+	return mDisplayName;
 }
 
 FText UKPCLNetworkDrive::GetItemDescriptionInternal_BP_Implementation() const

@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "FGItemDescriptor.h"
-#include "ItemAmount.h"
 #include "KPCLModSubsystem.h"
+#include "KPCLProducerBase.h"
 #include "KPCLFaxitSubsystem.generated.h"
 
 USTRUCT(BlueprintType)
@@ -47,15 +47,15 @@ struct FKPCLFaxitNetwork
 		this->mCore = Core;
 	}
 
-	void RemoveActorFromNetwork(AActor* actor);
+	void RemoveActorFromNetwork(AKPCLNetworkBuildingBase* actor);
 
-	void AddActorToNetwork(AActor* actor);
+	void AddActorToNetwork(AKPCLNetworkBuildingBase* actor);
 
 	UPROPERTY(SaveGame, BlueprintReadWrite)
 	FString mNetworkName;
 
 	UPROPERTY(SaveGame, BlueprintReadWrite)
-	TArray<AActor*> mNetworkBuildings;
+	TArray<AKPCLNetworkBuildingBase*> mNetworkBuildings;
 
 	UPROPERTY(SaveGame, BlueprintReadWrite)
 	AKPCLNetworkCore* mCore;
@@ -72,19 +72,27 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 
 public:
-	FKPCLFaxitNetwork* GetNetworkRef(AActor* Actor);
+	AKPCLFaxitSubsystem();
+	FKPCLFaxitNetwork* GetNetworkRef(AKPCLNetworkBuildingBase* Actor);
+
+	UFUNCTION(BlueprintPure, Category = "Subsystem", DisplayName = "GetKPCLFaxitSubsystem",
+		meta = ( DefaultToSelf = "worldContext" ))
+	static AKPCLFaxitSubsystem* Get(UObject* worldContext);
 
 	UFUNCTION(BlueprintCallable, Category="Faxit")
 	FKPCLFaxitNetwork CreateOrAddNetwork(FString networkName, AKPCLNetworkCore* Core);
+	FKPCLFaxitNetwork* CreateOrAddNetworkNative(FString networkName, AKPCLNetworkCore* Core);
+
+	void DestoryNetwork(AKPCLNetworkCore* Core);
 
 	UFUNCTION(BlueprintCallable, Category="Faxit")
-	bool HasNetwork(AActor* Actor);
+	bool HasNetwork(AKPCLNetworkBuildingBase* Actor);
 
 	UFUNCTION(BlueprintCallable, Category="Faxit")
-	FKPCLFaxitNetwork GetNetwork(AActor* Actor, bool& bSuccess);
+	FKPCLFaxitNetwork GetNetwork(AKPCLNetworkBuildingBase* Actor, bool& bSuccess);
 
 	UFUNCTION(BlueprintCallable, Category="Faxit")
-	void UpdateNetworkName(AActor* Actor, FString NewName);
+	void UpdateNetworkName(AKPCLNetworkCore* Core, FString NewName);
 
 	UFUNCTION(BlueprintPure, Category="Faxit")
 	int32 GetItemsPerMinute() const;
@@ -101,6 +109,8 @@ public:
 	UFUNCTION(BlueprintPure, Category="Faxit")
 	int32 GetBuildingLimit() const;
 
+	void UnlockNetworkTier(int32 Tier, EKPCLConnectionType UnlockType);
+
 private:
 	UPROPERTY(SaveGame, Replicated)
 	TArray<FKPCLFaxitNetwork> mNetworks;
@@ -108,6 +118,9 @@ private:
 public:
 	UPROPERTY(SaveGame, BlueprintReadOnly, Replicated, Category="Faxit")
 	bool mOverflowUnlocked = false;
+	
+	UPROPERTY(SaveGame, BlueprintReadOnly, Replicated, Category="Faxit")
+	bool mRemoteAccessUnlocked = false;
 
 	UPROPERTY(SaveGame, BlueprintReadOnly, Replicated, Category="Faxit")
 	int32 mNetworkSolidSpeedLevel = 1;

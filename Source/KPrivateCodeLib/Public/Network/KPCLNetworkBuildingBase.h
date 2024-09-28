@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KPCLFaxitSubsystem.h"
 #include "KPCLNetworkConnectionComponent.h"
 #include "KPCLNetworkInfoComponent.h"
 #include "Buildable/KPCLProducerBase.h"
@@ -54,11 +55,14 @@ public:
 	virtual AKPCLNetworkCore* GetCore_Implementation() const override;
 	virtual UKPCLNetwork* GetNetwork_Implementation() const override;
 	virtual FNetworkUIData GetUIDData_Implementation() const override;
-	virtual void PreSaveGame_Implementation(int32 saveVersion, int32 gameVersion) override;
+	void SetNetworkCore(AKPCLNetworkCore* Core);
 
 	virtual bool HasCore_Internal() const;
 	virtual AKPCLNetworkCore* GetCore_Internal() const;
 	virtual UKPCLNetwork* GetNetwork_Internal() const;
+
+	virtual void OnNetworkDestoryed_Internal();
+	virtual void OnNetworkAdded_Internal(AKPCLNetworkCore* Core);
 
 	UPROPERTY(EditDefaultsOnly, Category="KMods|UI")
 	FNetworkUIData mNetworkUIData;
@@ -66,9 +70,10 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void Factory_Tick(float dt) override;
-	virtual void DequeueItems();
-	virtual void DequeueSink();
 	virtual bool Factory_IsProducing() const override;
+	virtual void TickNetwork(float dt, FKPCLFaxitNetwork* Network);
+
+	int32 SinkItems(FItemAmount Items);
 
 	virtual void RegisterInteractingPlayer_Implementation(AFGCharacterPlayer* player) override;
 	virtual void UnregisterInteractingPlayer_Implementation(AFGCharacterPlayer* player) override;
@@ -77,23 +82,6 @@ public:
 
 	UFUNCTION()
 	virtual void OnCircuitChanged(UFGCircuitConnectionComponent* Component);
-
-	UFUNCTION()
-	virtual void OnMaxChanged()
-	{
-	};
-
-	UFUNCTION()
-	virtual void OnHasCoreChanged(bool HasCoreNewState)
-	{
-	};
-
-	UFUNCTION()
-	void OnTierUnlocked(int32 Tier);
-
-	virtual void OnTierUpdated()
-	{
-	};
 
 	UFUNCTION(BlueprintPure, Category="KMods|Network")
 	int32 GetTier() const;
@@ -127,23 +115,17 @@ public:
 
 protected:
 	UPROPERTY(SaveGame, Replicated)
-	AKPCLNetworkBuildingBase* mCore = nullptr;
-
-	UPROPERTY(SaveGame, Replicated)
-	int32 mUnlockedTier = 0;
-
-	UPROPERTY(EditDefaultsOnly, Category="KMods|Network")
-	int32 mMaxTier = 4;
+	AKPCLNetworkCore* mNetworkCore = nullptr;
 
 	virtual class AFGResourceSinkSubsystem* GetSinkSub();
 	bool bBindNetworkComponent = false;
-
-	TQueue<FKPCLItemTransferQueue, EQueueMode::Mpsc> mInventoryQueue;
-	TQueue<FKPCLSinkQueue, EQueueMode::Mpsc> mSinkQueue;
 
 	UPROPERTY()
 	class UKPCLNetworkConnectionComponent* mNetworkConnection;
 
 	UPROPERTY()
 	class UKPCLNetworkInfoComponent* mNetworkInfoComponent;
+	
+	UPROPERTY(Transient)
+	AKPCLFaxitSubsystem* mFaxitSubsystem = nullptr;
 };

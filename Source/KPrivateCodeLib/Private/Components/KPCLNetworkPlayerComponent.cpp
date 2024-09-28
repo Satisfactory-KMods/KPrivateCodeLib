@@ -6,6 +6,7 @@
 #include "FGSchematicManager.h"
 #include "KPrivateCodeLibModule.h"
 #include "Buildables/FGBuildable.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 #include "Net/UnrealNetwork.h"
 
@@ -35,14 +36,6 @@ void UKPCLNetworkPlayerComponent::BeginPlay()
 	if (GetOwner()->HasAuthority())
 	{
 		DoDistanceCheck();
-		ReValidSchematics();
-
-		AFGSchematicManager* Manager = AFGSchematicManager::Get(GetWorld());
-		if (IsValid(Manager))
-		{
-			Manager->PurchasedSchematicDelegate.AddUniqueDynamic(
-				this, &UKPCLNetworkPlayerComponent::OnSchematicUnlocked);
-		}
 	}
 }
 
@@ -51,7 +44,6 @@ void UKPCLNetworkPlayerComponent::PostLoadGame_Implementation(int32 saveVersion,
 	if (GetOwner()->HasAuthority())
 	{
 		DoDistanceCheck();
-		ReValidSchematics();
 	}
 }
 
@@ -142,136 +134,7 @@ void UKPCLNetworkPlayerComponent::CustomTick(float dt)
 		{
 			DoDistanceCheck();
 		}
-
-		// We Queue the Player logic into the Core to make sure we dont have a Thread conflict here!
-		AKPCLNetworkCore* Core = GetNextBuilding_Native<AKPCLNetworkCore>();
-		if (IsValid(Core))
-		{
-			if (mTimerForPushAndPullLogic.Tick(dt))
-			{
-				Core->mNetworkPlayerComponentsThisFrame.Enqueue(this);
-			}
-		}
 	}
-}
-
-void UKPCLNetworkPlayerComponent::ReceiveTickFromNetwork(AKPCLNetworkCore* Core)
-{
-	UFGInventoryComponent* PlayerInv;
-	if (GetPlayerCharacterInventory(PlayerInv) && !IsPlayerDead())
-	{
-		for (const FKPCLPlayerInventoryRules InventoryRule : mInventoryRules)
-		{
-			const int32 NumInPlayerInventory = PlayerInv->GetNumItems(InventoryRule.mItemAmount.ItemClass);
-
-			// Logic for Core --> Player
-			if (InventoryRule.mShouldPullFromNetwork)
-			{
-				if (NumInPlayerInventory >= InventoryRule.mItemAmount.Amount)
-				{
-					continue;
-				}
-
-				int32 InventoryIndex;
-				FInventoryStack Stack;
-				if (Core->GetStackFromNetwork(InventoryRule.mItemAmount.ItemClass, Stack, InventoryIndex))
-				{
-					if (Stack.HasItems())
-					{
-						Stack.NumItems = FMath::Min(Stack.NumItems,
-						                            InventoryRule.mItemAmount.Amount - NumInPlayerInventory);
-						if (Stack.HasItems())
-						{
-							Core->GetInventory()->RemoveFromIndex(InventoryIndex, PlayerInv->AddStack(Stack, true));
-						}
-					}
-				}
-			}
-
-			// Logic for Core <-- Player
-			else if (Core->GetInventory())
-			{
-				if (NumInPlayerInventory <= InventoryRule.mItemAmount.Amount)
-				{
-					continue;
-				}
-
-				const int32 Amount = (InventoryRule.mItemAmount.Amount - NumInPlayerInventory) * -1;
-
-				if (Amount > 0)
-				{
-					FInventoryStack Stack;
-					Stack.NumItems = Amount;
-					Stack.Item.SetItemClass(InventoryRule.mItemAmount.ItemClass);
-
-					float Solid;
-					float Fluid;
-					Core->GetFreeBytes(Fluid, Solid);
-
-
-					TSubclassOf<UFGItemDescriptor> Item = InventoryRule.mItemAmount.ItemClass;
-					if (FKPCLNetworkMaxData* Data = Core->mItemCountMap.FindByKey(FKPCLNetworkMaxData(Item, 0)))
-					{
-						if (IsValid(Data->mItemClass))
-						{
-							if (FCoreInventoryData* CoreData = Core->mSlotMappingAll.FindByKey(Data->mItemClass))
-							{
-								Core->GetInventory()->GetStackFromIndex(CoreData->mInventoryIndex, Stack);
-								if (Stack.NumItems >= Data->mMaxItemCount)
-								{
-									continue;
-								}
-							}
-						}
-					}
-
-					if (Solid > 0.0f || Fluid > 0.0f)
-					{
-						if (const FCoreInventoryData* CoreData = Core->mSlotMappingAll.FindByKey(
-							Stack.Item.GetItemClass()))
-						{
-							const int32 MaxAmount = Core->GetMaxItemsByBytes(Stack.Item.GetItemClass(), Fluid, Solid);
-							Stack.NumItems = FMath::Min(MaxAmount, Stack.NumItems);
-
-							if (Stack.HasItems())
-							{
-								PlayerInv->Remove(Stack.Item.GetItemClass(),
-								                  Core->GetInventory()->AddStackToIndex(
-									                  CoreData->mInventoryIndex, Stack));
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-void UKPCLNetworkPlayerComponent::ReValidSchematics()
-{
-	mUnlockableSchematics.Empty();
-
-	mUnlockableSchematics.Add(mSchematicForOverflowSink);
-	mUnlockableSchematics.Add(mSchematicsToUnlockAutoPull);
-	mUnlockableSchematics.Add(mSchematicsToUnlockAutoPush);
-	mUnlockableSchematics.Add(mSchematicsToUnlockDistanceAccess);
-
-	const AFGSchematicManager* Manager = AFGSchematicManager::Get(GetWorld());
-	if (IsValid(Manager))
-	{
-		for (TSubclassOf<UFGSchematic> UnlockableSchematic : mUnlockableSchematics)
-		{
-			if (Manager->IsSchematicPurchased(UnlockableSchematic))
-			{
-				mUnlockedPermissions.AddUnique(UnlockableSchematic);
-			}
-		}
-	}
-}
-
-void UKPCLNetworkPlayerComponent::OnSchematicUnlocked(TSubclassOf<UFGSchematic> Schematic)
-{
-	ReValidSchematics();
 }
 
 FVector UKPCLNetworkPlayerComponent::GetPlayerCharacterLocation() const
@@ -349,17 +212,9 @@ bool UKPCLNetworkPlayerComponent::GetPlayerCharacterInventory(UFGInventoryCompon
 
 bool UKPCLNetworkPlayerComponent::DistanceAccessUnlocked() const
 {
-	return mUnlockedPermissions.Contains(mSchematicsToUnlockDistanceAccess);
-}
-
-bool UKPCLNetworkPlayerComponent::PullLogicUnlocked() const
-{
-	return mUnlockedPermissions.Contains(mSchematicsToUnlockAutoPull);
-}
-
-bool UKPCLNetworkPlayerComponent::PushLogicUnlocked() const
-{
-	return mUnlockedPermissions.Contains(mSchematicsToUnlockAutoPush);
+	AKPCLFaxitSubsystem* Faxit = AKPCLFaxitSubsystem::Get(GetWorld());
+	if(!Faxit) return false;
+	return Faxit->mRemoteAccessUnlocked;
 }
 
 UKPCLNetworkPlayerComponent* UKPCLNetworkPlayerComponent::GetOrCreateNetworkComponentToPlayerState(
@@ -421,11 +276,6 @@ bool UKPCLNetworkPlayerComponent::CanAccessTo() const
 	return IsValid(GetNextBuilding()) && DistanceAccessUnlocked();
 }
 
-bool UKPCLNetworkPlayerComponent::SinkOverFlowUnlocked() const
-{
-	return mUnlockedPermissions.Contains(mSchematicForOverflowSink);
-}
-
 int32 UKPCLNetworkPlayerComponent::GetDistanceStrength() const
 {
 	if (!CanAccessTo())
@@ -445,107 +295,10 @@ AFGBuildable* UKPCLNetworkPlayerComponent::GetNextBuilding() const
 
 	return mNextBuilding;
 }
-
-TArray<FKPCLPlayerInventoryRules> UKPCLNetworkPlayerComponent::GetRules(EKPCLPlayerRuleFilter Filter) const
-{
-	if (Filter == All)
-	{
-		return mInventoryRules;
-	}
-
-	TArray<FKPCLPlayerInventoryRules> Rules;
-
-	if (Filter == Push)
-	{
-		int32 Idx = 0;
-		for (FKPCLPlayerInventoryRules InventoryRule : mInventoryRules)
-		{
-			if (!InventoryRule.mShouldPullFromNetwork)
-			{
-				InventoryRule.mUIOnly_Index = Idx;
-				Rules.Add(InventoryRule);
-			}
-			Idx++;
-		}
-	}
-
-	if (Filter == Pull)
-	{
-		int32 Idx = 0;
-		for (FKPCLPlayerInventoryRules InventoryRule : mInventoryRules)
-		{
-			if (InventoryRule.mShouldPullFromNetwork)
-			{
-				InventoryRule.mUIOnly_Index = Idx;
-				Rules.Add(InventoryRule);
-			}
-			Idx++;
-		}
-	}
-
-	return Rules;
-}
-
-void UKPCLNetworkPlayerComponent::AddRule(FKPCLPlayerInventoryRules Rule)
-{
-	if (GetOwner()->HasAuthority())
-	{
-		if (Rule.IsValid())
-		{
-			mInventoryRules.Add(Rule);
-			OnRep_RulesUpdated();
-		}
-	}
-	else if (UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get(GetWorld()))
-	{
-		RCO->Server_AddRuleFromNetworkComponent(this, Rule);
-	}
-}
-
-void UKPCLNetworkPlayerComponent::RemoveRule(int32 RuleIndex)
-{
-	if (GetOwner()->HasAuthority())
-	{
-		if (mInventoryRules.IsValidIndex(RuleIndex))
-		{
-			mInventoryRules.RemoveAt(RuleIndex);
-			OnRep_RulesUpdated();
-		}
-	}
-	else if (UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get(GetWorld()))
-	{
-		RCO->Server_RemoveRuleFromNetworkComponent(this, RuleIndex);
-	}
-}
-
-void UKPCLNetworkPlayerComponent::EditRule(int32 RuleIndex, FKPCLPlayerInventoryRules Rule)
-{
-	if (GetOwner()->HasAuthority())
-	{
-		if (mInventoryRules.IsValidIndex(RuleIndex) && Rule.IsValid())
-		{
-			mInventoryRules[RuleIndex] = Rule;
-			OnRep_RulesUpdated();
-		}
-	}
-	else if (UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get(GetWorld()))
-	{
-		RCO->Server_EditRuleFromNetworkComponent(this, RuleIndex, Rule);
-	}
-}
-
 void UKPCLNetworkPlayerComponent::OnRep_DistanceUpdated()
 {
 	if (mOnDistanceUpdated.IsBound())
 	{
 		mOnDistanceUpdated.Broadcast(mDistanceStrength);
-	}
-}
-
-void UKPCLNetworkPlayerComponent::OnRep_RulesUpdated()
-{
-	if (mOnRulesUpdated.IsBound())
-	{
-		mOnRulesUpdated.Broadcast();
 	}
 }
