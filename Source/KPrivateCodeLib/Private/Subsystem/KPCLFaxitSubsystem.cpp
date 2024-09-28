@@ -157,7 +157,7 @@ int32 AKPCLFaxitSubsystem::GetBuildingLimit() const
 	return mBuildingCountsPerTier->GetFloatValue(mNetworkMachineLevel);
 }
 
-void AKPCLFaxitSubsystem::UnlockNetworkTier(int32 Tier, EKPCLConnectionType UnlockType)
+void AKPCLFaxitSubsystem::UnlockNetworkTier(int32 Tier, EKPCLUnlockTier UnlockType)
 {
 	switch (UnlockType)
 	{

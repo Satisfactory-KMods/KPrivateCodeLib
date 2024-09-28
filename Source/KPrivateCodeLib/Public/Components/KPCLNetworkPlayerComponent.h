@@ -98,9 +98,6 @@ protected:
 	UFUNCTION()
 	void OnRep_DistanceUpdated();
 
-	UFUNCTION()
-	void OnRep_RulesUpdated();
-
 	UPROPERTY(EditDefaultsOnly, Category="KMods|NetworkDistanceManager")
 	float mMaxDistance = 10000.f;
 

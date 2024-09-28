@@ -122,7 +122,7 @@ AKPCLNetworkCore* UKPCLNetwork::GetCore() const
 	return mCoreBuildings.Num() > 0 ? mCoreBuildings[0] : nullptr;
 }
 
-TArray<AKPCLNetworkConnectionBuilding*> UKPCLNetwork::GetNetworkConnectionBuildings()
+TArray<AKPCLNetworkConnectionBuilding*> UKPCLNetwork::GetNetworkConnectionBuildings() const
 {
 	return mConnectionBuildings;
 }

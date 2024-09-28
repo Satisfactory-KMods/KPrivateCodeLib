@@ -74,18 +74,6 @@ public:
 	virtual void Server_FlushFluids_Implementation(AFGBuildable* Building);
 
 	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
-	void Server_SetManuellItemMax(class AKPCLNetworkConnectionBuilding* Building, int32 Value);
-	bool Server_SetManuellItemMax_Validate(AKPCLNetworkConnectionBuilding* Building, int32 Value) { return true; }
-
-	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
-	void Server_SetGrabItem(AKPCLNetworkConnectionBuilding* Building, TSubclassOf<UFGItemDescriptor> Item);
-
-	bool Server_SetGrabItem_Validate(AKPCLNetworkConnectionBuilding* Building, TSubclassOf<UFGItemDescriptor> Item)
-	{
-		return true;
-	}
-
-	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
 	void Server_RemoveCustomSwatchData(AKPCLSwatchSystem* Target, int32 Idx);
 	bool Server_RemoveCustomSwatchData_Validate(AKPCLSwatchSystem* Target, int32 Idx) { return true; }
 

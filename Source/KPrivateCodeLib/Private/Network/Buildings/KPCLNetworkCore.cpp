@@ -3,27 +3,17 @@
 
 #include "Network/Buildings/KPCLNetworkCore.h"
 
-#include "FGResourceSinkSubsystem.h"
 #include "KPCLNetworkDrive.h"
 #include "KPrivateCodeLibModule.h"
-#include "Logging.h"
 
 #include "BFL/KBFL_Inventory.h"
 #include "BlueprintFunctionLib/KPCLBlueprintFunctionLib.h"
-#include "C++/KBFLCppInventoryHelper.h"
-#include "Components/KPCLNetworkPlayerComponent.h"
-#include "Kismet/KismetMathLibrary.h"
 
 #include "Net/UnrealNetwork.h"
 
 #include "Network/KPCLNetwork.h"
-#include "Network/Buildings/KPCLNetworkCoreModule.h"
 #include "Registry/ModContentRegistry.h"
-#include "Resources/FGAnyUndefinedDescriptor.h"
 #include "Resources/FGItemDescriptor.h"
-#include "Resources/FGNoneDescriptor.h"
-#include "Resources/FGOverflowDescriptor.h"
-#include "Resources/FGWildCardDescriptor.h"
 #include "Subsystem/KPCLUnlockSubsystem.h"
 #include "Subsystems/KBFLAssetDataSubsystem.h"
 
@@ -88,9 +78,9 @@ void AKPCLNetworkCore::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	if (EndPlayReason == EEndPlayReason::Destroyed)
 	{
-		if (AKPCLUnlockSubsystem* Sub = AKPCLUnlockSubsystem::Get(GetWorld()))
+		if (AKPCLFaxitSubsystem* Sub = AKPCLFaxitSubsystem::Get(GetWorld()))
 		{
-			Sub->OnNexusDeconstruct(this);
+			Sub->DestoryNetwork(this);
 		}
 		mFaxitSubsystem->DestoryNetwork(this);
 	}

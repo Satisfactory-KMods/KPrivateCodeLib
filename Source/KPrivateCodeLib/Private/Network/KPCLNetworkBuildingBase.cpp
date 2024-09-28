@@ -57,9 +57,9 @@ AKPCLNetworkCore* AKPCLNetworkBuildingBase::GetCore_Internal() const
 		{
 			return Network->GetCore();
 		}
-		return Cast<AKPCLNetworkCore>(mNetworkCore);
 	}
-	return nullptr;
+	
+	return mNetworkCore;
 }
 
 UKPCLNetwork* AKPCLNetworkBuildingBase::GetNetwork_Internal() const
@@ -85,10 +85,6 @@ AKPCLNetworkBuildingBase::AKPCLNetworkBuildingBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	mPowerInfo = CreateDefaultSubobject<UKPCLNetworkInfoComponent>(TEXT("NetworkConnection"));
-}
-
-void AKPCLNetworkBuildingBase::MultiCast_OnNetworkCoreChanged_Implementation(bool HasCore)
-{
 }
 
 void AKPCLNetworkBuildingBase::BeginPlay()
@@ -129,7 +125,7 @@ void AKPCLNetworkBuildingBase::BeginPlay()
 		check(UnlockSubsystem);
 	}
 
-	OnNetworkCoreChanged(Execute_GetCore(this) != nullptr);
+	OnNetworkCoreChanged(Execute_GetCore(this));
 }
 
 void AKPCLNetworkBuildingBase::Factory_Tick(float dt)
@@ -138,19 +134,24 @@ void AKPCLNetworkBuildingBase::Factory_Tick(float dt)
 
 	if (HasAuthority())
 	{
+		if(mStateGatherTimer.Tick(dt))
+		{
+			GatherStates();
+		}
+		
 		if (mNetworkCore != Execute_GetCore(this))
 		{
 			mNetworkCore = Execute_GetCore(this);
 
 			if (IsInGameThread())
 			{
-				MultiCast_OnNetworkCoreChanged(mNetworkCore != nullptr);
+				MultiCast_OnNetworkCoreChanged(mNetworkCore);
 			}
 			else
 			{
 				AsyncTask(ENamedThreads::GameThread, [&]()
 				{
-					MultiCast_OnNetworkCoreChanged(mNetworkCore != nullptr);
+					MultiCast_OnNetworkCoreChanged(mNetworkCore );
 				});
 			}
 		}
@@ -244,6 +245,10 @@ void AKPCLNetworkBuildingBase::OnCircuitChanged(UFGCircuitConnectionComponent* C
 {
 }
 
+void AKPCLNetworkBuildingBase::MultiCast_OnNetworkCoreChanged_Implementation(AKPCLNetworkCore* Core)
+{
+}
+
 bool AKPCLNetworkBuildingBase::IsCore() const
 {
 	return false;
@@ -314,6 +319,11 @@ void AKPCLNetworkBuildingBase::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AKPCLNetworkBuildingBase, mNetworkCore);
+}
+
+TArray<FKPCLFaxitNetworkStatData> AKPCLNetworkBuildingBase::GetStates() const
+{
+	return TArray<FKPCLFaxitNetworkStatData>();
 }
 
 AFGResourceSinkSubsystem* AKPCLNetworkBuildingBase::GetSinkSub()

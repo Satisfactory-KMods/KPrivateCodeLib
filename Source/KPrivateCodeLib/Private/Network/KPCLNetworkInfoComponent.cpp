@@ -31,7 +31,7 @@ int32 UKPCLNetworkInfoComponent::CoreCount() const
 void UKPCLNetworkInfoComponent::SetCors(TArray<AKPCLNetworkCore*> Cores)
 {
 	if (mNetworkCoresInNetwork.Num() != Cores.Num()) {
-		FSimpleDelegateGraphTask::CreateAndDispatchWhenReady(FSimpleDelegateGraphTask::FDelegate::CreateLambda([=, Cores]()
+		FSimpleDelegateGraphTask::CreateAndDispatchWhenReady(FSimpleDelegateGraphTask::FDelegate::CreateLambda([&, Cores]()
 		{
 			if (CoreStateChanged.IsBound())
 			{

@@ -6,6 +6,7 @@
 #include "FGItemDescriptor.h"
 #include "KPCLModSubsystem.h"
 #include "KPCLProducerBase.h"
+#include "KPCLUnlockNetworkTier.h"
 #include "KPCLFaxitSubsystem.generated.h"
 
 USTRUCT(BlueprintType)
@@ -13,10 +14,7 @@ struct FKPCLFaxitNetworkStatData
 {
 	GENERATED_BODY()
 
-private:
 	FKPCLFaxitNetworkStatData(): mItem(nullptr) {}
-
-public:
 	FKPCLFaxitNetworkStatData(TSubclassOf<UFGItemDescriptor> Item)
 	{
 		mItem = Item;
@@ -109,7 +107,7 @@ public:
 	UFUNCTION(BlueprintPure, Category="Faxit")
 	int32 GetBuildingLimit() const;
 
-	void UnlockNetworkTier(int32 Tier, EKPCLConnectionType UnlockType);
+	void UnlockNetworkTier(int32 Tier, EKPCLUnlockTier UnlockType);
 
 private:
 	UPROPERTY(SaveGame, Replicated)

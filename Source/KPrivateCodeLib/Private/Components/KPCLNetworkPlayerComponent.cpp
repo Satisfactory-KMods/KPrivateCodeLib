@@ -24,7 +24,6 @@ void UKPCLNetworkPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 	DOREPLIFETIME(UKPCLNetworkPlayerComponent, mNextCore);
 	DOREPLIFETIME(UKPCLNetworkPlayerComponent, mUnlockedPermissions);
 	DOREPLIFETIME(UKPCLNetworkPlayerComponent, mIsAllowedToSetOverflow);
-	DOREPLIFETIME(UKPCLNetworkPlayerComponent, mInventoryRules);
 	DOREPLIFETIME(UKPCLNetworkPlayerComponent, mUnlockedPermissions);
 }
 

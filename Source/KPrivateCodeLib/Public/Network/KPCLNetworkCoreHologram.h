@@ -20,7 +20,7 @@ public:
 
 private:
 	UPROPERTY(Transient)
-	AKPCLUnlockSubsystem* mUnlockSubsystem;
+	AKPCLFaxitSubsystem* mFaxitSubsystem;
 };
 
 UCLASS()

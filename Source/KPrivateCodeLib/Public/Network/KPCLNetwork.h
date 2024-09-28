@@ -36,7 +36,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Circuits|Network")
 	class AKPCLNetworkCore* GetCore() const;
 
-	TArray<AKPCLNetworkConnectionBuilding*> GetNetworkConnectionBuildings();
+	TArray<class AKPCLNetworkConnectionBuilding*> GetNetworkConnectionBuildings() const;
 
 private:
 	UPROPERTY(Replicated, SaveGame)

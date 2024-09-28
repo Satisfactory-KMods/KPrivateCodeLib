@@ -150,22 +150,3 @@ void UKPCLDefaultRCO::Server_RemoveCustomSwatchData_Implementation(AKPCLSwatchSy
 		Target->ForceNetUpdate();
 	}
 }
-
-void UKPCLDefaultRCO::Server_SetGrabItem_Implementation(AKPCLNetworkConnectionBuilding* Building,
-                                                        TSubclassOf<UFGItemDescriptor> Item)
-{
-	if (ensure(Building))
-	{
-		Building->SetGrabItem(Item);
-		Building->ForceNetUpdate();
-	}
-}
-
-void UKPCLDefaultRCO::Server_SetManuellItemMax_Implementation(AKPCLNetworkConnectionBuilding* Building, int32 Value)
-{
-	if (ensure(Building))
-	{
-		Building->SetManuellItemMax(Value);
-		Building->ForceNetUpdate();
-	}
-}

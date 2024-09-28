@@ -187,4 +187,5 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category="KMods|Faxit")
 	FOnCoreItemStateStateChanged OnStorageChanged;
+	
 };

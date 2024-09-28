@@ -21,10 +21,10 @@ void UKPCLUnlockNetworkTier::Apply(AFGUnlockSubsystem* unlockSubssytem)
 
 void UKPCLUnlockNetworkTier::SendToSubsystem(AFGUnlockSubsystem* unlockSubssytem)
 {
-	if (unlockSubssytem && ensure(mSchematic))
+	if (unlockSubssytem)
 	{
 		AKPCLFaxitSubsystem* Subsystem = AKPCLFaxitSubsystem::Get(unlockSubssytem->GetWorld());
 		fgcheck(Subsystem);
-		Subsystem->UnlockNetworkTier(mSchematic);
+		Subsystem->UnlockNetworkTier(mTierValue, mTierType);
 	}
 }

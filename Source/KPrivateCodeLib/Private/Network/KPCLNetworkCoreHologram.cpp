@@ -8,23 +8,23 @@ void AKPCLNetworkCoreHologram::BeginPlay()
 {
 	Super::BeginPlay();
 
-	mUnlockSubsystem = AKPCLUnlockSubsystem::Get(GetWorld());
+	mFaxitSubsystem = AKPCLFaxitSubsystem::Get(GetWorld());
 }
 
 void AKPCLNetworkCoreHologram::CheckValidPlacement()
 {
 	Super::CheckValidPlacement();
 
-	if (IsValid(mUnlockSubsystem))
+	if (IsValid(mFaxitSubsystem))
 	{
-		if (mUnlockSubsystem->GetGlobalNexusCount() >= mUnlockSubsystem->GetMaxGlobalNexusCount())
+		if (mFaxitSubsystem->GetNetworkCount() >= mFaxitSubsystem->GetNetworkLimit())
 		{
 			AddConstructDisqualifier(UKPCLCDMaxCountReached::StaticClass());
 		}
 	}
 	else
 	{
-		mUnlockSubsystem = AKPCLUnlockSubsystem::Get(GetWorld());
+		mFaxitSubsystem = AKPCLFaxitSubsystem::Get(GetWorld());
 		AddConstructDisqualifier(UKPCLCDMaxCountReached::StaticClass());
 	}
 }

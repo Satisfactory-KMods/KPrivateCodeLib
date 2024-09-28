@@ -83,14 +83,11 @@ public:
 	UFUNCTION()
 	virtual void OnCircuitChanged(UFGCircuitConnectionComponent* Component);
 
-	UFUNCTION(BlueprintPure, Category="KMods|Network")
-	int32 GetTier() const;
-
 	UFUNCTION(NetMulticast, Reliable)
-	void MultiCast_OnNetworkCoreChanged(bool HasCore);
+	void MultiCast_OnNetworkCoreChanged(AKPCLNetworkCore* Core);
 
 	UFUNCTION(BlueprintImplementableEvent, Category="KMods|NetworkEvents")
-	void OnNetworkCoreChanged(bool HasCore);
+	void OnNetworkCoreChanged(AKPCLNetworkCore* Core);
 
 	// Called every frame
 	UFUNCTION(BlueprintPure, Category="KMods|Network")
@@ -112,6 +109,10 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	// END: AActor
 
+	TArray<FKPCLFaxitNetworkStatData> GetStates() const;
+
+	virtual void GatherStates() {}
+	
 
 protected:
 	UPROPERTY(SaveGame, Replicated)
@@ -128,4 +129,10 @@ protected:
 	
 	UPROPERTY(Transient)
 	AKPCLFaxitSubsystem* mFaxitSubsystem = nullptr;
+	
+	UPROPERTY( SaveGame, meta = ( FGReplicated ) )
+	TArray<FKPCLFaxitNetworkStatData> mStates;
+	
+	UPROPERTY(EditDefaultsOnly, Category="KMods|Faxit")
+	FSmartTimer mStateGatherTimer = FSmartTimer(60.f, true);
 };
