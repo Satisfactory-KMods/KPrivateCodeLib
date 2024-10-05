@@ -7,9 +7,9 @@
 #include "FGInventoryComponent.h"
 #include "FGPipeConnectionFactory.h"
 #include "FGPowerConnectionComponent.h"
+#include "FGRecipeProducerInterface.h"
 #include "Buildables/FGBuildableFactory.h"
 #include "Components/KPCLBetterIndicator.h"
-#include "Replication/KPCLDefaultRCO.h"
 #include "Structures/KPCLFunctionalStructure.h"
 #include "Structures/KPCLInventoryStructure.h"
 
@@ -207,25 +207,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KMods ")
 	FPowerOptions GetPowerOption() const;
 	FPowerOptions& GetPowerOptionRef();
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "KMods ")
-	UKPCLDefaultRCO* GetDefaultKModRCO() const;
-
-	template <class T>
-	FORCEINLINE T* GetRCO() { return Cast<T>(GetDefaultKModRCO()); }
-
-	template <class T>
-	FORCEINLINE bool GetRCOChecked(T*& OutRCO)
-	{
-		OutRCO = Cast<T>(GetDefaultKModRCO());
-		return IsValid(OutRCO);
-	}
-
-	FORCEINLINE virtual TSubclassOf<UFGRemoteCallObject> GetRCOClass() const
-	{
-		return UKPCLDefaultRCO::StaticClass();
-	}
-
 	/** ----- Blueprint Functions (setter and functions) END ----- */
 
 

@@ -162,24 +162,6 @@ public:
 	FPowerOptions GetPowerOption() const;
 	FPowerOptions& GetPowerOptionRef();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "KMods ")
-	UKPCLDefaultRCO* GetDefaultKModRCO() const;
-
-	template <class T>
-	FORCEINLINE T* GetRCO() { return Cast<T>(GetDefaultKModRCO()); }
-
-	template <class T>
-	FORCEINLINE bool GetRCOChecked(T*& OutRCO)
-	{
-		OutRCO = Cast<T>(GetDefaultKModRCO());
-		return IsValid(OutRCO);
-	}
-
-	FORCEINLINE virtual TSubclassOf<UFGRemoteCallObject> GetRCOClass() const
-	{
-		return UKPCLDefaultRCO::StaticClass();
-	}
-
 	/** ----- Blueprint Functions (setter and functions) END ----- */
 
 

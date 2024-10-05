@@ -156,7 +156,7 @@ void AKPCLLootChest::Loot(AFGCharacterPlayer* Player)
 	}
 	else if (UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::Get(GetWorld()))
 	{
-		RCO->Server_Core_LootChest(this, Player);
+		RCO->Server_LootChest(this, Player);
 	}
 }
 

@@ -6,6 +6,7 @@
 #include "FGItemDescriptor.h"
 #include "FGPowerConnectionComponent.h"
 #include "ItemAmount.h"
+#include "KPCLNetwork.h"
 #include "UObject/Object.h"
 #include "KPCLNetworkConnectionComponent.generated.h"
 
@@ -19,15 +20,13 @@ class KPRIVATECODELIB_API UKPCLNetworkConnectionComponent : public UFGPowerConne
 
 public:
 	UKPCLNetworkConnectionComponent();
+	
+	UFUNCTION(BlueprintCallable, Category = "KMods|Faxit")
+	UKPCLNetwork* GetNetwork() const;
 
-	TMap<TSubclassOf<UFGItemDescriptor>, FItemAmount> mCurrentStateCache;
+	UFUNCTION(BlueprintCallable, Category = "KMods|Faxit")
+	AKPCLNetworkCore* GetCore() const;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KMods|Faxit")
-	bool mIsUpload = true;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KMods|Faxit")
-	EResourceForm mItemForm = EResourceForm::RF_SOLID;
-
-	int32 mItemAmount = 1;
-	int32 mFluidAmount = 1000;
+	UFUNCTION(BlueprintCallable, Category = "KMods|Faxit")
+	bool IsNetworkOk() const;
 };

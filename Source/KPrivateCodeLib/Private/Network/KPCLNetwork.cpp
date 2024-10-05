@@ -112,7 +112,7 @@ bool UKPCLNetwork::CoreStateIsOk() const
 {
 	if (IsValid(GetCore()))
 	{
-		return GetCore()->IsProducing();
+		return GetCore()->IsProducing() && !NetworkHasCoreToMuchCores();
 	}
 	return false;
 }

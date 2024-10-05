@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KPCLFaxitSubsystem.h"
 #include "Resources/FGItemDescriptor.h"
 #include "UObject/Interface.h"
 #include "KPCLNetworkDataInterface.generated.h"
@@ -131,8 +132,14 @@ public:
 	bool HasCore() const;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="KPCLCustomDataInterface")
+	bool HasCoreInNetwork() const;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="KPCLCustomDataInterface")
 	class UKPCLNetwork* GetNetwork() const;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="KPCLCustomDataInterface")
 	FNetworkUIData GetUIDData() const;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="KPCLCustomDataInterface")
+	FKPCLFaxitNetwork GetNetworkData() const;
 };

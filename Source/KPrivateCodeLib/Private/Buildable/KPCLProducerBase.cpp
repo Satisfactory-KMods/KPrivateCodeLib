@@ -967,16 +967,6 @@ FPowerOptions& AKPCLProducerBase::GetPowerOptionRef()
 	return mPowerOptions;
 }
 
-UKPCLDefaultRCO* AKPCLProducerBase::GetDefaultKModRCO() const
-{
-	AFGPlayerController* Controller = UKBFL_Player::GetFGController(GetWorld());
-	if (Controller)
-	{
-		return Cast<UKPCLDefaultRCO>(Controller->GetRemoteCallObjectOfClass(GetRCOClass()));
-	}
-	return nullptr;
-}
-
 void AKPCLProducerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -1012,7 +1002,7 @@ void AKPCLProducerBase::FlushFluids()
 	}
 	else
 	{
-		if (UKPCLDefaultRCO* RCO = GetDefaultKModRCO())
+		if (UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::GetRCO<UKPCLDefaultRCO>(GetWorld()))
 		{
 			RCO->Server_FlushFluids(this);
 		}

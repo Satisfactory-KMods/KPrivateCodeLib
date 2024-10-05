@@ -3,7 +3,9 @@
 
 #include "Network/Buildings/KPCLNetworkCore.h"
 
+#include "KPCLNetworkConnectionComponent.h"
 #include "KPCLNetworkDrive.h"
+#include "KPCLNetworkInfoComponent.h"
 #include "KPrivateCodeLibModule.h"
 
 #include "BFL/KBFL_Inventory.h"
@@ -31,6 +33,8 @@ AKPCLNetworkCore::AKPCLNetworkCore()
 
 	mInputInventory->SetDefaultSize(4);
 	mOutputInventory->SetDefaultSize(5);
+
+	mStateGatherTimer.mIsActive = true;
 }
 
 void AKPCLNetworkCore::TryConnectNetworks(AFGBuildable* OtherBuildable) const
@@ -50,6 +54,21 @@ void AKPCLNetworkCore::TryConnectNetworks(AFGBuildable* OtherBuildable) const
 			else UE_LOG(LogKPCL, Log, TEXT("TryConnectNetwork allready exsists!"))
 		}
 	}
+}
+
+FKPCLFaxitNetwork AKPCLNetworkCore::GetNetworkData_Implementation() const
+{
+	if(mNetworkRef)
+	{
+		return *mNetworkRef;
+	}
+
+	return FKPCLFaxitNetwork();
+}
+
+bool AKPCLNetworkCore::HasCoreInNetwork_Implementation() const
+{
+	return IsValid(Execute_GetNetwork(this));
 }
 
 // Called when the game starts or when spawned
@@ -91,6 +110,18 @@ void AKPCLNetworkCore::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AKPCLNetworkCore, mNetworkConnections);
+}
+
+void AKPCLNetworkCore::GetConditionalReplicatedProps(TArray<FFGCondReplicatedProperty>& outProps) const
+{
+	Super::GetConditionalReplicatedProps(outProps);
+	
+	FG_DOREPCONDITIONAL(ThisClass, mStateBundels);
+	FG_DOREPCONDITIONAL(ThisClass, mStorage);
+	FG_DOREPCONDITIONAL(ThisClass, mNetworkPower);
+	FG_DOREPCONDITIONAL(ThisClass, mMaxNetworkPower);
+	FG_DOREPCONDITIONAL(ThisClass, mStackSizeMultiplier);
+	FG_DOREPCONDITIONAL(ThisClass, mDrivePower);
 }
 
 void AKPCLNetworkCore::GetDismantleRefund_Implementation(TArray<FInventoryStack>& out_refund,
@@ -245,6 +276,24 @@ TArray<FItemAmount> AKPCLNetworkCore::GetItemAmounts() const
 	return mStorage;
 }
 
+void AKPCLNetworkCore::GrabFromNetwork(AFGCharacterPlayer* Player, FItemAmount Amount)
+{
+	if(!HasAuthority())
+	{
+		UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::GetRCO<UKPCLDefaultRCO>(GetWorld());
+		if(IsValid(RCO))
+		{
+			RCO->Server_Faxit_GrabFromNetwork(this, Player, Amount);
+		}
+		return;
+	}
+	
+	if(IsValid(Player) && IsValid(Player->GetInventory()))
+	{
+		TryToGrabItem(Player->GetInventory(), Amount.ItemClass, Amount.Amount);
+	}
+}
+
 int32 AKPCLNetworkCore::IsStorageFull(TSubclassOf<UFGItemDescriptor> Item)
 {
 	FItemAmount* ItemAmount = GetItemAmountRef(Item);
@@ -331,6 +380,51 @@ int32 AKPCLNetworkCore::TryToGrabItemAmount(TSubclassOf<UFGItemDescriptor> Item,
 UFGInventoryComponent* AKPCLNetworkCore::GetPlayerBufferInventory() const
 {
 	return GetOutputInventory();
+}
+
+TArray<FKPCLFaxitNetworkStatDataBundle> AKPCLNetworkCore::GetStateBundles() const
+{
+	return mStateBundels;
+}
+
+void AKPCLNetworkCore::GatherStates()
+{
+	Super::GatherStates();
+
+	if(mNetworkRef)
+	{
+		FKPCLFaxitNetworkStatDataBundle Bundle;
+		for (AKPCLNetworkBuildingBase* NetworkBuilding : mNetworkRef->mNetworkBuildings)
+		{
+			for (FKPCLFaxitNetworkStatData State : NetworkBuilding->GetStates())
+			{
+				FKPCLFaxitNetworkStatData* FoundState = Bundle.mStats.FindByPredicate( [State](const FKPCLFaxitNetworkStatData& item)
+					{
+						return item.mItem == State.mItem;
+					} );
+
+				if(!FoundState)
+				{
+					Bundle.mStats.Add(State);
+				} else
+				{
+					FoundState->Merge(State, false);
+				}
+			}
+		}
+
+		Bundle.mTimestamp = FDateTime::Now().ToUnixTimestamp();
+		mStateBundels.Add(Bundle);
+		mStateBundels.Sort([](const FKPCLFaxitNetworkStatDataBundle& a, const FKPCLFaxitNetworkStatDataBundle& b)
+					{
+						return a.mTimestamp > b.mTimestamp;
+					});
+		
+		while (mStateBundels.Num() > 60)
+		{
+			mStateBundels.RemoveAt(1);
+		}
+	}
 }
 
 void AKPCLNetworkCore::TickNetwork(float dt, FKPCLFaxitNetwork* Network)

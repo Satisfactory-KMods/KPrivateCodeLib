@@ -79,7 +79,7 @@ void UKPCLDefaultRCO::Server_FlushFluids_Implementation(AFGBuildable* Building)
 }
 
 
-void UKPCLDefaultRCO::Server_Core_LootChest_Implementation(AKPCLLootChest* Target, AFGCharacterPlayer* Player)
+void UKPCLDefaultRCO::Server_LootChest_Implementation(AKPCLLootChest* Target, AFGCharacterPlayer* Player)
 {
 	if (ensure(Target))
 	{
@@ -148,5 +148,50 @@ void UKPCLDefaultRCO::Server_RemoveCustomSwatchData_Implementation(AKPCLSwatchSy
 	{
 		Target->RemoveCustomSwatchData(Idx);
 		Target->ForceNetUpdate();
+	}
+}
+
+
+void UKPCLDefaultRCO::Server_Faxit_GrabFromNetwork_Implementation(class AKPCLNetworkCore* Target,
+	AFGCharacterPlayer* Player, FItemAmount Amount)
+{
+	if(IsValid(Target))
+	{
+		Target->GrabFromNetwork(Player, Amount);
+	}
+}
+
+void UKPCLDefaultRCO::Server_Faxit_SetOverflowType_Implementation(class AKPCLNetworkConnectionBuilding* Target,
+																  EKPCLOverflowMode NewMode)
+{
+	if(IsValid(Target))
+	{
+		Target->SetOverflowMode(NewMode);
+	}
+}
+
+void UKPCLDefaultRCO::Server_Faxit_SetSpeedOverride_Implementation(class AKPCLNetworkConnectionBuilding* Target,
+																   float Value)
+{
+	if(IsValid(Target))
+	{
+		Target->SetSpeedOverride(Value);
+	}
+}
+
+void UKPCLDefaultRCO::Server_Faxit_ClearSpeedOverride_Implementation(class AKPCLNetworkConnectionBuilding* Target)
+{
+	if(IsValid(Target))
+	{
+		Target->ClearSpeedOverride();
+	}
+}
+
+void UKPCLDefaultRCO::Server_Faxit_SetFilterItem_Implementation(class AKPCLNetworkConnectionBuilding* Target,
+																TSubclassOf<UFGItemDescriptor> NewItem)
+{
+	if(IsValid(Target))
+	{
+		Target->SetFilterItem(NewItem);
 	}
 }

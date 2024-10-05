@@ -101,7 +101,7 @@ private:
 	UFUNCTION()
 	void OnRep_LootTableUpdate();
 
-	UPROPERTY(SaveGame, Replicated)
+	UPROPERTY(EditDefaultsOnly, SaveGame, Replicated, Category = "KMods|Inventory")
 	UFGInventoryComponent* mInventory;
 
 	UPROPERTY(EditAnywhere, SaveGame, ReplicatedUsing=OnRep_LootTableUpdate)

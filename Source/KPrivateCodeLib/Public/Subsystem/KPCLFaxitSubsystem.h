@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "FGItemDescriptor.h"
 #include "KPCLModSubsystem.h"
-#include "KPCLProducerBase.h"
 #include "KPCLUnlockNetworkTier.h"
 #include "KPCLFaxitSubsystem.generated.h"
 
@@ -20,14 +19,37 @@ struct FKPCLFaxitNetworkStatData
 		mItem = Item;
 	}
 
-	UPROPERTY(SaveGame, BlueprintReadWrite)
+	UPROPERTY(SaveGame, BlueprintReadOnly)
 	TSubclassOf<UFGItemDescriptor> mItem;
 
-	UPROPERTY(SaveGame, BlueprintReadWrite)
-	int32 mInput = 0;
+	UPROPERTY(SaveGame, BlueprintReadOnly)
+	int32 mUpload = 0;
 
-	UPROPERTY(SaveGame, BlueprintReadWrite)
-	int32 mOutput = 0;
+	UPROPERTY(SaveGame, BlueprintReadOnly)
+	int32 mDownload = 0;
+
+	// Compare item descriptors
+	bool operator==(const FKPCLFaxitNetworkStatData& Other) const
+	{
+		return mItem == Other.mItem;
+	}
+
+	void Merge(FKPCLFaxitNetworkStatData& Other, bool ResetOther = false);
+	void Merge(FKPCLFaxitNetworkStatData* Other, bool ResetOther = false);
+};
+
+USTRUCT(BlueprintType)
+struct FKPCLFaxitNetworkStatDataBundle
+{
+	GENERATED_BODY()
+
+	FKPCLFaxitNetworkStatDataBundle() {}
+
+	UPROPERTY(SaveGame, BlueprintReadOnly)
+	int64 mTimestamp = 0;
+
+	UPROPERTY(SaveGame, BlueprintReadOnly)
+	TArray<FKPCLFaxitNetworkStatData> mStats;
 };
 
 USTRUCT(BlueprintType)
@@ -43,6 +65,7 @@ struct FKPCLFaxitNetwork
 	{
 		this->mNetworkName = networkName;
 		this->mCore = Core;
+		this->IsValid = Core != nullptr;
 	}
 
 	void RemoveActorFromNetwork(AKPCLNetworkBuildingBase* actor);
@@ -52,11 +75,14 @@ struct FKPCLFaxitNetwork
 	UPROPERTY(SaveGame, BlueprintReadWrite)
 	FString mNetworkName;
 
-	UPROPERTY(SaveGame, BlueprintReadWrite)
+	UPROPERTY(SaveGame, BlueprintReadOnly)
+	AKPCLNetworkCore* mCore;
+
+	UPROPERTY(SaveGame, BlueprintReadOnly)
 	TArray<AKPCLNetworkBuildingBase*> mNetworkBuildings;
 
-	UPROPERTY(SaveGame, BlueprintReadWrite)
-	AKPCLNetworkCore* mCore;
+	UPROPERTY(BlueprintReadOnly)
+	bool IsValid = false;
 };
 
 UCLASS()
@@ -82,6 +108,11 @@ public:
 	FKPCLFaxitNetwork* CreateOrAddNetworkNative(FString networkName, AKPCLNetworkCore* Core);
 
 	void DestoryNetwork(AKPCLNetworkCore* Core);
+	
+	void DestroyNetworkBuilding(AKPCLNetworkBuildingBase* Building);
+	
+	UFUNCTION(BlueprintCallable, Category="Faxit")
+	void AddBuildingToCore(AKPCLNetworkBuildingBase* Building, AKPCLNetworkCore* Core);
 
 	UFUNCTION(BlueprintCallable, Category="Faxit")
 	bool HasNetwork(AKPCLNetworkBuildingBase* Actor);

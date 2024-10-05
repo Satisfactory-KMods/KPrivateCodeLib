@@ -3,6 +3,8 @@
 
 #include "Network/KPCLNetworkBuildingBase.h"
 
+#include "FGResourceSinkSubsystem.h"
+#include "KPCLNetworkConnectionComponent.h"
 #include "KPrivateCodeLibModule.h"
 #include "BFL/KBFL_Inventory.h"
 #include "C++/KBFLCppInventoryHelper.h"
@@ -34,6 +36,27 @@ FNetworkUIData AKPCLNetworkBuildingBase::GetUIDData_Implementation() const
 	return mNetworkUIData;
 }
 
+FKPCLFaxitNetwork AKPCLNetworkBuildingBase::GetNetworkData_Implementation() const
+{
+	if(UKPCLNetwork* Network = Execute_GetNetwork(this))
+	{
+		if(!Network->GetCore()->mNetworkRef || !Network->CoreStateIsOk()) return FKPCLFaxitNetwork();
+		return *Network->GetCore()->mNetworkRef;
+	}
+	
+	return FKPCLFaxitNetwork();
+}
+
+bool AKPCLNetworkBuildingBase::HasCoreInNetwork_Implementation() const
+{
+	if(UKPCLNetwork* Network = Execute_GetNetwork(this))
+	{
+		return IsValid(Network->GetCore()) && Network->CoreStateIsOk();
+	}
+	
+	return false;
+}
+
 void AKPCLNetworkBuildingBase::SetNetworkCore(AKPCLNetworkCore* Core)
 {
 	mNetworkCore = Core;
@@ -51,12 +74,10 @@ AKPCLNetworkCore* AKPCLNetworkBuildingBase::GetCore_Internal() const
 		return Cast<AKPCLNetworkCore>(mNetworkCore);
 	}
 
-	if (UKPCLNetwork* Network = Execute_GetNetwork(this))
+	
+	if (mNetworkConnection && mNetworkConnection->IsNetworkOk())
 	{
-		if (Network->GetCore())
-		{
-			return Network->GetCore();
-		}
+		return mNetworkConnection->GetCore();
 	}
 	
 	return mNetworkCore;
@@ -139,20 +160,25 @@ void AKPCLNetworkBuildingBase::Factory_Tick(float dt)
 			GatherStates();
 		}
 		
-		if (mNetworkCore != Execute_GetCore(this))
+		if(!IsCore())
 		{
-			mNetworkCore = Execute_GetCore(this);
+			bHasCableBoost = Execute_HasCoreInNetwork(this);
+			if (mNetworkCore != Execute_GetCore(this))
+			{
+				mNetworkCore = Execute_GetCore(this);
+				mFaxitSubsystem->AddBuildingToCore(this, mNetworkCore);
 
-			if (IsInGameThread())
-			{
-				MultiCast_OnNetworkCoreChanged(mNetworkCore);
-			}
-			else
-			{
-				AsyncTask(ENamedThreads::GameThread, [&]()
+				if (IsInGameThread())
 				{
-					MultiCast_OnNetworkCoreChanged(mNetworkCore );
-				});
+					MultiCast_OnNetworkCoreChanged(mNetworkCore);
+				}
+				else
+				{
+					AsyncTask(ENamedThreads::GameThread, [&]()
+					{
+						MultiCast_OnNetworkCoreChanged(mNetworkCore );
+					});
+				}
 			}
 		}
 	}
@@ -169,6 +195,13 @@ bool AKPCLNetworkBuildingBase::Factory_IsProducing() const
 
 void AKPCLNetworkBuildingBase::TickNetwork(float dt, FKPCLFaxitNetwork* Network)
 {
+}
+
+void AKPCLNetworkBuildingBase::GetConditionalReplicatedProps(TArray<FFGCondReplicatedProperty>& outProps) const
+{
+	Super::GetConditionalReplicatedProps(outProps);
+	FG_DOREPCONDITIONAL(ThisClass, bHasCableBoost);
+	FG_DOREPCONDITIONAL(ThisClass, mStates);
 }
 
 int32 AKPCLNetworkBuildingBase::SinkItems(FItemAmount Items)
@@ -323,7 +356,33 @@ void AKPCLNetworkBuildingBase::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 
 TArray<FKPCLFaxitNetworkStatData> AKPCLNetworkBuildingBase::GetStates() const
 {
-	return TArray<FKPCLFaxitNetworkStatData>();
+	return  mStates;
+}
+
+void AKPCLNetworkBuildingBase::GatherStates()
+{
+	TArray<FKPCLFaxitNetworkStatData> States;
+	for (FKPCLFaxitNetworkStatData Data : mCurrentStates)
+	{
+		States.Add(Data);
+	}
+	mStates = States;
+	mCurrentStates.Empty();
+}
+
+FKPCLFaxitNetworkStatData* AKPCLNetworkBuildingBase::GetState(TSubclassOf<UFGItemDescriptor> Item)
+{
+	FKPCLFaxitNetworkStatData* Found = mCurrentStates.FindByPredicate([Item](const FKPCLFaxitNetworkStatData& Data)
+	{
+		return Data.mItem == Item;
+	});
+
+	if(!Found)
+	{
+		mCurrentStates.Add(FKPCLFaxitNetworkStatData(Item));
+		return GetState(Item);
+	}
+	return Found;
 }
 
 AFGResourceSinkSubsystem* AKPCLNetworkBuildingBase::GetSinkSub()

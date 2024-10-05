@@ -3,9 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "KPCLFaxitSubsystem.h"
-#include "KPCLNetworkConnectionComponent.h"
-#include "KPCLNetworkInfoComponent.h"
 #include "Buildable/KPCLProducerBase.h"
 #include "Buildable/Modular/KPCLModularBuildingBase.h"
 #include "KPCLNetworkBuildingBase.generated.h"
@@ -55,6 +52,8 @@ public:
 	virtual AKPCLNetworkCore* GetCore_Implementation() const override;
 	virtual UKPCLNetwork* GetNetwork_Implementation() const override;
 	virtual FNetworkUIData GetUIDData_Implementation() const override;
+	virtual FKPCLFaxitNetwork GetNetworkData_Implementation() const override;
+	virtual bool HasCoreInNetwork_Implementation() const override;
 	void SetNetworkCore(AKPCLNetworkCore* Core);
 
 	virtual bool HasCore_Internal() const;
@@ -72,6 +71,7 @@ public:
 	virtual void Factory_Tick(float dt) override;
 	virtual bool Factory_IsProducing() const override;
 	virtual void TickNetwork(float dt, FKPCLFaxitNetwork* Network);
+	virtual void GetConditionalReplicatedProps(TArray<FFGCondReplicatedProperty>& outProps) const override;
 
 	int32 SinkItems(FItemAmount Items);
 
@@ -94,10 +94,10 @@ public:
 	virtual bool IsCore() const;
 
 	UFUNCTION(BlueprintPure, Category="KMods|Network")
-	virtual UKPCLNetworkInfoComponent* GetNetworkInfoComponent() const;
+	virtual class UKPCLNetworkInfoComponent* GetNetworkInfoComponent() const;
 
 	UFUNCTION(BlueprintPure, Category="KMods|Network")
-	virtual UKPCLNetworkConnectionComponent* GetNetworkConnectionComponent() const;
+	virtual class UKPCLNetworkConnectionComponent* GetNetworkConnectionComponent() const;
 
 	UFUNCTION(BlueprintPure, Category="KMods|Network")
 	virtual UFGPowerInfoComponent* GetPowerInfoExplicit() const;
@@ -109,12 +109,17 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	// END: AActor
 
+	UFUNCTION(BlueprintPure, Category="KMods|Network")
 	TArray<FKPCLFaxitNetworkStatData> GetStates() const;
-
-	virtual void GatherStates() {}
 	
+	virtual void GatherStates();
+	virtual void OnTiersUpdated() {}
+	FKPCLFaxitNetworkStatData* GetState(TSubclassOf<UFGItemDescriptor> Item);
 
 protected:
+	UPROPERTY(SaveGame, meta = ( FGReplicated ))
+	bool bHasCableBoost = false;
+	
 	UPROPERTY(SaveGame, Replicated)
 	AKPCLNetworkCore* mNetworkCore = nullptr;
 
@@ -128,11 +133,14 @@ protected:
 	class UKPCLNetworkInfoComponent* mNetworkInfoComponent;
 	
 	UPROPERTY(Transient)
-	AKPCLFaxitSubsystem* mFaxitSubsystem = nullptr;
+	class AKPCLFaxitSubsystem* mFaxitSubsystem = nullptr;
+	
+	UPROPERTY( SaveGame )
+	TArray<FKPCLFaxitNetworkStatData> mCurrentStates;
 	
 	UPROPERTY( SaveGame, meta = ( FGReplicated ) )
 	TArray<FKPCLFaxitNetworkStatData> mStates;
 	
 	UPROPERTY(EditDefaultsOnly, Category="KMods|Faxit")
-	FSmartTimer mStateGatherTimer = FSmartTimer(60.f, true);
+	FSmartTimer mStateGatherTimer = FSmartTimer(60.f, false);
 };

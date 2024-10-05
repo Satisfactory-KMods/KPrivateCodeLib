@@ -1,8 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "KPCLFaxitSubsystem.h"
-#include "KPCLNetworkConnectionBuilding.h"
+#include "KPCLNetworkBuildingBase.h"
 #include "KPCLNetworkCore.generated.h"
 
 USTRUCT(BlueprintType)
@@ -53,6 +52,7 @@ public:
 protected:
 	// START: AActor
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetConditionalReplicatedProps(TArray<FFGCondReplicatedProperty>& outProps) const override;
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -63,6 +63,8 @@ protected:
 	// END: Modular Building
 
 	// START: KPCL
+	virtual FKPCLFaxitNetwork GetNetworkData_Implementation() const override;
+	virtual bool HasCoreInNetwork_Implementation() const override;
 	virtual bool IsCore() const override;
 
 	/** Overwrite the Power handle to translate network to power */
@@ -84,7 +86,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, SaveGame, Replicated, Category="KMods")
 	FFullProductionHandle mPlayerInventoryHandle;
 	// END: Player HANDLE
-	
+
+public:
 	// START: Item Handle
 	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
 	FItemAmount GetItemOrCreateAmount(TSubclassOf<UFGItemDescriptor> Item);
@@ -93,6 +96,9 @@ protected:
 	
 	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
 	TArray<FItemAmount> GetItemAmounts() const;
+
+	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
+	void GrabFromNetwork(AFGCharacterPlayer* Player, FItemAmount Amount);
 
 	/**
 	 * return true if the storage is full and can't store no more
@@ -131,6 +137,11 @@ protected:
 public:
 	UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
 	UFGInventoryComponent* GetPlayerBufferInventory() const;
+	
+	UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
+	TArray<FKPCLFaxitNetworkStatDataBundle> GetStateBundles() const;
+
+	virtual void GatherStates() override;
 
 	virtual void TickNetwork(float dt, FKPCLFaxitNetwork* Network) override;
 	
@@ -153,22 +164,22 @@ private:
 	friend class UKPCLNetworkPlayerComponent;
 
 	UPROPERTY(Replicated)
-	TArray<AKPCLNetworkConnectionBuilding*> mNetworkConnections;
+	TArray<class AKPCLNetworkConnectionBuilding*> mNetworkConnections;
 
-	UPROPERTY(SaveGame)
+	UPROPERTY(EditDefaultsOnly, SaveGame, Category = "KMods|Inventory")
 	UFGInventoryComponent* mInputInventory = nullptr;
 
-	UPROPERTY(SaveGame)
+	UPROPERTY(EditDefaultsOnly, SaveGame, Category = "KMods|Inventory")
 	UFGInventoryComponent* mOutputInventory = nullptr;
 
-	UPROPERTY(SaveGame)
+	UPROPERTY(EditDefaultsOnly,SaveGame, Category="KMods|Faxit")
 	FSmartTimer mItemFlushTimer = FSmartTimer(300.f, false);
 
-	FKPCLFaxitNetwork* mNetworkRef = nullptr;
-
 public:
+	FKPCLFaxitNetwork* mNetworkRef = nullptr;
+	
 	UPROPERTY(SaveGame, BlueprintReadOnly, meta = ( FGReplicated ))
-	TArray<FKPCLFaxitNetworkStatData> mItemStats;
+	TArray<FKPCLFaxitNetworkStatDataBundle> mStateBundels;
 	
 	UPROPERTY(SaveGame, BlueprintReadOnly, meta = ( FGReplicated ))
 	TArray<FItemAmount> mStorage;
@@ -187,5 +198,4 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category="KMods|Faxit")
 	FOnCoreItemStateStateChanged OnStorageChanged;
-	
 };

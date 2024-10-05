@@ -12,7 +12,7 @@
 
 #include "Net/UnrealNetwork.h"
 
-AKPCLModularBuildingBase::AKPCLModularBuildingBase()
+AKPCLModularBuildingBase::AKPCLModularBuildingBase(): mModularHandler(nullptr)
 {
 }
 
@@ -22,7 +22,7 @@ FText AKPCLModularBuildingBase::GetLookAtDecription_Implementation(AFGCharacterP
 	return mShouldUseUiFromMaster && GetMasterBuildable() != this && IsValid(GetMasterBuildable())
 		       ? Execute_GetLookAtDecription(GetMasterBuildable(), byCharacter, state)
 		       : Super::GetLookAtDecription_Implementation(byCharacter, state);
-}
+} 
 
 bool AKPCLModularBuildingBase::IsUseable_Implementation() const
 {

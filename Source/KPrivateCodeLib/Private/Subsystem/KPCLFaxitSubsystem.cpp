@@ -25,7 +25,6 @@ void AKPCLFaxitSubsystem::Tick(float DeltaSeconds)
 	const int32 NumPerGroup = FMath::Max(FMath::DivideAndRoundUp(mNetworks.Num(), 8), 1);
 	ParallelFor(8, [&](int32 Index)
 	{
-		
 		for (int32 Member = Index * NumPerGroup; Member < FMath::Min(
 				 (Index + 1) * NumPerGroup, mNetworks.Num()); Member++)
 		{
@@ -104,6 +103,26 @@ void AKPCLFaxitSubsystem::DestoryNetwork(AKPCLNetworkCore* Core)
 	});
 }
 
+void AKPCLFaxitSubsystem::DestroyNetworkBuilding(AKPCLNetworkBuildingBase* Building)
+{
+	FKPCLFaxitNetwork* FaxitNetwork = GetNetworkRef(Building);
+	if(FaxitNetwork)
+	{
+		FaxitNetwork->RemoveActorFromNetwork(Building);
+	}
+}
+
+void AKPCLFaxitSubsystem::AddBuildingToCore(AKPCLNetworkBuildingBase* Building, AKPCLNetworkCore* Core)
+{
+	FKPCLFaxitNetwork* FaxitNetwork = GetNetworkRef(Core);
+	if(FaxitNetwork)
+	{
+		DestroyNetworkBuilding(Building);
+		FaxitNetwork->AddActorToNetwork(Building);
+		Building->SetNetworkCore(FaxitNetwork->mCore);
+	}
+}
+
 bool AKPCLFaxitSubsystem::HasNetwork(AKPCLNetworkBuildingBase* Actor)
 {
 	bool bSuccess;
@@ -177,6 +196,42 @@ void AKPCLFaxitSubsystem::UnlockNetworkTier(int32 Tier, EKPCLUnlockTier UnlockTy
 		mNetworkMachineLevel += Tier;
 		break;
 	}
+	
+	const int32 NumPerGroup = FMath::Max(FMath::DivideAndRoundUp(mNetworks.Num(), 8), 1);
+	ParallelFor(8, [&](int32 Index)
+	{
+		for (int32 Member = Index * NumPerGroup; Member < FMath::Min(
+				 (Index + 1) * NumPerGroup, mNetworks.Num()); Member++)
+		{
+			FKPCLFaxitNetwork* Network = &mNetworks[Member];
+			if (ensure(Network) && ensure(Network->mCore))
+			{
+				Network->mCore->OnTiersUpdated();
+				for (AKPCLNetworkBuildingBase* NetworkBuilding : Network->mNetworkBuildings)
+				{
+					NetworkBuilding->OnTiersUpdated();
+				}
+			}
+		}
+	});
+}
+
+void FKPCLFaxitNetworkStatData::Merge(FKPCLFaxitNetworkStatData& Other, bool ResetOther)
+{
+	if(mItem != Other.mItem) return;
+
+	mDownload += Other.mDownload;
+	mUpload += Other.mUpload;
+
+	if(!ResetOther) return;
+	Other.mDownload = 0;
+	Other.mUpload = 0;
+}
+
+void FKPCLFaxitNetworkStatData::Merge(FKPCLFaxitNetworkStatData* Other, bool ResetOther)
+{
+	if(!Other) return;
+	Merge(*Other, ResetOther);
 }
 
 void FKPCLFaxitNetwork::RemoveActorFromNetwork(AKPCLNetworkBuildingBase* actor)
