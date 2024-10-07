@@ -106,6 +106,7 @@ AKPCLNetworkBuildingBase::AKPCLNetworkBuildingBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	mPowerInfo = CreateDefaultSubobject<UKPCLNetworkInfoComponent>(TEXT("NetworkConnection"));
+	mInteractionRegisterPlayerWithCircuit = true;
 }
 
 void AKPCLNetworkBuildingBase::BeginPlay()
