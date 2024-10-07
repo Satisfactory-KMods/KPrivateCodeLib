@@ -25,7 +25,7 @@
 	"Plugins": [
 		{
 			"Name": "SML",
-			"SemVersion": "^3.7.0",
+			"SemVersion": "^3.8.0-dev",
 			"Enabled": true,
 			"BasePlugin": false
 		},
@@ -49,5 +49,6 @@
 		}
 	],
 	"RemoteVersionRange": "",
-	"AcceptsAnyRemoteVersion": false
+	"AcceptsAnyRemoteVersion": false,
+	"GameVersion": ">=365306"
 }

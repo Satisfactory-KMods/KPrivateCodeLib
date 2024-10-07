@@ -23,6 +23,7 @@ AKPCLLootChest::AKPCLLootChest() : Super()
 	PrimaryActorTick.bStartWithTickEnabled = 1;
 
 	mInventory = CreateDefaultSubobject<UFGInventoryComponent>(FKPCLInventoryStructure::InputName);
+	mMesh = CreateDefaultSubobject<UFGColoredInstanceMeshProxy>("LootChestMesh");
 }
 
 void AKPCLLootChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -30,7 +31,7 @@ void AKPCLLootChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AKPCLLootChest, mLootableTable);
-	DOREPLIFETIME(AKPCLLootChest, mInventory);
+	DOREPLIFETIME(AKPCLLootChest, mChestIsLooted);
 }
 
 bool AKPCLLootChest::ShouldSave_Implementation() const
@@ -42,28 +43,21 @@ void AKPCLLootChest::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Mesh = FindComponentByClass<UFGColoredInstanceMeshProxy>();
-
 	if (HasAuthority())
 	{
 		GenerateLoot();
 
-		GetInventory()->OnItemAddedDelegate.AddUniqueDynamic(this, &AKPCLLootChest::OnInputItemAdded);
+		GetInventory( )->mItemFilter.BindUObject(this, &AKPCLLootChest::FilterItemClasses);
+		
 		GetInventory()->OnItemRemovedDelegate.AddUniqueDynamic(this, &AKPCLLootChest::OnInputItemRemoved);
 	}
 
-	if (WasLooted())
-	{
-		if (Mesh)
-		{
-			Mesh->DestroyComponent();
-		}
-	}
+	OnRep_OnLooted();
 }
 
 void AKPCLLootChest::GenerateLoot()
 {
-	if (mLooted || !GetInventory()->IsEmpty() || !HasAuthority())
+	if (WasLooted() || !GetInventory()->IsEmpty() || !HasAuthority())
 	{
 		return;
 	}
@@ -85,38 +79,21 @@ void AKPCLLootChest::GenerateLoot()
 					                               .mAmountMultiplier, 1)));
 			}
 		}
-	}
-
-	if (mLootableTable.Num() > 0)
-	{
-		TMap<TSubclassOf<UFGItemDescriptor>, int32> AmountMap;
-		for (FItemAmount LootableTable : mLootableTable)
+		
+		GetInventory()->Resize(mLootableTable.Num());
+		for(int32 idx = 0; idx < mLootableTable.Num(); ++idx)
 		{
-			int32 Amount = 0;
-			if (AmountMap.Contains(LootableTable.ItemClass))
-			{
-				Amount = AmountMap[LootableTable.ItemClass];
-			}
-			Amount += LootableTable.Amount;
-			AmountMap.Add(LootableTable.ItemClass, Amount);
-		}
-
-		mLootableTable.Empty();
-		for (TTuple<TSubclassOf<UFGItemDescriptor>, int> Map : AmountMap)
-		{
-			mLootableTable.Add(FItemAmount(Map.Key, Map.Value));
+			FInventoryStack Stack = FInventoryStack(mLootableTable[idx].Amount, mLootableTable[idx].ItemClass);
+			GetInventory()->AddStackToIndex(idx, Stack, false);
 		}
 	}
 
-	for (FItemAmount Loot : mLootableTable)
-	{
-		GetInventory()->AddStack(FInventoryStack(Loot.Amount, Loot.ItemClass));
-	}
+	OnRep_LootTableUpdate();
 }
 
 bool AKPCLLootChest::WasLooted() const
 {
-	return mLooted;
+	return mChestIsLooted;
 }
 
 UFGInventoryComponent* AKPCLLootChest::GetInventory() const
@@ -160,36 +137,47 @@ void AKPCLLootChest::Loot(AFGCharacterPlayer* Player)
 	}
 }
 
+bool AKPCLLootChest::FilterItemClasses(TSubclassOf<UObject> object, int32 idx) const
+{
+	return false;
+}
+
 void AKPCLLootChest::OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
                                         UFGInventoryComponent* sourceInventory)
 {
 	OnRep_LootTableUpdate();
 }
 
-void AKPCLLootChest::OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-                                      UFGInventoryComponent* sourceInventory)
-{
-	OnRep_LootTableUpdate();
-}
-
 void AKPCLLootChest::OnRep_LootTableUpdate()
 {
-	if (!mLooted)
+	if(IsValid(GetInventory()) && GetInventory()->IsEmpty() != WasLooted())
 	{
-		mLooted = GetInventory()->IsEmpty();
+		mChestIsLooted = GetInventory()->IsEmpty();
 	}
-
+	
 	if (OnLootTableUpdated.IsBound())
 	{
 		OnLootTableUpdated.Broadcast();
 	}
 
 	LootTableUpdated();
-	if (mLooted)
+	OnRep_OnLooted();
+}
+
+void AKPCLLootChest::OnRep_OnLooted()
+{
+	if (OnLootedChanged.IsBound())
 	{
-		if (Mesh)
+		OnLootedChanged.Broadcast(WasLooted());
+	}
+	OnLootedUpdated(WasLooted());
+	
+	if (WasLooted())
+	{
+		SetActorTickEnabled(false);
+		if (mMesh)
 		{
-			Mesh->DestroyComponent();
+			mMesh->DestroyComponent();
 		}
 	}
 }

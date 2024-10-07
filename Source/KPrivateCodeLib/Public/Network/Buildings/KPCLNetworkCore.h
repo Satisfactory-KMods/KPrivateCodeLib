@@ -96,6 +96,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
 	TArray<FItemAmount> GetItemAmounts() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
+	void GetItemAmountsFiltered(EResourceForm Form, TArray<FItemAmount>& Out) const;
 
 	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
 	void GrabFromNetwork(AFGCharacterPlayer* Player, FItemAmount Amount);

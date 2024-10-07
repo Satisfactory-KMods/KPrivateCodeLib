@@ -54,6 +54,7 @@ struct FKPCLLootChestRandomData
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLootTableUpdated);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLootedUpdated, bool, Looted);
 
 UCLASS()
 class KPRIVATECODELIB_API AKPCLLootChest : public AFGInteractActor, public IFGSaveInterface
@@ -84,37 +85,46 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnLootTableUpdated OnLootTableUpdated;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnLootedUpdated OnLootedChanged;
+
 	UFUNCTION(BlueprintImplementableEvent)
 	void LootTableUpdated();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnLootedUpdated(bool Looted);
+
 private:
+	UFUNCTION()
+	bool FilterItemClasses(TSubclassOf<UObject> object, int32 idx) const;
+	
 	UFUNCTION()
 	void OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
 	                        UFGInventoryComponent* sourceInventory);
-
-	UFUNCTION()
-	void OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-	                      UFGInventoryComponent* sourceInventory);
 
 	friend class UKPCLLootChestSpawnDesc;
 
 	UFUNCTION()
 	void OnRep_LootTableUpdate();
 
-	UPROPERTY(EditDefaultsOnly, SaveGame, Replicated, Category = "KMods|Inventory")
+	UFUNCTION()
+	void OnRep_OnLooted();
+
+	UPROPERTY(EditDefaultsOnly, SaveGame, Category = "KMods|Inventory")
 	UFGInventoryComponent* mInventory;
 
 	UPROPERTY(EditAnywhere, SaveGame, ReplicatedUsing=OnRep_LootTableUpdate)
 	TArray<FItemAmount> mLootableTable;
+	
 	UPROPERTY(EditAnywhere, Category="KMods")
 	TArray<FKPCLLootChestRandomData> mRandomData;
 
 	UPROPERTY(EditAnywhere, Category="KMods")
 	FKPCLRange mRandomTrys = FKPCLRange(5, 20);
 
-	UPROPERTY()
-	UFGColoredInstanceMeshProxy* Mesh;
+	UPROPERTY(EditDefaultsOnly, Category="KMods")
+	UFGColoredInstanceMeshProxy* mMesh;
 
-	UPROPERTY(SaveGame)
-	bool mLooted = false;
+	UPROPERTY(SaveGame, ReplicatedUsing=OnRep_OnLooted)
+	bool mChestIsLooted = false;
 };

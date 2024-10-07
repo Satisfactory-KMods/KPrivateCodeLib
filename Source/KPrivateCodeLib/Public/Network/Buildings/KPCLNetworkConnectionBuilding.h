@@ -84,8 +84,14 @@ public:
 	TSubclassOf<UFGItemDescriptor> GetFilterItem() const;
 	TSubclassOf<UFGItemDescriptor> GetStoredItemClass() const;
 
+	UFUNCTION()
+	void OnRep_OverflowModeChanged();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void OnOverflowModeChanged(EKPCLOverflowMode NewMode);
+
 private:
-	UPROPERTY( SaveGame, meta = ( FGReplicated ) )
+	UPROPERTY( SaveGame, ReplicatedUsing=OnRep_OverflowModeChanged )
 	EKPCLOverflowMode mOverflowMode = EKPCLOverflowMode::Ignore;
 
 	UPROPERTY(EditDefaultsOnly, SaveGame, Category = "KMods|Inventory")

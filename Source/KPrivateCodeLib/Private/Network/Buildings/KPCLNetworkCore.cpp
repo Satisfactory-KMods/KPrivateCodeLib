@@ -3,6 +3,7 @@
 
 #include "Network/Buildings/KPCLNetworkCore.h"
 
+#include "KPCLDefaultRCO.h"
 #include "KPCLNetworkConnectionComponent.h"
 #include "KPCLNetworkDrive.h"
 #include "KPCLNetworkInfoComponent.h"
@@ -274,6 +275,18 @@ int32 AKPCLNetworkCore::GetMaxItemAmount(TSubclassOf<UFGItemDescriptor> Item) co
 TArray<FItemAmount> AKPCLNetworkCore::GetItemAmounts() const
 {
 	return mStorage;
+}
+
+void AKPCLNetworkCore::GetItemAmountsFiltered(EResourceForm Form, TArray<FItemAmount>& Out) const
+{
+	Out.Empty();
+	for (FItemAmount ItemAmount : mStorage)
+	{
+		if (UFGItemDescriptor::GetForm(ItemAmount.ItemClass) == Form)
+		{
+			Out.Add(ItemAmount);
+		}
+	}
 }
 
 void AKPCLNetworkCore::GrabFromNetwork(AFGCharacterPlayer* Player, FItemAmount Amount)

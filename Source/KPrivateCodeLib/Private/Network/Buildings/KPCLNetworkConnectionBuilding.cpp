@@ -4,6 +4,7 @@
 #include "Network/Buildings/KPCLNetworkConnectionBuilding.h"
 
 #include "FGCentralStorageSubsystem.h"
+#include "KPCLDefaultRCO.h"
 #include "KPrivateCodeLibModule.h"
 #include "BFL/KBFL_Inventory.h"
 #include "C++/KBFLCppInventoryHelper.h"
@@ -37,22 +38,22 @@ void AKPCLNetworkConnectionBuilding::GetLifetimeReplicatedProps(TArray<FLifetime
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	//DOREPLIFETIME(AKPCLNetworkConnectionBuilding, mInformations);
+	DOREPLIFETIME(AKPCLNetworkConnectionBuilding, mOverflowMode);
 }
 
 bool AKPCLNetworkConnectionBuilding::CanProduce_Implementation() const
 {
 	if(!Super::CanProduce_Implementation()) return false;
 
-	return CanUploadStorage();
+	return CanUploadStorage() && mProductionHandle.mCurrentProductionTime > 0.f;
 }
 
 void AKPCLNetworkConnectionBuilding::GetConditionalReplicatedProps(TArray<FFGCondReplicatedProperty>& outProps) const
 {
 	Super::GetConditionalReplicatedProps(outProps);
 
-	FG_DOREPCONDITIONAL(ThisClass, mOverflowMode);
 	FG_DOREPCONDITIONAL(ThisClass, mSpeedOverride);
+	FG_DOREPCONDITIONAL(ThisClass, mFilterItem);
 }
 
 void AKPCLNetworkConnectionBuilding::TickNetwork(float dt, FKPCLFaxitNetwork* Network)
@@ -272,6 +273,7 @@ void AKPCLNetworkConnectionBuilding::SetOverflowMode(EKPCLOverflowMode NewMode)
 	{
 		mOverflowMode = NewMode;
 		UpdateInventoryState();
+		OnRep_OverflowModeChanged();
 	}
 }
 
@@ -341,4 +343,13 @@ TSubclassOf<UFGItemDescriptor> AKPCLNetworkConnectionBuilding::GetStoredItemClas
 		return Stacks[0].Item.GetItemClass();
 	}
 	return nullptr;
+}
+
+void AKPCLNetworkConnectionBuilding::OnRep_OverflowModeChanged()
+{
+	OnOverflowModeChanged(mOverflowMode);
+}
+
+void AKPCLNetworkConnectionBuilding::OnOverflowModeChanged_Implementation(EKPCLOverflowMode NewMode)
+{
 }
