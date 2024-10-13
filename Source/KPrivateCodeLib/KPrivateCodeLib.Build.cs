@@ -4,7 +4,9 @@ public class KPrivateCodeLib : ModuleRules
 {
 	public KPrivateCodeLib(ReadOnlyTargetRules Target) : base(Target)
 	{
+		CppStandard = CppStandardVersion.Cpp20;
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		bLegacyPublicIncludePaths = false;
 
 		PublicDependencyModuleNames.AddRange(
 			new[]
@@ -16,7 +18,7 @@ public class KPrivateCodeLib : ModuleRules
 				"DeveloperSettings",
 				"PhysicsCore",
 				"InputCore",
-				"OnlineSubsystem", "OnlineSubsystemUtils",
+				"OnlineSubsystem", "OnlineSubsystemNull", "OnlineSubsystemUtils",
 				"SignificanceManager",
 				"GeometryCollectionEngine",
 				"ChaosVehiclesCore", "ChaosVehicles", "ChaosSolverEngine",

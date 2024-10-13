@@ -20,8 +20,8 @@ public:
 	virtual void SetHologramLocationAndRotation(const FHitResult& hitResult) override;
 	virtual void BeginPlay() override;
 	virtual bool TryUpgrade(const FHitResult& hitResult) override;
-	int32 GetConnectionToSet() const;
-	bool IsConnectedToChild() const;
+	int32        GetConnectionToSet() const;
+	bool         IsConnectedToChild() const;
 
 private:
 	UPROPERTY()

@@ -15,10 +15,10 @@ class KPRIVATECODELIB_API AKPCLNetworkPole : public AFGBuildablePowerPole, publi
 
 public:
 	//Begin IKPCLNetworkDataInterface
-	virtual bool HasCore_Implementation() const override;
+	virtual bool              HasCore_Implementation() const override;
 	virtual AKPCLNetworkCore* GetCore_Implementation() const override;
-	virtual UKPCLNetwork* GetNetwork_Implementation() const override;
-	virtual FNetworkUIData GetUIDData_Implementation() const override;
+	virtual UKPCLNetwork*     GetNetwork_Implementation() const override;
+	virtual FNetworkUIData    GetUIDData_Implementation() const override;
 
 	UPROPERTY(EditDefaultsOnly, Category="KMods|UI")
 	FNetworkUIData mNetworkUIData;

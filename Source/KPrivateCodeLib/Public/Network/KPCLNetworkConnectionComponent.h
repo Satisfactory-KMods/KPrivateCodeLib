@@ -3,9 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "FGItemDescriptor.h"
 #include "FGPowerConnectionComponent.h"
-#include "ItemAmount.h"
 #include "KPCLNetwork.h"
 #include "UObject/Object.h"
 #include "KPCLNetworkConnectionComponent.generated.h"
@@ -20,7 +18,7 @@ class KPRIVATECODELIB_API UKPCLNetworkConnectionComponent : public UFGPowerConne
 
 public:
 	UKPCLNetworkConnectionComponent();
-	
+
 	UFUNCTION(BlueprintCallable, Category = "KMods|Faxit")
 	UKPCLNetwork* GetNetwork() const;
 

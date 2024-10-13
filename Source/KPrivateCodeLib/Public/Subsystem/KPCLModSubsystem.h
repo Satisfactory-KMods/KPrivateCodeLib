@@ -21,7 +21,7 @@ struct KPRIVATECODELIB_API FSubsystemTick : public FTickFunction
 	AKPCLModSubsystem* mTarget;
 
 	virtual void ExecuteTick(float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread,
-	                         const FGraphEventRef& MyCompletionGraphEvent) override;
+		const FGraphEventRef&      MyCompletionGraphEvent) override;
 };
 
 template <>
@@ -51,16 +51,12 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category="KMods|Events")
 	void OnInit();
 
-	virtual void OnInit_Implementation()
-	{
-	}
+	virtual void OnInit_Implementation() {}
 
 	FORCEINLINE virtual bool ShouldSave_Implementation() const override { return mShouldSave; }
 
 	/** Threaded tick for special uses */
-	virtual void SubsytemTick(float dt)
-	{
-	};
+	virtual void SubsytemTick(float dt) {};
 
 	UPROPERTY(EditDefaultsOnly, Category="KMods|System")
 	bool mShouldSave = false;

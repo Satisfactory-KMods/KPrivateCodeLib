@@ -42,7 +42,7 @@ protected:
 	virtual void OnAudioConfigChanged_Native();
 
 	UPROPERTY(EditDefaultsOnly, Category="KMods|Config")
-	FKPCLModConfigHelper_Float mAudioConfig;
+	FKPCLModConfigHelper_Float  mAudioConfig;
 	TArray<FKPCLAudioComponent> mAudioComponents;
 	// END: AudioConfig
 
@@ -73,7 +73,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="KMods")
 	bool AIO_UpdateCustomFloatAsColor(int32 StartFloatIndex, FLinearColor Data, int32 InstanceIdx,
-	                                  bool MarkDirty = true);
+		bool                                MarkDirty = true);
 
 	UFUNCTION(BlueprintCallable, Category="KMods")
 	bool AIO_SetInstanceHidden(int32 InstanceIdx, bool IsHidden);
@@ -83,7 +83,7 @@ public:
 
 protected:
 	TMap<int32, TMap<int32, float>> mCachedCustomData;
-	TMap<int32, FTransform> mCachedTransforms;
+	TMap<int32, FTransform>         mCachedTransforms;
 
 	UPROPERTY(EditDefaultsOnly, Category="KMods|Mesh")
 	TArray<FKPCLMeshOverwriteInformation> mDefaultMeshOverwriteInformations;

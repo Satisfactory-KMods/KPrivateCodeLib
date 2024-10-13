@@ -60,12 +60,12 @@ struct FAttachmentData
 
 	AFGBuildable* GetActorFromIndex(int Index) const;
 	AFGBuildable* GetActorFromLocation(FTransform TestLocation, FTransform& OutLocation, float MaxDistance) const;
-	bool IsLocationFree(FTransform TestLocation, FTransform& OutLocation, float MaxDistance) const;
-	void RemoveActorFromData(AFGBuildable* Actor);
-	int32 AddActorToData(AFGBuildable* Actor, FTransform Location);
-	void Init(TArray<FTransform>& Transforms);
-	bool HasSpace() const;
-	bool HasInRange(FTransform TestLocation, float MaxDistance) const;
+	bool          IsLocationFree(FTransform TestLocation, FTransform& OutLocation, float MaxDistance) const;
+	void          RemoveActorFromData(AFGBuildable* Actor);
+	int32         AddActorToData(AFGBuildable* Actor, FTransform Location);
+	void          Init(TArray<FTransform>& Transforms);
+	bool          HasSpace() const;
+	bool          HasInRange(FTransform TestLocation, float MaxDistance) const;
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -82,14 +82,14 @@ public:
 	virtual void InitArrays() override;
 
 	virtual bool AddNewActorToAttachment(AFGBuildable* Actor, TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-	                                     FTransform Location, float Distance = 500.0f) override;
+		FTransform                                     Location, float                                      Distance = 500.0f) override;
 
 	virtual void AttachedActorRemoved(AFGBuildable* Actor) override;
 
 	virtual bool CanAttachToLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, FTransform TestLocation,
-	                                 FTransform& OutLocation, float Distance = 500.0f) const override;
-	virtual bool GetSnapPointInRange(FTransform TestLocation, FTransform& SnapLocation, float AllowedDistance,
-	                                 TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
+		FTransform&                                                                OutLocation, float     Distance = 500.0f) const override;
+	virtual bool GetSnapPointInRange(FTransform       TestLocation, FTransform& SnapLocation, float AllowedDistance,
+		TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
 	virtual AFGBuildable* GetAttachedActorByClass(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
 
 	template <class T>
@@ -101,7 +101,7 @@ public:
 	virtual TArray<AFGBuildable*>
 	GetAttachedActorsByClass(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
 	virtual void GetAttachedActors(TArray<AFGBuildable*>& Out) override;
-	virtual int FindAttachmentIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) const override;
+	virtual int  FindAttachmentIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) const override;
 
 	UFUNCTION()
 	void OnRep_AttachmentDatas();
@@ -122,7 +122,7 @@ public:
 
 template <class T>
 T* UKPCLModularBuildingHandler::GetClosedActorFromLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-                                                           FTransform Location)
+	FTransform                                                                                           Location)
 {
 	const int AttachmentIndex = FindAttachmentIndex(Attachment);
 	if (AttachmentIndex >= 0)
@@ -135,7 +135,7 @@ T* UKPCLModularBuildingHandler::GetClosedActorFromLocation(TSubclassOf<UKPCLModu
 
 template <class T>
 T* UKPCLModularBuildingHandler::GetActorFromModularIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-                                                         int32 Index)
+	int32                                                                                              Index)
 {
 	const int AttachmentIndex = FindAttachmentIndex(Attachment);
 	if (AttachmentIndex >= 0)

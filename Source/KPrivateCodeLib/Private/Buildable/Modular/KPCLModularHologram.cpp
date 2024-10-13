@@ -57,7 +57,7 @@ bool AKPCLModularHologram::IsValidHitResult(const FHitResult& hitResult) const
 	if (hitResult.IsValidBlockingHit() && hitResult.GetActor())
 	{
 		if (UKismetSystemLibrary::DoesImplementInterface(hitResult.GetActor(),
-		                                                 UKPCLModularBuildingInterface::StaticClass()))
+			UKPCLModularBuildingInterface::StaticClass()))
 		{
 			return true;
 		}
@@ -69,7 +69,7 @@ void AKPCLModularHologram::SetHologramLocationAndRotation(const FHitResult& hitR
 {
 	TSubclassOf<UFGConstructDisqualifier> Disqualifier = mMissingMasterModule;
 	if (UKismetSystemLibrary::DoesImplementInterface(hitResult.GetActor(),
-	                                                 UKPCLModularBuildingInterface::StaticClass()))
+		UKPCLModularBuildingInterface::StaticClass()))
 	{
 		AFGBuildable* MasterTry = IKPCLModularBuildingInterface::Execute_GetMasterBuilding(hitResult.GetActor());
 		mModuleMasterHit = MasterTry != nullptr ? MasterTry : Cast<AFGBuildable>(hitResult.GetActor());
@@ -88,7 +88,7 @@ void AKPCLModularHologram::SetHologramLocationAndRotation(const FHitResult& hitR
 					}
 
 					if (Handler->CanAttachToLocation(mAttachmentDescriptor, TestLocation, mNextSnapLocation,
-					                                 mSnapDistance))
+						mSnapDistance))
 					{
 						FRotator NewRotator = mNextSnapLocation.Rotator();
 						NewRotator.Yaw += mRotation;
@@ -158,7 +158,7 @@ void AKPCLModularHologram::ConfigureComponents(AFGBuildable* inBuildable) const
 		IKPCLModularBuildingInterface::Execute_RemoveAttachedActor(mModuleMasterHit, mUpgradedActorRef);
 	}
 	IKPCLModularBuildingInterface::Execute_AttachedActor(mModuleMasterHit, inBuildable, mAttachmentDescriptor,
-	                                                     mSnapLocation, mSnapDistance);
+		mSnapLocation, mSnapDistance);
 }
 
 void AKPCLModularHologram::CheckValidPlacement()
@@ -172,7 +172,7 @@ void AKPCLModularHologram::CheckValidPlacement()
 }
 
 bool AKPCLModularHologram::IsModuleAllowed(UKPCLModularBuildingHandlerBase* Handler, AFGBuildable* TargetBuildable,
-                                           const FHitResult& hitResult)
+	const FHitResult&                                                       hitResult)
 {
 	return true;
 }
@@ -193,7 +193,7 @@ bool AKPCLModularHologram::TryUpgrade(const FHitResult& hitResult)
 	if (hitResult.IsValidBlockingHit())
 	{
 		if (UKismetSystemLibrary::DoesImplementInterface(hitResult.GetActor(),
-		                                                 UKPCLModularBuildingInterface::StaticClass()))
+			UKPCLModularBuildingInterface::StaticClass()))
 		{
 			TSubclassOf<UKPCLModularAttachmentDescriptor> ATClass =
 				IKPCLModularBuildingInterface::Execute_GetModularAttachmentClass(hitResult.GetActor());
@@ -202,7 +202,7 @@ bool AKPCLModularHologram::TryUpgrade(const FHitResult& hitResult)
 				mModuleMasterHit = IKPCLModularBuildingInterface::Execute_GetMasterBuilding(hitResult.GetActor());
 				mUpgradedActorRef = Cast<AFGBuildable>(hitResult.GetActor());
 				SetActorLocationAndRotation(hitResult.GetActor()->GetActorLocation(),
-				                            hitResult.GetActor()->GetActorRotation());
+					hitResult.GetActor()->GetActorRotation());
 				return mUpgradedActorRef != nullptr;
 			}
 		}

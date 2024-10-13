@@ -12,23 +12,22 @@
 
 #include "Net/UnrealNetwork.h"
 
-AKPCLModularBuildingBase::AKPCLModularBuildingBase(): mModularHandler(nullptr)
-{
-}
+AKPCLModularBuildingBase::AKPCLModularBuildingBase()
+	: mModularHandler(nullptr) {}
 
 FText AKPCLModularBuildingBase::GetLookAtDecription_Implementation(AFGCharacterPlayer* byCharacter,
-                                                                   const FUseState& state) const
+	const FUseState&                                                                   state) const
 {
 	return mShouldUseUiFromMaster && GetMasterBuildable() != this && IsValid(GetMasterBuildable())
-		       ? Execute_GetLookAtDecription(GetMasterBuildable(), byCharacter, state)
-		       : Super::GetLookAtDecription_Implementation(byCharacter, state);
-} 
+		? Execute_GetLookAtDecription(GetMasterBuildable(), byCharacter, state)
+		: Super::GetLookAtDecription_Implementation(byCharacter, state);
+}
 
 bool AKPCLModularBuildingBase::IsUseable_Implementation() const
 {
 	return mShouldUseUiFromMaster && GetMasterBuildable() != this && IsValid(GetMasterBuildable())
-		       ? Execute_IsUseable(GetMasterBuildable())
-		       : Super::IsUseable_Implementation();
+		? Execute_IsUseable(GetMasterBuildable())
+		: Super::IsUseable_Implementation();
 }
 
 void AKPCLModularBuildingBase::OnUseStop_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& State)
@@ -96,8 +95,8 @@ void AKPCLModularBuildingBase::RemoveAttachedActor_Implementation(AFGBuildable* 
 }
 
 bool AKPCLModularBuildingBase::AttachedActor_Implementation(AFGBuildable* Actor,
-                                                            TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-                                                            FTransform Location, float Distance)
+	TSubclassOf<UKPCLModularAttachmentDescriptor>                         Attachment,
+	FTransform                                                            Location, float Distance)
 {
 	if (mModularHandler)
 	{
@@ -176,9 +175,7 @@ void AKPCLModularBuildingBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void AKPCLModularBuildingBase::OnModulesWasUpdated_Implementation()
-{
-}
+void AKPCLModularBuildingBase::OnModulesWasUpdated_Implementation() {}
 
 void AKPCLModularBuildingBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

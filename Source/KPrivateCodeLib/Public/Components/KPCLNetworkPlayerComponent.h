@@ -41,7 +41,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="KMods|Network", meta = ( WorldContext = "WorldContextObject" ))
 	static UKPCLNetworkPlayerComponent* GetOrCreateNetworkComponentToPlayerState(
-		UObject* WorldContextObject, AFGPlayerState* State,
+		UObject*                                 WorldContextObject, AFGPlayerState* State,
 		TSubclassOf<UKPCLNetworkPlayerComponent> ComponentClass = nullptr);
 
 	// Helper Functions Start
@@ -111,6 +111,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="KMods|NetworkPullAndPushManager")
 	FSmartTimer mTimerForPushAndPullLogic = FSmartTimer(.25f);
+
 private:
 	// we want that the Core is friend because we want that he QUEUE items to pull or push;
 	friend AKPCLNetworkCore;

@@ -3,9 +3,9 @@
 
 #include "Subsystem/KPCLSwatchSystem.h"
 
-#include "UnrealNetwork.h"
 #include "BFL/KBFL_Player.h"
 #include "BFL/KBFL_Util.h"
+#include "Net/UnrealNetwork.h"
 #include "Replication/KPCLDefaultRCO.h"
 
 
@@ -47,7 +47,7 @@ void AKPCLSwatchSystem::RemoveCustomSwatchData(int32 Idx)
 	{
 		if (mCustomSwatchData.IsValidIndex(Idx))
 		{
-			const FCustomSwatchData OldCustomSwatchData = mCustomSwatchData[Idx];
+			const FCustomSwatchData   OldCustomSwatchData = mCustomSwatchData[Idx];
 			TArray<FCustomSwatchData> NewArray;
 
 			bool WasRemove = false;

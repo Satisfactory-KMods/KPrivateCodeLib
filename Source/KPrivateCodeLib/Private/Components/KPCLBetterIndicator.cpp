@@ -2,7 +2,7 @@
 
 UKPCLBetterIndicator::UKPCLBetterIndicator()
 {
-	mCustomExtraData = {3.0f, .0f, 0.473958f, 0.026989f};
+	mCustomExtraData = { 3.0f, .0f, 0.473958f, 0.026989f };
 }
 
 float UKPCLBetterIndicator::GetEmissive() const
@@ -25,8 +25,7 @@ void UKPCLBetterIndicator::SetState(ENewProductionState NewState, bool MarkState
 		}
 		else
 		{
-			AsyncTask(ENamedThreads::GameThread, [&]()
-			{
+			AsyncTask(ENamedThreads::GameThread, [&]() {
 				OnIndicatorStateChanged.Broadcast(mCurrentState);
 			});
 		}

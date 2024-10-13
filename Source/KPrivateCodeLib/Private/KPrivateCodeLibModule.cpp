@@ -19,7 +19,7 @@ void PlayerStateBeginPlayer(CallScope<void(*)(AFGPlayerState*)>& scope, AFGPlaye
 
 void FKPrivateCodeLib::StartupModule()
 {
-#if !WITH_EDITOR
+	#if !WITH_EDITOR
 	// Config
 	const TArray<FString> ModModuleNames = {
 		"KBFL",
@@ -54,11 +54,11 @@ void FKPrivateCodeLib::StartupModule()
 
 	GConfig->SetArray( TEXT("Internationalization"), TEXT("LocalizationPaths"), NewLocalizationPaths, GGameIni );
 	GConfig->SetArray( TEXT("Internationalization"), TEXT("LocalizationPaths"), NewLocalizationPaths, GEngineIni );
-#endif
+	#endif
 
-#if !WITH_EDITOR
+	#if !WITH_EDITOR
 	SUBSCRIBE_METHOD_VIRTUAL( AFGPlayerState::BeginPlay, GetMutableDefault<AFGPlayerState>(), &PlayerStateBeginPlayer );
-#endif
+	#endif
 }
 
 IMPLEMENT_GAME_MODULE(FKPrivateCodeLib, KPrivateCodeLib);

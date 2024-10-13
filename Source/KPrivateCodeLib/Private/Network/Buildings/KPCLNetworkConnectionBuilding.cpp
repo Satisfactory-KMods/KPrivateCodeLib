@@ -4,14 +4,13 @@
 #include "Network/Buildings/KPCLNetworkConnectionBuilding.h"
 
 #include "FGCentralStorageSubsystem.h"
-#include "KPCLDefaultRCO.h"
-#include "KPrivateCodeLibModule.h"
 #include "BFL/KBFL_Inventory.h"
-#include "C++/KBFLCppInventoryHelper.h"
+#include "Cpp/KBFLCppInventoryHelper.h"
 
 #include "Net/UnrealNetwork.h"
 
 #include "Network/Buildings/KPCLNetworkCore.h"
+#include "Replication/KPCLDefaultRCO.h"
 
 
 AKPCLNetworkConnectionBuilding::AKPCLNetworkConnectionBuilding()
@@ -27,7 +26,7 @@ void AKPCLNetworkConnectionBuilding::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if(HasAuthority())
+	if (HasAuthority())
 	{
 		UpdateInventoryState();
 		mCentralStorageSubsystem = AFGCentralStorageSubsystem::Get(GetWorld());
@@ -43,7 +42,10 @@ void AKPCLNetworkConnectionBuilding::GetLifetimeReplicatedProps(TArray<FLifetime
 
 bool AKPCLNetworkConnectionBuilding::CanProduce_Implementation() const
 {
-	if(!Super::CanProduce_Implementation()) return false;
+	if (!Super::CanProduce_Implementation())
+	{
+		return false;
+	}
 
 	return CanUploadStorage() && mProductionHandle.mCurrentProductionTime > 0.f;
 }
@@ -60,10 +62,13 @@ void AKPCLNetworkConnectionBuilding::TickNetwork(float dt, FKPCLFaxitNetwork* Ne
 {
 	Super::TickNetwork(dt, Network);
 
-	if(!IsProducing()) return;
+	if (!IsProducing())
+	{
+		return;
+	}
 
 	AKPCLNetworkCore* Core = Network->mCore;
-	if(!Core) return;
+	if (!Core) {}
 }
 
 void AKPCLNetworkConnectionBuilding::EndProductionTime()
@@ -77,21 +82,25 @@ void AKPCLNetworkConnectionBuilding::onProducingFinal_Implementation()
 {
 	Super::onProducingFinal_Implementation();
 
-	if(!GetInventory() || !mNetworkCore) return;
+	if (!GetInventory() || !mNetworkCore)
+	{
+		return;
+	}
 
-	if(mIsUpload)
+	if (mIsUpload)
 	{
 		FInventoryStack Stack;
-		if(GetInventory()->GetStackFromIndex(1, Stack))
+		if (GetInventory()->GetStackFromIndex(1, Stack))
 		{
 			FKPCLFaxitNetworkStatData* Stat = mNetworkCore->GetState(Stack.Item.GetItemClass());
 			mNetworkCore->TryToStoreItem(GetInventory(), Stack.Item.GetItemClass(), 1);
 			Stat->mUpload += 1;
 		}
-		
+
 		UploadToDepot();
 		Sink();
-	} else
+	}
+	else
 	{
 		mNetworkCore->TryToGrabItem(GetInventory(), GetFilterItem(), 1);
 	}
@@ -102,7 +111,7 @@ void AKPCLNetworkConnectionBuilding::SetBelts()
 	Super::SetBelts();
 
 	UFGFactoryConnectionComponent* Component = mIsUpload ? GetConv(0, KPCLInput) : GetConv(0, KPCLOutput);
-	if(Component)
+	if (Component)
 	{
 		Component->SetInventory(GetInventory());
 		Component->SetInventoryAccessIndex(mOverflowMode == EKPCLOverflowMode::Ignore ? 0 : -1);
@@ -112,15 +121,22 @@ void AKPCLNetworkConnectionBuilding::SetBelts()
 void AKPCLNetworkConnectionBuilding::CollectAndPushPipes(float dt, bool IsPush)
 {
 	Super::CollectAndPushPipes(dt, IsPush);
-	
-	if(mItemForm != EResourceForm::RF_GAS) return;
-	if(mItemForm != EResourceForm::RF_LIQUID) return;
+
+	if (mItemForm != EResourceForm::RF_GAS)
+	{
+		return;
+	}
+	if (mItemForm != EResourceForm::RF_LIQUID)
+	{
+		return;
+	}
 
 	UFGPipeConnectionFactory* Component = mIsUpload ? GetPipe(0, KPCLInput) : GetPipe(0, KPCLOutput);
 	if (mIsUpload && Component)
 	{
 		UKBFLCppInventoryHelper::PushPipe(GetInventory(), 0, dt, Component);
-	} else if(!mIsUpload && Component)
+	}
+	else if (!mIsUpload && Component)
 	{
 		UKBFLCppInventoryHelper::PullAllFromPipe(GetInventory(), 0, dt, Component);
 	}
@@ -129,11 +145,17 @@ void AKPCLNetworkConnectionBuilding::CollectAndPushPipes(float dt, bool IsPush)
 void AKPCLNetworkConnectionBuilding::Server_DoFlush()
 {
 	Super::Server_DoFlush();
-	
-	if(mItemForm != EResourceForm::RF_GAS) return;
-	if(mItemForm != EResourceForm::RF_LIQUID) return;
 
-	if(GetInventory())
+	if (mItemForm != EResourceForm::RF_GAS)
+	{
+		return;
+	}
+	if (mItemForm != EResourceForm::RF_LIQUID)
+	{
+		return;
+	}
+
+	if (GetInventory())
 	{
 		GetInventory()->Empty();
 	}
@@ -141,44 +163,62 @@ void AKPCLNetworkConnectionBuilding::Server_DoFlush()
 
 void AKPCLNetworkConnectionBuilding::UpdateInventoryState()
 {
-	if(!GetInventory()) return;
+	if (!GetInventory())
+	{
+		return;
+	}
 
-	if(mItemForm != EResourceForm::RF_SOLID)
+	if (mItemForm != EResourceForm::RF_SOLID)
 	{
 		GetInventory()->Resize(1);
 		return;
 	}
-	
+
 	GetInventory()->Resize(mOverflowMode == EKPCLOverflowMode::Ignore ? 1 : 2);
 	SetBelts();
 }
 
 void AKPCLNetworkConnectionBuilding::UploadToDepot()
 {
-	if(!mCentralStorageSubsystem) return;
-	if(mOverflowMode != EKPCLOverflowMode::Depot) return;
-	if(mOverflowMode != EKPCLOverflowMode::DepotAndSink) return;
-	
+	if (!mCentralStorageSubsystem)
+	{
+		return;
+	}
+	if (mOverflowMode != EKPCLOverflowMode::Depot)
+	{
+		return;
+	}
+	if (mOverflowMode != EKPCLOverflowMode::DepotAndSink)
+	{
+		return;
+	}
+
 	FInventoryStack Stack;
-	if(GetInventory()->GetStackFromIndex(2, Stack))
+	if (GetInventory()->GetStackFromIndex(2, Stack))
 	{
 		mCentralStorageSubsystem->UploadItemFromInventoryToCentralStorage(
 			GetInventory(), 2, Stack.Item.GetItemClass()
-		);
+			);
 	}
 }
 
 void AKPCLNetworkConnectionBuilding::Sink()
 {
-	if(mOverflowMode != EKPCLOverflowMode::Sink) return;
-	if(mOverflowMode != EKPCLOverflowMode::DepotAndSink) return;
-	
+	if (mOverflowMode != EKPCLOverflowMode::Sink)
+	{
+		return;
+	}
+	if (mOverflowMode != EKPCLOverflowMode::DepotAndSink)
+	{
+		return;
+	}
+
 	FInventoryStack Stack;
-	if(GetInventory()->GetStackFromIndex(2, Stack))
+	if (GetInventory()->GetStackFromIndex(2, Stack))
 	{
 		FItemAmount Amount = FItemAmount(Stack.Item.GetItemClass(), 1);
-		int32 Removed = SinkItems(Amount);
-		if(Removed > 0)
+		int32       Removed = SinkItems(Amount);
+		if (Removed > 0)
 		{
 			GetInventory()->RemoveFromIndex(2, Removed);
 		}
@@ -187,17 +227,18 @@ void AKPCLNetworkConnectionBuilding::Sink()
 
 void AKPCLNetworkConnectionBuilding::UpdateProductionSpeed()
 {
-	if(mSpeedOverride > 0.f)
+	if (mSpeedOverride > 0.f)
 	{
 		mProductionHandle.SetNewTime(60 / mSpeedOverride);
 	}
 
-	if(IsValid(mFaxitSubsystem))
+	if (IsValid(mFaxitSubsystem))
 	{
-		if(mItemForm == EResourceForm::RF_SOLID)
+		if (mItemForm == EResourceForm::RF_SOLID)
 		{
 			mProductionHandle.SetNewTime(60 / mFaxitSubsystem->GetItemsPerMinute());
-		} else
+		}
+		else
 		{
 			mProductionHandle.SetNewTime(60 / (mFaxitSubsystem->GetFluidPerMinute() / 1000));
 		}
@@ -205,14 +246,14 @@ void AKPCLNetworkConnectionBuilding::UpdateProductionSpeed()
 }
 
 void AKPCLNetworkConnectionBuilding::OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-                                                      UFGInventoryComponent* sourceInventory)
+	UFGInventoryComponent*                                                           sourceInventory)
 {
 	Super::OnInputItemAdded(itemClass, numRemoved, sourceInventory);
 	UpdateInventoryFilter();
 }
 
 void AKPCLNetworkConnectionBuilding::OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-                                                        UFGInventoryComponent* sourceInventory)
+	UFGInventoryComponent*                                                             sourceInventory)
 {
 	Super::OnInputItemRemoved(itemClass, numRemoved, sourceInventory);
 	UpdateInventoryFilter();
@@ -220,20 +261,23 @@ void AKPCLNetworkConnectionBuilding::OnInputItemRemoved(TSubclassOf<UFGItemDescr
 
 void AKPCLNetworkConnectionBuilding::UpdateInventoryFilter()
 {
-	if(!GetInventory()) return;
+	if (!GetInventory())
+	{
+		return;
+	}
 
 	TSubclassOf<UFGItemDescriptor> Filter = nullptr;
-	if(GetStoredItemClass())
+	if (GetStoredItemClass())
 	{
 		Filter = GetStoredItemClass();
 	}
-	
-	if(GetFilterItem())
+
+	if (GetFilterItem())
 	{
 		Filter = GetFilterItem();
 	}
 
-	for(int32 i = 0; i < GetInventory()->GetSizeLinear(); i++)
+	for (int32 i = 0; i < GetInventory()->GetSizeLinear(); i++)
 	{
 		GetInventory()->SetAllowedItemOnIndex(i, Filter);
 	}
@@ -241,16 +285,22 @@ void AKPCLNetworkConnectionBuilding::UpdateInventoryFilter()
 
 bool AKPCLNetworkConnectionBuilding::CanUploadStorage() const
 {
-	if(!mNetworkCore) return false;
+	if (!mNetworkCore)
+	{
+		return false;
+	}
 	TSubclassOf<UFGItemDescriptor> StoredItemClass = GetStoredItemClass();
 
-	if(!StoredItemClass) return false;
+	if (!StoredItemClass)
+	{
+		return false;
+	}
 	return !mNetworkCore->IsStorageFull(StoredItemClass);
 }
 
 bool AKPCLNetworkConnectionBuilding::StorageIsEmpty() const
 {
-	if(GetInventory())
+	if (GetInventory())
 	{
 		return GetInventory()->IsEmpty();
 	}
@@ -259,17 +309,17 @@ bool AKPCLNetworkConnectionBuilding::StorageIsEmpty() const
 
 void AKPCLNetworkConnectionBuilding::SetOverflowMode(EKPCLOverflowMode NewMode)
 {
-	if(!HasAuthority())
+	if (!HasAuthority())
 	{
 		UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::GetRCO<UKPCLDefaultRCO>(GetWorld());
-		if(IsValid(RCO))
+		if (IsValid(RCO))
 		{
 			RCO->Server_Faxit_SetOverflowType(this, NewMode);
 		}
 		return;
 	}
-	
-	if(NewMode != mOverflowMode)
+
+	if (NewMode != mOverflowMode)
 	{
 		mOverflowMode = NewMode;
 		UpdateInventoryState();
@@ -279,31 +329,31 @@ void AKPCLNetworkConnectionBuilding::SetOverflowMode(EKPCLOverflowMode NewMode)
 
 void AKPCLNetworkConnectionBuilding::ClearSpeedOverride()
 {
-	if(!HasAuthority())
+	if (!HasAuthority())
 	{
 		UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::GetRCO<UKPCLDefaultRCO>(GetWorld());
-		if(IsValid(RCO))
+		if (IsValid(RCO))
 		{
 			RCO->Server_Faxit_ClearSpeedOverride(this);
 		}
 		return;
 	}
-	
+
 	SetSpeedOverride(-1.f);
 }
 
 void AKPCLNetworkConnectionBuilding::SetSpeedOverride(float NewSpeed)
 {
-	if(!HasAuthority())
+	if (!HasAuthority())
 	{
 		UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::GetRCO<UKPCLDefaultRCO>(GetWorld());
-		if(IsValid(RCO))
+		if (IsValid(RCO))
 		{
 			RCO->Server_Faxit_SetSpeedOverride(this, NewSpeed);
 		}
 		return;
 	}
-	
+
 	mSpeedOverride = NewSpeed;
 	UpdateProductionSpeed();
 }
@@ -315,16 +365,16 @@ EKPCLOverflowMode AKPCLNetworkConnectionBuilding::GetOverflowMode() const
 
 void AKPCLNetworkConnectionBuilding::SetFilterItem(TSubclassOf<UFGItemDescriptor> NewItem)
 {
-	if(!HasAuthority())
+	if (!HasAuthority())
 	{
 		UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::GetRCO<UKPCLDefaultRCO>(GetWorld());
-		if(IsValid(RCO))
+		if (IsValid(RCO))
 		{
-			RCO->Server_Faxit_SetFilterItem(this,NewItem);
+			RCO->Server_Faxit_SetFilterItem(this, NewItem);
 		}
 		return;
 	}
-	
+
 	mFilterItem = NewItem;
 	UpdateInventoryFilter();
 }
@@ -338,7 +388,7 @@ TSubclassOf<UFGItemDescriptor> AKPCLNetworkConnectionBuilding::GetStoredItemClas
 {
 	TArray<FInventoryStack> Stacks;
 	GetInventory()->GetInventoryStacks(Stacks, false);
-	if(Stacks.Num() > 0)
+	if (Stacks.Num() > 0)
 	{
 		return Stacks[0].Item.GetItemClass();
 	}
@@ -350,6 +400,4 @@ void AKPCLNetworkConnectionBuilding::OnRep_OverflowModeChanged()
 	OnOverflowModeChanged(mOverflowMode);
 }
 
-void AKPCLNetworkConnectionBuilding::OnOverflowModeChanged_Implementation(EKPCLOverflowMode NewMode)
-{
-}
+void AKPCLNetworkConnectionBuilding::OnOverflowModeChanged_Implementation(EKPCLOverflowMode NewMode) {}

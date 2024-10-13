@@ -44,7 +44,7 @@ public:
 
 	UFUNCTION(BlueprintGetter, Category = "KMods|Json")
 	FORCEINLINE bool GetLastRequestInformations(FString& Url, TMap<FString, FString>& Headers, EHttpRequest& Method,
-	                                            FString& PostContent) const
+		FString&                                         PostContent) const
 	{
 		Headers = mRequestHeaders;
 		Url = mRequestUrl;
@@ -81,15 +81,15 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FHttpRequestComplete OnHttpRequestComplete;
 
-	FORCEINLINE void SetJson(TSharedPtr<FJsonObject> JsonObject) { mJsonObject = JsonObject; }
+	FORCEINLINE void                    SetJson(TSharedPtr<FJsonObject> JsonObject) { mJsonObject = JsonObject; }
 	FORCEINLINE TSharedPtr<FJsonObject> GetJson() { return mJsonObject; }
 
 private:
 	TSharedPtr<FJsonObject> mJsonObject;
 
 	TMap<FString, FString> mRequestHeaders;
-	FString mRequestUrl;
-	FString mRequestContent;
-	EHttpRequest mRequestMethod = EHttpRequest::GET;
-	bool bLastRequestWasSuccessful = false;
+	FString                mRequestUrl;
+	FString                mRequestContent;
+	EHttpRequest           mRequestMethod = EHttpRequest::GET;
+	bool                   bLastRequestWasSuccessful = false;
 };

@@ -8,10 +8,10 @@
 
 UKPCLNetwork* UKPCLNetworkConnectionComponent::GetNetwork() const
 {
-	if(GetCircuitID() >= 0)
+	if (GetCircuitID() >= 0)
 	{
 		AFGCircuitSubsystem* CircuitSubsystem = AFGCircuitSubsystem::Get(GetWorld());
-		if(IsValid(CircuitSubsystem))
+		if (IsValid(CircuitSubsystem))
 		{
 			return Cast<UKPCLNetwork>(CircuitSubsystem->FindCircuit(GetCircuitID()));
 		}
@@ -22,7 +22,7 @@ UKPCLNetwork* UKPCLNetworkConnectionComponent::GetNetwork() const
 AKPCLNetworkCore* UKPCLNetworkConnectionComponent::GetCore() const
 {
 	UKPCLNetwork* Network = GetNetwork();
-	if(IsValid(Network))
+	if (IsValid(Network))
 	{
 		return Network->GetCore();
 	}
@@ -32,11 +32,20 @@ AKPCLNetworkCore* UKPCLNetworkConnectionComponent::GetCore() const
 bool UKPCLNetworkConnectionComponent::IsNetworkOk() const
 {
 	UKPCLNetwork* Network = GetNetwork();
-	
-	if(!IsValid(Network)) return false;
-	if(Network->NetworkHasCoreToMuchCores() || !Network->NetworkHasCore()) return false;
-	if(!Network->CoreStateIsOk()) return false;
-	
+
+	if (!IsValid(Network))
+	{
+		return false;
+	}
+	if (Network->NetworkHasCoreToMuchCores() || !Network->NetworkHasCore())
+	{
+		return false;
+	}
+	if (!Network->CoreStateIsOk())
+	{
+		return false;
+	}
+
 	return true;
 }
 

@@ -16,9 +16,7 @@ struct FKPCLRange
 {
 	GENERATED_BODY()
 
-	FKPCLRange()
-	{
-	}
+	FKPCLRange() {}
 
 	FKPCLRange(int32 A, int32 B)
 	{
@@ -54,6 +52,7 @@ struct FKPCLLootChestRandomData
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLootTableUpdated);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLootedUpdated, bool, Looted);
 
 UCLASS()
@@ -97,10 +96,10 @@ public:
 private:
 	UFUNCTION()
 	bool FilterItemClasses(TSubclassOf<UObject> object, int32 idx) const;
-	
+
 	UFUNCTION()
 	void OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-	                        UFGInventoryComponent* sourceInventory);
+		UFGInventoryComponent*                             sourceInventory);
 
 	friend class UKPCLLootChestSpawnDesc;
 
@@ -115,7 +114,7 @@ private:
 
 	UPROPERTY(EditAnywhere, SaveGame, ReplicatedUsing=OnRep_LootTableUpdate)
 	TArray<FItemAmount> mLootableTable;
-	
+
 	UPROPERTY(EditAnywhere, Category="KMods")
 	TArray<FKPCLLootChestRandomData> mRandomData;
 

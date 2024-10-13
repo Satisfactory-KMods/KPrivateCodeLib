@@ -19,7 +19,7 @@ class KPRIVATECODELIB_API UKPCLBlueprintFunctionLib : public UBlueprintFunctionL
 public:
 	// Cpp
 	static void SetAllowOnIndex_ThreadSafe(UFGInventoryComponent* Component, int32 Index,
-	                                       TSubclassOf<UFGItemDescriptor> ItemClass);
+		TSubclassOf<UFGItemDescriptor>                            ItemClass);
 
 	//BP
 	UFUNCTION(BlueprintCallable, Category="KMods|BPFL", meta = (DeterminesOutputType = "InClass"))
@@ -28,5 +28,5 @@ public:
 	static void ResolveHitResult(UObject* Context, const FHitResult& InHitResult, FHitResult& OutHitResult);
 
 	static void ResolveOverlapResult(UObject* Context, const FOverlapResult& InOverlapResult,
-	                                 FOverlapResult& OutOverlapResult);
+		FOverlapResult&                       OutOverlapResult);
 };

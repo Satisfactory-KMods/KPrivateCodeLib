@@ -21,7 +21,7 @@ class KPRIVATECODELIB_API UKPCLNetwork : public UFGPowerCircuit
 
 	virtual void TickCircuit(float dt) override;
 	virtual void OnCircuitChanged() override;
-	void UpdateDataInInfos();
+	void         UpdateDataInInfos();
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Circuits|Network")

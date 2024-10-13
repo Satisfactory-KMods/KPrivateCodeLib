@@ -8,8 +8,8 @@
 #include "Net/UnrealNetwork.h"
 
 #include "Network/KPCLNetworkInfoComponent.h"
+#include "Network/Buildings/KPCLNetworkConnectionBuilding.h"
 #include "Network/Buildings/KPCLNetworkCore.h"
-#include "Buildings/KPCLNetworkConnectionBuilding.h"
 
 void UKPCLNetwork::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -53,12 +53,11 @@ void UKPCLNetwork::OnCircuitChanged()
 	FCriticalSection Mutex;
 
 	TArray<AKPCLNetworkConnectionBuilding*> AllBuildings;
-	TArray<AKPCLNetworkCore*> AllCores;
+	TArray<AKPCLNetworkCore*>               AllCores;
 
 	const int32 NumPerGroup = FMath::Max(FMath::DivideAndRoundUp(mPowerInfos.Num(), 7), 1);
-	ParallelFor(7, [&](int32 Index)
-	{
-		TArray<AKPCLNetworkCore*> Cores;
+	ParallelFor(7, [&](int32 Index) {
+		TArray<AKPCLNetworkCore*>               Cores;
 		TArray<AKPCLNetworkConnectionBuilding*> Buildings;
 
 		for (int32 Member = Index * NumPerGroup; Member < FMath::Min((Index + 1) * NumPerGroup, mPowerInfos.Num());
@@ -81,7 +80,7 @@ void UKPCLNetwork::OnCircuitChanged()
 					else
 					{
 						UE_LOG(LogKPCL, Warning, TEXT(" Unknown Class: %s "),
-						       *mPowerInfos[ Member ]->GetOwner()->GetName());
+							*mPowerInfos[ Member ]->GetOwner()->GetName());
 					}
 				}
 			}

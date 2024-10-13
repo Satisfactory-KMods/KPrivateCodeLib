@@ -26,7 +26,7 @@ public:
 
 	// Begin IFGUseableInterface
 	virtual FText GetLookAtDecription_Implementation(class AFGCharacterPlayer* byCharacter,
-	                                                 const FUseState& state) const override;
+		const FUseState&                                                       state) const override;
 
 	virtual bool IsUseable_Implementation() const override;
 
@@ -93,8 +93,8 @@ public:
 	virtual void RemoveAttachedActor_Implementation(AFGBuildable* Actor) override;
 
 	virtual bool AttachedActor_Implementation(AFGBuildable* Actor,
-	                                          TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-	                                          FTransform Location, float Distance) override;
+		TSubclassOf<UKPCLModularAttachmentDescriptor>       Attachment,
+		FTransform                                          Location, float Distance) override;
 
 	virtual void OnModulesUpdated_Implementation() override;
 
@@ -122,9 +122,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Km")
 	void OnMasterBuildingReceived(AActor* Actor);
 
-	FORCEINLINE virtual void OnMasterBuildingReceived_Implementation(AActor* Actor)
-	{
-	}
+	FORCEINLINE virtual void OnMasterBuildingReceived_Implementation(AActor* Actor) {}
 
 	/** Called on Add new Actor to Buildable */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Modular Building Events")

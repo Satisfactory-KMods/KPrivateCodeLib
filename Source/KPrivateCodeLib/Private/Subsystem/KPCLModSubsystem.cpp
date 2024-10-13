@@ -6,7 +6,7 @@
 #include "Subsystem/KPCLPatreonSubsystem.h"
 
 void FSubsystemTick::ExecuteTick(float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread,
-                                 const FGraphEventRef& MyCompletionGraphEvent)
+	const FGraphEventRef&              MyCompletionGraphEvent)
 {
 	if (mTarget)
 	{

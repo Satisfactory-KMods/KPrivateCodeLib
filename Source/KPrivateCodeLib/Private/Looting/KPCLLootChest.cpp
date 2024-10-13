@@ -17,7 +17,8 @@
 
 
 // Sets default values
-AKPCLLootChest::AKPCLLootChest() : Super()
+AKPCLLootChest::AKPCLLootChest()
+	: Super()
 {
 	PrimaryActorTick.bCanEverTick = 1;
 	PrimaryActorTick.bStartWithTickEnabled = 1;
@@ -47,8 +48,8 @@ void AKPCLLootChest::BeginPlay()
 	{
 		GenerateLoot();
 
-		GetInventory( )->mItemFilter.BindUObject(this, &AKPCLLootChest::FilterItemClasses);
-		
+		GetInventory()->mItemFilter.BindUObject(this, &AKPCLLootChest::FilterItemClasses);
+
 		GetInventory()->OnItemRemovedDelegate.AddUniqueDynamic(this, &AKPCLLootChest::OnInputItemRemoved);
 	}
 
@@ -73,15 +74,15 @@ void AKPCLLootChest::GenerateLoot()
 			if (Data.mItemClass)
 			{
 				mLootableTable.Add(FItemAmount(Data.mItemClass,
-				                               FMath::Max<int32>(
-					                               Data.mAmountRange.GetRandom() * FMath::Max<int32>(
-						                               1, UFGItemDescriptor::GetStackSize(Data.mItemClass) / 100) * Data
-					                               .mAmountMultiplier, 1)));
+					FMath::Max<int32>(
+						Data.mAmountRange.GetRandom() * FMath::Max<int32>(
+							1, UFGItemDescriptor::GetStackSize(Data.mItemClass) / 100) * Data
+						.mAmountMultiplier, 1)));
 			}
 		}
-		
+
 		GetInventory()->Resize(mLootableTable.Num());
-		for(int32 idx = 0; idx < mLootableTable.Num(); ++idx)
+		for (int32 idx = 0; idx < mLootableTable.Num(); ++idx)
 		{
 			FInventoryStack Stack = FInventoryStack(mLootableTable[idx].Amount, mLootableTable[idx].ItemClass);
 			GetInventory()->AddStackToIndex(idx, Stack, false);
@@ -143,18 +144,18 @@ bool AKPCLLootChest::FilterItemClasses(TSubclassOf<UObject> object, int32 idx) c
 }
 
 void AKPCLLootChest::OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-                                        UFGInventoryComponent* sourceInventory)
+	UFGInventoryComponent*                                             sourceInventory)
 {
 	OnRep_LootTableUpdate();
 }
 
 void AKPCLLootChest::OnRep_LootTableUpdate()
 {
-	if(IsValid(GetInventory()) && GetInventory()->IsEmpty() != WasLooted())
+	if (IsValid(GetInventory()) && GetInventory()->IsEmpty() != WasLooted())
 	{
 		mChestIsLooted = GetInventory()->IsEmpty();
 	}
-	
+
 	if (OnLootTableUpdated.IsBound())
 	{
 		OnLootTableUpdated.Broadcast();
@@ -171,7 +172,7 @@ void AKPCLLootChest::OnRep_OnLooted()
 		OnLootedChanged.Broadcast(WasLooted());
 	}
 	OnLootedUpdated(WasLooted());
-	
+
 	if (WasLooted())
 	{
 		SetActorTickEnabled(false);

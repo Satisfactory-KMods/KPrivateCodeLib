@@ -11,23 +11,21 @@
 
 #include "Net/UnrealNetwork.h"
 
-AKPCLModularExtractorBase::AKPCLModularExtractorBase()
-{
-}
+AKPCLModularExtractorBase::AKPCLModularExtractorBase() {}
 
 FText AKPCLModularExtractorBase::GetLookAtDecription_Implementation(AFGCharacterPlayer* byCharacter,
-                                                                    const FUseState& state) const
+	const FUseState&                                                                    state) const
 {
 	return mShouldUseUiFromMaster && GetMasterBuildable() != this
-		       ? Execute_GetLookAtDecription(GetMasterBuildable(), byCharacter, state)
-		       : Super::GetLookAtDecription_Implementation(byCharacter, state);
+		? Execute_GetLookAtDecription(GetMasterBuildable(), byCharacter, state)
+		: Super::GetLookAtDecription_Implementation(byCharacter, state);
 }
 
 bool AKPCLModularExtractorBase::IsUseable_Implementation() const
 {
 	return mShouldUseUiFromMaster && GetMasterBuildable() != this
-		       ? Execute_IsUseable(GetMasterBuildable())
-		       : Super::IsUseable_Implementation();
+		? Execute_IsUseable(GetMasterBuildable())
+		: Super::IsUseable_Implementation();
 }
 
 void AKPCLModularExtractorBase::OnUseStop_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& State)
@@ -90,8 +88,8 @@ void AKPCLModularExtractorBase::RemoveAttachedActor_Implementation(AFGBuildable*
 }
 
 bool AKPCLModularExtractorBase::AttachedActor_Implementation(AFGBuildable* Actor,
-                                                             TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-                                                             FTransform Location, float Distance)
+	TSubclassOf<UKPCLModularAttachmentDescriptor>                          Attachment,
+	FTransform                                                             Location, float Distance)
 {
 	if (mModularHandler)
 	{
@@ -171,9 +169,7 @@ void AKPCLModularExtractorBase::EndPlay(const EEndPlayReason::Type EndPlayReason
 	Super::EndPlay(EndPlayReason);
 }
 
-void AKPCLModularExtractorBase::OnModulesWasUpdated_Implementation()
-{
-}
+void AKPCLModularExtractorBase::OnModulesWasUpdated_Implementation() {}
 
 void AKPCLModularExtractorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

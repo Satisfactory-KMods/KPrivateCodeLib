@@ -7,9 +7,7 @@ struct KPRIVATECODELIB_API FTeleporterInformation
 {
 	GENERATED_BODY()
 
-	FTeleporterInformation()
-	{
-	};
+	FTeleporterInformation() {};
 
 	FTeleporterInformation(int32 OverwriteIconID)
 	{

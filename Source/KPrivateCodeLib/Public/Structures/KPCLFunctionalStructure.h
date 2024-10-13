@@ -20,13 +20,9 @@ struct KPRIVATECODELIB_API FPowerOptions
 {
 	GENERATED_BODY()
 
-	FPowerOptions()
-	{
-	}
+	FPowerOptions() {}
 
-	~FPowerOptions()
-	{
-	}
+	~FPowerOptions() {}
 
 	FPowerOptions(float Consume)
 	{
@@ -111,9 +107,7 @@ struct KPRIVATECODELIB_API FFullProductionHandle
 {
 	GENERATED_BODY()
 
-	FFullProductionHandle()
-	{
-	}
+	FFullProductionHandle() {}
 
 	FFullProductionHandle(float ProductionTime)
 	{
@@ -270,9 +264,7 @@ struct KPRIVATECODELIB_API FKPCLAudioComponent
 {
 	GENERATED_BODY()
 
-	FKPCLAudioComponent()
-	{
-	};
+	FKPCLAudioComponent() {};
 
 	FKPCLAudioComponent(UAudioComponent* Component)
 	{
@@ -290,5 +282,5 @@ struct KPRIVATECODELIB_API FKPCLAudioComponent
 private:
 	UPROPERTY()
 	UAudioComponent* mComponent = nullptr;
-	float mCachedVolume = 1.0f;
+	float            mCachedVolume = 1.0f;
 };

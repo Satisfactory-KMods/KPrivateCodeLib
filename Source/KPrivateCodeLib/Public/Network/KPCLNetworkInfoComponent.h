@@ -22,7 +22,7 @@ class KPRIVATECODELIB_API UKPCLNetworkInfoComponent : public UFGPowerInfoCompone
 
 public:
 	FMaxTransferChanged MaxTransferChanged;
-	FCoreStateChanged CoreStateChanged;
+	FCoreStateChanged   CoreStateChanged;
 
 	UFUNCTION(BlueprintPure, Category="Network")
 	bool HasCore() const;
@@ -41,7 +41,7 @@ public:
 	UFUNCTION(BlueprintPure, Category="Network")
 	class AKPCLNetworkCore* GetFirstCores(bool& Valid) const;
 	class AKPCLNetworkCore* GetFirstCores() const;
-	
+
 private:
 	// is written by the Circuit!
 	UPROPERTY(SaveGame, Replicated)

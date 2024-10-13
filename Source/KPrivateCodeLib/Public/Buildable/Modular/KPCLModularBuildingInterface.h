@@ -32,7 +32,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Modular Building Interface")
 	bool AttachedActor(AFGBuildable* Actor, TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-	                   FTransform Location, float Distance = 500.0f);
+		FTransform                   Location, float                                      Distance = 500.0f);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Modular Building Interface")
 	bool GetCanHaveModules();

@@ -12,7 +12,7 @@
 #include "ModLoading/ModLoadingLibrary.h"
 
 void UKPCLBlueprintFunctionLib::SetAllowOnIndex_ThreadSafe(UFGInventoryComponent* Component, int32 Index,
-                                                           TSubclassOf<UFGItemDescriptor> ItemClass)
+	TSubclassOf<UFGItemDescriptor>                                                ItemClass)
 {
 	if (Component)
 	{
@@ -26,8 +26,7 @@ void UKPCLBlueprintFunctionLib::SetAllowOnIndex_ThreadSafe(UFGInventoryComponent
 				}
 				else
 				{
-					FFunctionGraphTask::CreateAndDispatchWhenReady([Component, Index, ItemClass]()
-					{
+					FFunctionGraphTask::CreateAndDispatchWhenReady([Component, Index, ItemClass]() {
 						Component->SetAllowedItemOnIndex(Index, ItemClass);
 					}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 				}
@@ -40,8 +39,7 @@ void UKPCLBlueprintFunctionLib::SetAllowOnIndex_ThreadSafe(UFGInventoryComponent
 				}
 				else
 				{
-					FFunctionGraphTask::CreateAndDispatchWhenReady([Component, Index, ItemClass]()
-					{
+					FFunctionGraphTask::CreateAndDispatchWhenReady([Component, Index, ItemClass]() {
 						Component->SetAllowedItemOnIndex(Index, ItemClass);
 					}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 				}
@@ -60,7 +58,7 @@ UObject* UKPCLBlueprintFunctionLib::GetDefaultSilent(TSubclassOf<UObject> InClas
 }
 
 void UKPCLBlueprintFunctionLib::ResolveHitResult(UObject* Context, const FHitResult& InHitResult,
-                                                 FHitResult& OutHitResult)
+	FHitResult&                                           OutHitResult)
 {
 	FInstanceHandle Handle;
 	OutHitResult = InHitResult;
@@ -72,7 +70,7 @@ void UKPCLBlueprintFunctionLib::ResolveHitResult(UObject* Context, const FHitRes
 }
 
 void UKPCLBlueprintFunctionLib::ResolveOverlapResult(UObject* Context, const FOverlapResult& InOverlapResult,
-                                                     FOverlapResult& OutOverlapResult)
+	FOverlapResult&                                           OutOverlapResult)
 {
 	FInstanceHandle Handle;
 	OutOverlapResult = InOverlapResult;

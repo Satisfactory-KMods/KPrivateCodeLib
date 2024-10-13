@@ -1,13 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #include "Subsystem/KPCLUnlockSubsystem.h"
 
+#include "FGSchematicManager.h"
 #include "KPrivateCodeLibModule.h"
-#include "UnrealNetwork.h"
+#include "Net/UnrealNetwork.h"
 #include "BFL/KBFL_Util.h"
 #include "Components/KPCLNetworkPlayerComponent.h"
-#include "Network/Buildings/KPCLNetworkCore.h"
 #include "Subsystems/KBFLAssetDataSubsystem.h"
 
+class AFGSchematicManager;
 DECLARE_LOG_CATEGORY_EXTERN(KPCLUnlockSubsystemLog, Log, All)
 
 DEFINE_LOG_CATEGORY(KPCLUnlockSubsystemLog)
@@ -47,9 +48,7 @@ void AKPCLUnlockSubsystem::BeginPlay()
 	}
 }
 
-void AKPCLUnlockSubsystem::OnSchematicUnlocked(TSubclassOf<UFGSchematic> UnlockedSchematic)
-{
-}
+void AKPCLUnlockSubsystem::OnSchematicUnlocked(TSubclassOf<UFGSchematic> UnlockedSchematic) {}
 
 void AKPCLUnlockSubsystem::Init()
 {

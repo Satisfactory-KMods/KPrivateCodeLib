@@ -24,12 +24,11 @@ UKPCLJsonObject* UKPCLJsonObject::CreateFromJson(TSharedPtr<FJsonObject> JsonObj
 }
 
 void UKPCLJsonObject::CreateJsonFromUrl(FString Url, TMap<FString, FString> Headers, EHttpRequest Method,
-                                        FString PostContent)
+	FString                                     PostContent)
 {
 	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
 	Request->OnProcessRequestComplete().BindLambda(
-		[this, Url, Headers, Method, PostContent](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)
-		{
+		[this, Url, Headers, Method, PostContent](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess) {
 			UE_LOG(LogTemp, Warning, TEXT("Reqeust was: %d"), bSuccess)
 			bLastRequestWasSuccessful = false;
 			if (bSuccess)
@@ -110,7 +109,7 @@ bool UKPCLJsonObject::TryGetFloat(FString StringField, float& Result)
 		return false;
 	}
 
-	double Num;
+	double     Num;
 	const bool Success = GetJson()->TryGetNumberField(StringField, Num);
 	Result = Num;
 	return Success;
@@ -123,7 +122,7 @@ bool UKPCLJsonObject::TryGetInt(FString StringField, int& Result)
 		return false;
 	}
 
-	double Num;
+	double     Num;
 	const bool Success = GetJson()->TryGetNumberField(StringField, Num);
 	Result = Num;
 	return Success;

@@ -120,8 +120,7 @@ void UKPCLColoredStaticMesh::UpdateWorldTransform(FTransform Transform)
 	}
 	else
 	{
-		AsyncTask(ENamedThreads::GameThread, [&, Transform]()
-		{
+		AsyncTask(ENamedThreads::GameThread, [&, Transform]() {
 			if (this)
 			{
 				if (!mBlockInstancing && !IsValid(this))
@@ -151,8 +150,7 @@ void UKPCLColoredStaticMesh::ApplyTransformToComponent()
 	}
 	else
 	{
-		AsyncTask(ENamedThreads::GameThread, [&]()
-		{
+		AsyncTask(ENamedThreads::GameThread, [&]() {
 			SetWorldTransform(mLastWorldTransform);
 		});
 	}
@@ -181,8 +179,7 @@ void UKPCLColoredStaticMesh::UpdateStaticMesh(UKPCLColoredStaticMesh* Proxy, AAc
 		}
 		else
 		{
-			AsyncTask(ENamedThreads::GameThread, [&, Proxy, Owner, Mesh]()
-			{
+			AsyncTask(ENamedThreads::GameThread, [&, Proxy, Owner, Mesh]() {
 				UKPCLColoredStaticMesh* NewProxy = NewObject<UKPCLColoredStaticMesh>(
 					Owner, NAME_None, RF_NoFlags, Proxy);
 				NewProxy->SetRelativeLocation(Proxy->GetRelativeLocation());
@@ -230,8 +227,7 @@ void UKPCLColoredStaticMesh::ApplyNewColorDatas(TArray<FKPCLColorData> ColorData
 			}
 			else
 			{
-				AsyncTask(ENamedThreads::GameThread, [&]()
-				{
+				AsyncTask(ENamedThreads::GameThread, [&]() {
 					if (!IsValid(this))
 					{
 						ApplyNewData();
@@ -244,7 +240,7 @@ void UKPCLColoredStaticMesh::ApplyNewColorDatas(TArray<FKPCLColorData> ColorData
 
 void UKPCLColoredStaticMesh::ApplyNewColorData(FKPCLColorData ColorData, bool MarkStateDirty)
 {
-	ApplyNewColorDatas({ColorData}, MarkStateDirty);
+	ApplyNewColorDatas({ ColorData }, MarkStateDirty);
 }
 
 void UKPCLColoredStaticMesh::ApplyNewLinearColorDatas(TArray<FKPCLLinearColorData> ColorData, bool MarkStateDirty)
@@ -266,7 +262,7 @@ void UKPCLColoredStaticMesh::ApplyNewLinearColorDatas(TArray<FKPCLLinearColorDat
 
 void UKPCLColoredStaticMesh::ApplyNewLinearColorData(FKPCLLinearColorData ColorData, bool MarkStateDirty)
 {
-	ApplyNewLinearColorDatas({ColorData}, MarkStateDirty);
+	ApplyNewLinearColorDatas({ ColorData }, MarkStateDirty);
 }
 
 void UKPCLColoredStaticMesh::ApplyNewFGLinearColorDatas(TArray<FKPCLLinearColorData> ColorData, bool MarkStateDirty)
@@ -288,7 +284,7 @@ void UKPCLColoredStaticMesh::ApplyNewFGLinearColorDatas(TArray<FKPCLLinearColorD
 
 void UKPCLColoredStaticMesh::ApplyNewFGLinearColorData(FKPCLLinearColorData ColorData, bool MarkStateDirty)
 {
-	ApplyNewFGLinearColorDatas({ColorData}, MarkStateDirty);
+	ApplyNewFGLinearColorDatas({ ColorData }, MarkStateDirty);
 }
 
 void UKPCLColoredStaticMesh::ApplyFGNewColorDatas(TArray<FKPCLColorData> ColorData, bool MarkStateDirty)
@@ -322,8 +318,7 @@ void UKPCLColoredStaticMesh::ApplyFGNewColorDatas(TArray<FKPCLColorData> ColorDa
 			}
 			else
 			{
-				AsyncTask(ENamedThreads::GameThread, [&]()
-				{
+				AsyncTask(ENamedThreads::GameThread, [&]() {
 					if (!IsValid(this))
 					{
 						ApplyNewData();
@@ -336,14 +331,14 @@ void UKPCLColoredStaticMesh::ApplyFGNewColorDatas(TArray<FKPCLColorData> ColorDa
 
 void UKPCLColoredStaticMesh::ApplyFgNewColorData(FKPCLColorData ColorData, bool MarkStateDirty)
 {
-	ApplyFGNewColorDatas({ColorData}, MarkStateDirty);
+	ApplyFGNewColorDatas({ ColorData }, MarkStateDirty);
 }
 
 void UKPCLColoredStaticMesh::ApplyFgNewColorToType(FLinearColor Color, EKPCLDefaultColorIndex Type, bool MarkStateDirty)
 {
 	UE_LOG(LogTemp, Error, TEXT("ApplyFgNewColorToType: Try set an invalid index %d for owner %s"),
-	       static_cast<uint8>(Type), *GetOwner()->GetClass()->GetName())
-	ApplyNewFGLinearColorData({FKPCLLinearColorData(static_cast<uint8>(Type), Color)}, MarkStateDirty);
+		static_cast<uint8>(Type), *GetOwner()->GetClass()->GetName())
+	ApplyNewFGLinearColorData({ FKPCLLinearColorData(static_cast<uint8>(Type), Color) }, MarkStateDirty);
 }
 
 void UKPCLColoredStaticMesh::RemoveFGIndex(int32 Idx, bool MarkStateDirty)
@@ -362,8 +357,7 @@ void UKPCLColoredStaticMesh::RemoveFGIndex(int32 Idx, bool MarkStateDirty)
 			}
 			else
 			{
-				AsyncTask(ENamedThreads::GameThread, [&]()
-				{
+				AsyncTask(ENamedThreads::GameThread, [&]() {
 					if (!IsValid(this))
 					{
 						ApplyNewData();

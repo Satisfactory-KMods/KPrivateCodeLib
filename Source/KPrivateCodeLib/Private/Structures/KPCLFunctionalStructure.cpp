@@ -158,9 +158,7 @@ void FFullProductionHandle::Reset()
 	mCurrentProductionTime = GetProductionTime();
 }
 
-FSmartTimer::FSmartTimer()
-{
-}
+FSmartTimer::FSmartTimer() {}
 
 FSmartTimer::FSmartTimer(float Time)
 {

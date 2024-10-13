@@ -39,7 +39,7 @@ public:
 		return nullptr;
 	};
 
-	template<class T>
+	template <class T>
 	static T* GetRCO(UObject* WorldContext)
 	{
 		if (WorldContext)
@@ -59,23 +59,23 @@ public:
 	// Start Outline
 
 	UFUNCTION(Server, BlueprintCallable, WithValidation, Reliable)
-	void Server_CreateOutlineForActor(AKPCLOutlineSubsystem* Subsystem, FOutlineData Data);
+	void             Server_CreateOutlineForActor(AKPCLOutlineSubsystem* Subsystem, FOutlineData Data);
 	FORCEINLINE bool Server_CreateOutlineForActor_Validate(AKPCLOutlineSubsystem* Subsystem, FOutlineData Data)
 	{
 		return true;
 	}
 
 	UFUNCTION(Server, BlueprintCallable, WithValidation, Reliable)
-	void Server_ClearOutlines(AKPCLOutlineSubsystem* Subsystem);
+	void             Server_ClearOutlines(AKPCLOutlineSubsystem* Subsystem);
 	FORCEINLINE bool Server_ClearOutlines_Validate(AKPCLOutlineSubsystem* Subsystem) { return true; }
 
 	UFUNCTION(Server, BlueprintCallable, WithValidation, Reliable)
-	void Server_SetOutlineColor(AKPCLOutlineSubsystem* Subsystem, FLinearColor Color, EOutlineColorSlot ColorSlot);
+	void             Server_SetOutlineColor(AKPCLOutlineSubsystem* Subsystem, FLinearColor Color, EOutlineColorSlot ColorSlot);
 	FORCEINLINE bool Server_SetOutlineColor_Validate(AKPCLOutlineSubsystem* Subsystem, FLinearColor Color,
-	                                                 EOutlineColorSlot ColorSlot) { return true; }
+		EOutlineColorSlot                                                   ColorSlot) { return true; }
 
 	UFUNCTION(Server, BlueprintCallable, WithValidation, Reliable)
-	void Server_ClearOutlineForActor(AKPCLOutlineSubsystem* Subsystem, AActor* Actor);
+	void             Server_ClearOutlineForActor(AKPCLOutlineSubsystem* Subsystem, AActor* Actor);
 	FORCEINLINE bool Server_ClearOutlineForActor_Validate(AKPCLOutlineSubsystem* Subsystem, AActor* Actor)
 	{
 		return true;
@@ -86,8 +86,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
-	void Server_FlushFluids(AFGBuildable* Building);
-	bool Server_FlushFluids_Validate(AFGBuildable* Building) { return true; }
+	void         Server_FlushFluids(AFGBuildable* Building);
+	bool         Server_FlushFluids_Validate(AFGBuildable* Building) { return true; }
 	virtual void Server_FlushFluids_Implementation(AFGBuildable* Building);
 
 	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
@@ -108,15 +108,17 @@ public:
 
 	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
 	void Server_MoveItemAmount(class UFGInventoryComponent* Source, int32 SourceIndex, UFGInventoryComponent* Target,
-	                           FItemAmount Amount, bool ResizeToFit);
+		FItemAmount                                         Amount, bool  ResizeToFit);
 
-	bool Server_MoveItemAmount_Validate(class UFGInventoryComponent* Source, int32 SourceIndex,
-	                                    UFGInventoryComponent* Target, FItemAmount Amount, bool ResizeToFit)
-	{ return true; }
+	bool Server_MoveItemAmount_Validate(class UFGInventoryComponent* Source, int32       SourceIndex,
+		UFGInventoryComponent*                                       Target, FItemAmount Amount, bool ResizeToFit)
+	{
+		return true;
+	}
 
 	UFUNCTION(BlueprintCallable)
 	static int32 MoveItemAmount(class UFGInventoryComponent* Source, int32 SourceIndex, UFGInventoryComponent* Target,
-	                            FItemAmount Amount, bool ResizeToFit);
+		FItemAmount                                          Amount, bool  ResizeToFit);
 
 
 	// START: Faxit
@@ -142,7 +144,7 @@ public:
 	bool Server_Faxit_GrabFromNetwork_Validate(class AKPCLNetworkCore* Target, AFGCharacterPlayer* Player, FItemAmount Amount) { return true; }
 
 	// END: Faxit
-	
+
 	UPROPERTY(Replicated)
 	bool mDummy = true;
 };

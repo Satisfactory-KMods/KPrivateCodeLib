@@ -18,7 +18,9 @@
 #include "Replication/KPCLDefaultRCO.h"
 #include "Structures/KPCLFunctionalStructure.h"
 
-AKPCLExtractorBase::AKPCLExtractorBase(): mFGPowerConnection(nullptr), mCustomProductionStateIndicator(nullptr)
+AKPCLExtractorBase::AKPCLExtractorBase()
+	: mFGPowerConnection(nullptr)
+	, mCustomProductionStateIndicator(nullptr)
 {
 	bReplicates = true;
 	mFactoryTickFunction.bCanEverTick = true;
@@ -164,7 +166,7 @@ void AKPCLExtractorBase::ApplyNewProductionState(ENewProductionState NewState)
 			}
 			AIO_UpdateCustomFloat(mDefaultIndex, mIntensity, CustomIndicatorHandleIndex, true);
 			AIO_UpdateCustomFloatAsColor(mDefaultIndex + 1, mStateColors[static_cast<uint8>(NewState)],
-			                             CustomIndicatorHandleIndex, true);
+				CustomIndicatorHandleIndex, true);
 			AIO_UpdateCustomFloat(mDefaultIndex + 4, mPulsStates.Contains(NewState), CustomIndicatorHandleIndex, true);
 		}
 	}
@@ -190,7 +192,7 @@ UFGFactoryConnectionComponent* AKPCLExtractorBase::GetConv(int Index, ECKPCLDire
 TArray<UFGFactoryConnectionComponent*> AKPCLExtractorBase::GetAllConv(ECKPCLDirection Direction) const
 {
 	TArray<UFGFactoryConnectionComponent*> Return;
-	TArray<UFGConnectionComponent*> All;
+	TArray<UFGConnectionComponent*>        All;
 
 	if (Direction == KPCLInput || Direction == KPCLAny)
 	{
@@ -232,7 +234,7 @@ UFGPipeConnectionFactory* AKPCLExtractorBase::GetPipe(int Index, ECKPCLDirection
 TArray<UFGPipeConnectionFactory*> AKPCLExtractorBase::GetAllPipes(ECKPCLDirection Direction) const
 {
 	TArray<UFGPipeConnectionFactory*> Return;
-	TArray<UFGConnectionComponent*> All;
+	TArray<UFGConnectionComponent*>   All;
 
 	if (Direction == KPCLInput || Direction == KPCLAny)
 	{
@@ -341,7 +343,7 @@ void AKPCLExtractorBase::StartIsAimedAtForColor_Implementation(AFGCharacterPlaye
 }
 
 void AKPCLExtractorBase::StartIsLookedAtForConnection(AFGCharacterPlayer* byCharacter,
-                                                      UFGCircuitConnectionComponent* overlappingConnection)
+	UFGCircuitConnectionComponent*                                        overlappingConnection)
 {
 	UpdateInstancesForOutline();
 	Super::StartIsLookedAtForConnection(byCharacter, overlappingConnection);
@@ -428,7 +430,7 @@ void AKPCLExtractorBase::ApplyCustomizationData_Native(const FFactoryCustomizati
 }
 
 void AKPCLExtractorBase::SetCustomizationData_Native(const FFactoryCustomizationData& customizationData,
-                                                     bool skipCombine)
+	bool                                                                              skipCombine)
 {
 	Super::SetCustomizationData_Native(customizationData, skipCombine);
 
@@ -471,7 +473,7 @@ void AKPCLExtractorBase::ApplyMeshInformation(FKPCLMeshOverwriteInformation Info
 	else
 	{
 		AIO_OverwriteInstanceData_Transform(Information.mOverwriteMesh, Information.mCustomTransform,
-		                                    Information.mOverwriteHandleIndex);
+			Information.mOverwriteHandleIndex);
 	}
 }
 
@@ -484,8 +486,7 @@ bool AKPCLExtractorBase::AIO_OverwriteInstanceData(UStaticMesh* Mesh, int32 Idx)
 {
 	if (!IsInGameThread())
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, Mesh, Idx ]()
-		{
+		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, Mesh, Idx ]() {
 			AIO_OverwriteInstanceData(Mesh, Idx);
 		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 		return true;
@@ -503,12 +504,11 @@ bool AKPCLExtractorBase::AIO_OverwriteInstanceData(UStaticMesh* Mesh, int32 Idx)
 }
 
 bool AKPCLExtractorBase::AIO_OverwriteInstanceData_Transform(UStaticMesh* Mesh, FTransform NewRelativTransform,
-                                                             int32 Idx)
+	int32                                                                 Idx)
 {
 	if (!IsInGameThread())
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, Mesh, NewRelativTransform, Idx ]()
-		{
+		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, Mesh, NewRelativTransform, Idx ]() {
 			AIO_OverwriteInstanceData_Transform(Mesh, NewRelativTransform, Idx);
 		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 		return true;
@@ -517,7 +517,7 @@ bool AKPCLExtractorBase::AIO_OverwriteInstanceData_Transform(UStaticMesh* Mesh, 
 	if (Idx > INDEX_NONE && IsValid(Mesh))
 	{
 		AAbstractInstanceManager* Manager = AAbstractInstanceManager::GetInstanceManager(GetWorld());
-		TArray<FInstanceData> Datas = mInstanceDataCDO->GetInstanceData();
+		TArray<FInstanceData>     Datas = mInstanceDataCDO->GetInstanceData();
 		if (Datas.IsValidIndex(Idx) && mInstanceHandles.IsValidIndex(Idx) && IsValid(Manager))
 		{
 			FInstanceData Data = Datas[Idx];
@@ -546,8 +546,7 @@ bool AKPCLExtractorBase::AIO_UpdateCustomFloat(int32 FloatIndex, float Data, int
 {
 	if (!IsInGameThread())
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, FloatIndex, Data, InstanceIdx, MarkDirty ]()
-		{
+		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, FloatIndex, Data, InstanceIdx, MarkDirty ]() {
 			AIO_UpdateCustomFloat(FloatIndex, Data, InstanceIdx, MarkDirty);
 		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 		return true;
@@ -559,7 +558,7 @@ bool AKPCLExtractorBase::AIO_UpdateCustomFloat(int32 FloatIndex, float Data, int
 		{
 			//UE_LOG( LogKPCL, Error, TEXT("mInstanceHandles[ %d ]->SetPrimitiveDataByID( %f, %d, %d ); IsValid(%d), Component(%d), Owner(%d)"), InstanceIdx, Data, FloatIndex, MarkDirty, mInstanceHandles[ InstanceIdx ]->IsValid(), IsValid( mInstanceHandles[ InstanceIdx ]->GetInstanceComponent() ), mInstanceHandles[ InstanceIdx ]->GetOwner() == this )
 			mInstanceHandles[InstanceIdx]->SetPrimitiveDataByID(Data/** float that we want to set */,
-			                                                    FloatIndex /** Index where we want to set */, true);
+				FloatIndex /** Index where we want to set */, true);
 			if (mCachedCustomData.Contains(InstanceIdx))
 			{
 				mCachedCustomData[InstanceIdx].Add(FloatIndex, Data);
@@ -578,12 +577,11 @@ bool AKPCLExtractorBase::AIO_UpdateCustomFloat(int32 FloatIndex, float Data, int
 }
 
 bool AKPCLExtractorBase::AIO_UpdateCustomFloatAsColor(int32 StartFloatIndex, FLinearColor Data, int32 InstanceIdx,
-                                                      bool MarkDirty)
+	bool                                                    MarkDirty)
 {
 	if (!IsInGameThread())
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, StartFloatIndex, Data, InstanceIdx, MarkDirty ]()
-		{
+		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, StartFloatIndex, Data, InstanceIdx, MarkDirty ]() {
 			AIO_UpdateCustomFloatAsColor(StartFloatIndex, Data, InstanceIdx, MarkDirty);
 		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 		return true;
@@ -598,8 +596,7 @@ bool AKPCLExtractorBase::AIO_SetInstanceHidden(int32 InstanceIdx, bool IsHidden)
 {
 	if (!IsInGameThread())
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, InstanceIdx, IsHidden ]()
-		{
+		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, InstanceIdx, IsHidden ]() {
 			AIO_SetInstanceHidden(InstanceIdx, IsHidden);
 		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 		return true;
@@ -610,9 +607,9 @@ bool AKPCLExtractorBase::AIO_SetInstanceHidden(int32 InstanceIdx, bool IsHidden)
 		if (mInstanceHandles[InstanceIdx]->IsInstanced())
 		{
 			FTransform T = mCachedTransforms.Contains(InstanceIdx)
-				               ? mCachedTransforms[InstanceIdx]
-				               : mInstanceDataCDO->GetInstanceData()[InstanceIdx].RelativeTransform *
-				               GetActorTransform();
+				? mCachedTransforms[InstanceIdx]
+				: mInstanceDataCDO->GetInstanceData()[InstanceIdx].RelativeTransform *
+				GetActorTransform();
 			T.SetScale3D(!IsHidden ? T.GetScale3D() : FVector(0.001f));
 			T.SetLocation(!IsHidden ? T.GetLocation() : FVector(0.001f));
 
@@ -628,8 +625,7 @@ bool AKPCLExtractorBase::AIO_SetInstanceWorldTransform(int32 InstanceIdx, FTrans
 {
 	if (!IsInGameThread())
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, InstanceIdx, Transform ]()
-		{
+		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, InstanceIdx, Transform ]() {
 			AIO_SetInstanceWorldTransform(InstanceIdx, Transform);
 		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 		return true;
@@ -729,27 +725,25 @@ void AKPCLExtractorBase::EndProductionTime()
 	}
 }
 
-void AKPCLExtractorBase::BeltPipeGrab(float dt)
-{
-}
+void AKPCLExtractorBase::BeltPipeGrab(float dt) {}
 
 void AKPCLExtractorBase::HandlePower(float dt)
 {
 	mPowerOptions.bHasPower = HasPower();
 	mPowerOptions.StructureTick(dt, IsProducing());
 	GetPowerInfo()->SetTargetConsumption(mPowerOptions.mIsProducer
-		                                     ? FMath::Max(mPowerOptions.mForcePowerConsume, 0.1f)
-		                                     : mPowerOptions.GetPowerConsume());
+		? FMath::Max(mPowerOptions.mForcePowerConsume, 0.1f)
+		: mPowerOptions.GetPowerConsume());
 	GetPowerInfo()->SetMaximumTargetConsumption(mPowerOptions.mIsProducer
-		                                            ? FMath::Max(mPowerOptions.mForcePowerConsume, 0.1f)
-		                                            : mPowerOptions.GetMaxPowerConsume());
+		? FMath::Max(mPowerOptions.mForcePowerConsume, 0.1f)
+		: mPowerOptions.GetMaxPowerConsume());
 	GetPowerInfo()->SetBaseProduction(
 		!mPowerOptions.mIsProducer || (!mPowerOptions.mIsProducer && mPowerOptions.mIsDynamicProducer)
-			? 0.0f
-			: mPowerOptions.GetMaxPowerConsume());
+		? 0.0f
+		: mPowerOptions.GetMaxPowerConsume());
 	GetPowerInfo()->SetDynamicProductionCapacity(!mPowerOptions.mIsProducer || !mPowerOptions.mIsDynamicProducer
-		                                             ? 0.0f
-		                                             : mPowerOptions.GetMaxPowerConsume());
+		? 0.0f
+		: mPowerOptions.GetMaxPowerConsume());
 	GetPowerInfo()->SetFullBlast((!mPowerOptions.mIsProducer || !mPowerOptions.mIsDynamicProducer));
 }
 
@@ -758,9 +752,7 @@ void AKPCLExtractorBase::HandlePowerInit()
 	mPowerOptions.Init();
 }
 
-void AKPCLExtractorBase::HandleUiTick(float dt)
-{
-}
+void AKPCLExtractorBase::HandleUiTick(float dt) {}
 
 void AKPCLExtractorBase::InitComponents()
 {
@@ -869,7 +861,7 @@ void AKPCLExtractorBase::SetPendingPotential(float NewPendingPotential)
 float AKPCLExtractorBase::CalcProductionCycleTimeForPotential(float potential) const
 {
 	return mProductionHandle.mProductionTime / (FMath::Max(mProductionHandle.mExtraPotential,
-	                                                       mProductionHandle.mPendingExtraPotential) + potential);
+		mProductionHandle.mPendingExtraPotential) + potential);
 }
 
 float AKPCLExtractorBase::GetProducingPowerConsumptionBase() const
@@ -907,13 +899,9 @@ void AKPCLExtractorBase::Factory_PushPipeOutput_Implementation(float dt)
 	}
 }
 
-void AKPCLExtractorBase::CollectBelts()
-{
-}
+void AKPCLExtractorBase::CollectBelts() {}
 
-void AKPCLExtractorBase::CollectAndPushPipes(float dt, bool IsPush)
-{
-}
+void AKPCLExtractorBase::CollectAndPushPipes(float dt, bool IsPush) {}
 
 void AKPCLExtractorBase::ResetProduction()
 {
@@ -1046,11 +1034,11 @@ UFGInventoryComponent* AKPCLExtractorBase::GetInventoryFromType(EKPCLInventoryTy
 {
 	switch (Type)
 	{
-	case EKPCLInventoryType::Booster:
-		return GetBoosterInventory();
-	case EKPCLInventoryType::Output:
-		return GetBoosterInventory();
-	default:
-		return GetInventory();
+		case EKPCLInventoryType::Booster:
+			return GetBoosterInventory();
+		case EKPCLInventoryType::Output:
+			return GetBoosterInventory();
+		default:
+			return GetInventory();
 	}
 }

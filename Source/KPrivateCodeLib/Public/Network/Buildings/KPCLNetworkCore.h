@@ -1,7 +1,8 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "KPCLNetworkBuildingBase.h"
+#include "Network/KPCLNetworkBuildingBase.h"
+#include "Resources/FGItemDescriptor.h"
 #include "KPCLNetworkCore.generated.h"
 
 USTRUCT(BlueprintType)
@@ -64,8 +65,8 @@ protected:
 
 	// START: KPCL
 	virtual FKPCLFaxitNetwork GetNetworkData_Implementation() const override;
-	virtual bool HasCoreInNetwork_Implementation() const override;
-	virtual bool IsCore() const override;
+	virtual bool              HasCoreInNetwork_Implementation() const override;
+	virtual bool              IsCore() const override;
 
 	/** Overwrite the Power handle to translate network to power */
 	virtual void HandlePower(float dt) override;
@@ -90,13 +91,13 @@ protected:
 public:
 	// START: Item Handle
 	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
-	FItemAmount GetItemOrCreateAmount(TSubclassOf<UFGItemDescriptor> Item);
+	FItemAmount  GetItemOrCreateAmount(TSubclassOf<UFGItemDescriptor> Item);
 	FItemAmount* GetItemAmountRef(TSubclassOf<UFGItemDescriptor> Item);
-	int32 GetMaxItemAmount(TSubclassOf<UFGItemDescriptor> Item) const;
-	
+	int32        GetMaxItemAmount(TSubclassOf<UFGItemDescriptor> Item) const;
+
 	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
 	TArray<FItemAmount> GetItemAmounts() const;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
 	void GetItemAmountsFiltered(EResourceForm Form, TArray<FItemAmount>& Out) const;
 
@@ -116,13 +117,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
 	int32 IsStorageEmpty(TSubclassOf<UFGItemDescriptor> Item);
 	int32 IsStorageEmpty(FItemAmount* ItemAmount);
-	
+
 	/**
 	 * Returns the amount that was stored in the network
 	 */
 	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
 	int32 TryToStoreItem(UFGInventoryComponent* Inventory, TSubclassOf<UFGItemDescriptor> Item, int32 Amount = 0);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
 	int32 TryToStoreItemAmount(TSubclassOf<UFGItemDescriptor> Item, int32 Amount);
 
@@ -131,23 +132,22 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
 	int32 TryToGrabItem(UFGInventoryComponent* Inventory, TSubclassOf<UFGItemDescriptor> Item, int32 Amount = 0);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "KMods|Inventory")
 	int32 TryToGrabItemAmount(TSubclassOf<UFGItemDescriptor> Item, int32 Amount);
 	// END: Item Handle
 
 	// Start Player Inventory
-public:
 	UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
 	UFGInventoryComponent* GetPlayerBufferInventory() const;
-	
+
 	UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
 	TArray<FKPCLFaxitNetworkStatDataBundle> GetStateBundles() const;
 
 	virtual void GatherStates() override;
 
 	virtual void TickNetwork(float dt, FKPCLFaxitNetwork* Network) override;
-	
+
 protected:
 	virtual bool FormFilterOutputInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const override;
 	virtual bool FilterInputInventory(TSubclassOf<UObject> object, int32 idx) const override;
@@ -160,7 +160,7 @@ protected:
 
 	void FlushOverflow();
 	void NotifyStorageChange();
-	
+
 private:
 	friend class UKPCLNetwork;
 	friend class AKPCLUnlockSubsystem;
@@ -175,15 +175,15 @@ private:
 	UPROPERTY(EditDefaultsOnly, SaveGame, Category = "KMods|Inventory")
 	UFGInventoryComponent* mOutputInventory = nullptr;
 
-	UPROPERTY(EditDefaultsOnly,SaveGame, Category="KMods|Faxit")
+	UPROPERTY(EditDefaultsOnly, SaveGame, Category="KMods|Faxit")
 	FSmartTimer mItemFlushTimer = FSmartTimer(300.f, false);
 
 public:
 	FKPCLFaxitNetwork* mNetworkRef = nullptr;
-	
+
 	UPROPERTY(SaveGame, BlueprintReadOnly, meta = ( FGReplicated ))
 	TArray<FKPCLFaxitNetworkStatDataBundle> mStateBundels;
-	
+
 	UPROPERTY(SaveGame, BlueprintReadOnly, meta = ( FGReplicated ))
 	TArray<FItemAmount> mStorage;
 

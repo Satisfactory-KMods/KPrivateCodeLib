@@ -64,10 +64,10 @@ class KPRIVATECODELIB_API AKPCLProducerBase : public AFGBuildableFactory, public
 public:
 	AKPCLProducerBase();
 
-#if WITH_EDITOR
+	#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-#endif
+	#endif
 
 	// START: AActor
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -83,11 +83,11 @@ public:
 	virtual void InitAudioConfig();
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnAudioConfigChanged();
+	void         OnAudioConfigChanged();
 	virtual void OnAudioConfigChanged_Native();
 
 	UPROPERTY(EditDefaultsOnly, Category="KMods|Config")
-	FKPCLModConfigHelper_Float mAudioConfig;
+	FKPCLModConfigHelper_Float  mAudioConfig;
 	TArray<FKPCLAudioComponent> mAudioComponents;
 	// END: AudioConfig
 
@@ -96,7 +96,7 @@ public:
 	virtual void StartIsLookedAt_Implementation(AFGCharacterPlayer* byCharacter, const FUseState& state) override;
 	virtual void StartIsAimedAtForColor_Implementation(AFGCharacterPlayer* byCharacter, bool isValid) override;
 	virtual void StartIsLookedAtForConnection(AFGCharacterPlayer* byCharacter,
-	                                          UFGCircuitConnectionComponent* overlappingConnection) override;
+		UFGCircuitConnectionComponent*                            overlappingConnection) override;
 
 	void UpdateInstancesForOutline() const;
 	// END: Interaction
@@ -128,8 +128,8 @@ protected:
 	SetCustomizationData_Native(const FFactoryCustomizationData& customizationData, bool skipCombine) override;
 
 	virtual void InitMeshOverwriteInformation();
-	void ApplyMeshOverwriteInformation(int32 Idx);
-	void ApplyMeshInformation(FKPCLMeshOverwriteInformation Information);
+	void         ApplyMeshOverwriteInformation(int32 Idx);
+	void         ApplyMeshInformation(FKPCLMeshOverwriteInformation Information);
 	virtual bool ShouldOverwriteIndexHandle(int32 Idx, FKPCLMeshOverwriteInformation& Information);
 
 public:
@@ -144,7 +144,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="KMods")
 	bool AIO_UpdateCustomFloatAsColor(int32 StartFloatIndex, FLinearColor Data, int32 InstanceIdx,
-	                                  bool MarkDirty = true);
+		bool                                MarkDirty = true);
 
 	UFUNCTION(BlueprintCallable, Category="KMods")
 	bool AIO_SetInstanceHidden(int32 InstanceIdx, bool IsHidden);
@@ -154,27 +154,23 @@ public:
 
 protected:
 	TMap<int32, TMap<int32, float>> mCachedCustomData;
-	TMap<int32, FTransform> mCachedTransforms;
+	TMap<int32, FTransform>         mCachedTransforms;
 	// END: Advanced Instance Overwrite
 
 	// START: AFGBuildableFactory
 	virtual void Factory_Tick(float dt) override;
 
-	virtual void Factory_TickAuthOnly(float dt)
-	{
-	};
+	virtual void Factory_TickAuthOnly(float dt) {};
 
-	virtual void Factory_TickClientOnly(float dt)
-	{
-	};
-	bool bCustomFactoryTickPreCustomLogic = false;
+	virtual void Factory_TickClientOnly(float dt) {};
+	bool         bCustomFactoryTickPreCustomLogic = false;
 
-	virtual bool CanProduce_Implementation() const override;
+	virtual bool  CanProduce_Implementation() const override;
 	virtual float GetProductionCycleTime() const override;
 	virtual float GetDefaultProductionCycleTime() const override;
 	virtual float GetProductionProgress() const override;
 
-	virtual void SetPendingPotential(float newPendingPotential) override;
+	virtual void  SetPendingPotential(float newPendingPotential) override;
 	virtual float CalcProductionCycleTimeForPotential(float potential) const override;
 	virtual float GetProducingPowerConsumptionBase() const override;
 
@@ -205,7 +201,7 @@ public:
 
 	/** Get Power Option (Only a copy!) */
 	UFUNCTION(BlueprintCallable, Category = "KMods ")
-	FPowerOptions GetPowerOption() const;
+	FPowerOptions  GetPowerOption() const;
 	FPowerOptions& GetPowerOptionRef();
 	/** ----- Blueprint Functions (setter and functions) END ----- */
 
@@ -215,9 +211,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "KMods  Events")
 	void onProducingFinal();
 
-	virtual void onProducingFinal_Implementation()
-	{
-	};
+	virtual void onProducingFinal_Implementation() {};
 
 	/** ----- Events END ----- */
 
@@ -236,10 +230,8 @@ public:
 
 	/** Work on Both sides */
 	UFUNCTION(BlueprintCallable, Category="KMods|Cleaner")
-	void FlushFluids();
-	FORCEINLINE virtual void Server_DoFlush()
-	{
-	};
+	void                     FlushFluids();
+	FORCEINLINE virtual void Server_DoFlush() {};
 	/** ----- Blueprint Functions (Getter) END ----- */
 
 
@@ -287,7 +279,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
 	virtual UFGInventoryComponent* GetInventory() const;
 
-	virtual void InitInputInventory();
+	virtual void             InitInputInventory();
 	FORCEINLINE virtual bool FilterInputInventory(TSubclassOf<UObject> object, int32 idx) const { return true; }
 	FORCEINLINE virtual bool FormFilterInputInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const
 	{
@@ -296,15 +288,11 @@ public:
 
 	UFUNCTION()
 	virtual void OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-	                                UFGInventoryComponent* sourceInventory)
-	{
-	}
+		UFGInventoryComponent*                                     sourceInventory) {}
 
 	UFUNCTION()
 	virtual void OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-	                              UFGInventoryComponent* sourceInventory)
-	{
-	}
+		UFGInventoryComponent*                                   sourceInventory) {}
 
 	/** ----- Input Inventory END ----- */
 
@@ -312,7 +300,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
 	virtual UFGInventoryComponent* GetOutputInventory() const;
 
-	virtual void InitOutputInventory();
+	virtual void             InitOutputInventory();
 	FORCEINLINE virtual bool FilterOutputInventory(TSubclassOf<UObject> object, int32 idx) const { return true; }
 	FORCEINLINE virtual bool FormFilterOutputInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const
 	{
@@ -321,15 +309,11 @@ public:
 
 	UFUNCTION()
 	virtual void OnOutputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-	                                 UFGInventoryComponent* sourceInventory)
-	{
-	}
+		UFGInventoryComponent*                                      sourceInventory) {}
 
 	UFUNCTION()
 	virtual void OnOutputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-	                               UFGInventoryComponent* sourceInventory)
-	{
-	}
+		UFGInventoryComponent*                                    sourceInventory) {}
 
 	/** ----- Input Inventory END ----- */
 
@@ -337,7 +321,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "KMods|Inventory")
 	virtual UFGInventoryComponent* GetBoosterInventory() const;
 
-	virtual void InitBoosterInventory();
+	virtual void             InitBoosterInventory();
 	FORCEINLINE virtual bool FilterBoosterInventory(TSubclassOf<UObject> object, int32 idx) const { return true; }
 	FORCEINLINE virtual bool FormFilterBoosterInventory(TSubclassOf<UFGItemDescriptor> object, int32 idx) const
 	{
@@ -346,15 +330,11 @@ public:
 
 	UFUNCTION()
 	virtual void OnBoosterItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-	                                  UFGInventoryComponent* sourceInventory)
-	{
-	}
+		UFGInventoryComponent*                                       sourceInventory) {}
 
 	UFUNCTION()
 	virtual void OnBoosterItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-	                                UFGInventoryComponent* sourceInventory)
-	{
-	}
+		UFGInventoryComponent*                                     sourceInventory) {}
 
 	/** ----- Input Inventory END ----- */
 
@@ -422,9 +402,9 @@ public:
 	TMap<EKPCLConnectionType, TArray<UFGConnectionComponent*>> mConnectionMap;
 
 	// Native Helper
-	UFGFactoryConnectionComponent* GetConv(int Index, ECKPCLDirection Direction = KPCLInput) const;
+	UFGFactoryConnectionComponent*         GetConv(int Index, ECKPCLDirection Direction = KPCLInput) const;
 	TArray<UFGFactoryConnectionComponent*> GetAllConv(ECKPCLDirection Direction = KPCLAny) const;
-	UFGPipeConnectionFactory* GetPipe(int Index, ECKPCLDirection Direction = KPCLInput) const;
-	TArray<UFGPipeConnectionFactory*> GetAllPipes(ECKPCLDirection Direction = KPCLAny) const;
-	bool bInventoryHasInit = false;
+	UFGPipeConnectionFactory*              GetPipe(int Index, ECKPCLDirection Direction = KPCLInput) const;
+	TArray<UFGPipeConnectionFactory*>      GetAllPipes(ECKPCLDirection Direction = KPCLAny) const;
+	bool                                   bInventoryHasInit = false;
 };

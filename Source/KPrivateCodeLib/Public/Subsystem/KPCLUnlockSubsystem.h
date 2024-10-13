@@ -41,7 +41,7 @@ public:
 	virtual void Init() override;
 
 	virtual void Tick(float DeltaSeconds) override;
-	void RegisterPlayerState(AFGPlayerState* State);
+	void         RegisterPlayerState(AFGPlayerState* State);
 
 private:
 	UPROPERTY(SaveGame, Replicated)

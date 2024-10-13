@@ -33,7 +33,7 @@ bool FAttachmentDataStacker::CanSnapTo(int32 MaxModuleCount) const
 FTransform FAttachmentDataStacker::GetSnapLocation() const
 {
 	FTransform Transform = mMainSnapLocations;
-	FVector Location = Transform.GetLocation();
+	FVector    Location = Transform.GetLocation();
 	Location.Z += GetAllHeights();
 	Transform.SetLocation(Location);
 
@@ -183,8 +183,8 @@ void UKPCLModularBuildingHandlerStacker::OnRep_AttachmentDatas()
 }
 
 bool UKPCLModularBuildingHandlerStacker::AddNewActorToAttachment(AFGBuildable* Actor,
-                                                                 TSubclassOf<UKPCLModularAttachmentDescriptor>
-                                                                 Attachment, FTransform Location, float Distance)
+	TSubclassOf<UKPCLModularAttachmentDescriptor>
+	Attachment, FTransform Location, float Distance)
 {
 	const int AttachmentIndex = FindAttachmentIndex(Attachment);
 
@@ -214,8 +214,8 @@ void UKPCLModularBuildingHandlerStacker::AttachedActorRemoved(AFGBuildable* Acto
 }
 
 bool UKPCLModularBuildingHandlerStacker::CanAttachToLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-                                                             FTransform TestLocation, FTransform& OutLocation,
-                                                             float Distance) const
+	FTransform                                                                                             TestLocation, FTransform& OutLocation,
+	float                                                                                                  Distance) const
 {
 	if (CanAttach(Attachment))
 	{
@@ -234,8 +234,8 @@ bool UKPCLModularBuildingHandlerStacker::CanAttachToLocation(TSubclassOf<UKPCLMo
 }
 
 bool UKPCLModularBuildingHandlerStacker::GetSnapPointInRange(FTransform TestLocation, FTransform& SnapLocation,
-                                                             float AllowedDistance,
-                                                             TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment)
+	float                                                               AllowedDistance,
+	TSubclassOf<UKPCLModularAttachmentDescriptor>                       Attachment)
 {
 	if (CanAttach(Attachment))
 	{

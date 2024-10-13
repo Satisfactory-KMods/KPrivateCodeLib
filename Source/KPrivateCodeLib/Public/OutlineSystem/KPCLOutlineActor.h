@@ -58,7 +58,7 @@ private:
 						if (UStaticMeshComponent* NewComponent = NewObject<UStaticMeshComponent>(this))
 						{
 							NewComponent->AttachToComponent(GetRootComponent(),
-							                                FAttachmentTransformRules::KeepRelativeTransform);
+								FAttachmentTransformRules::KeepRelativeTransform);
 							NewComponent->SetStaticMesh(Mesh);
 
 							// Apply Material to new component

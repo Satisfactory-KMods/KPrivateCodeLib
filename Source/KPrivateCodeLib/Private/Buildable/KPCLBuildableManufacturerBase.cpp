@@ -90,9 +90,7 @@ void AKPCLBuildableManufacturerBase::OnBuildEffectActorFinished()
 	ReadyForVisuelUpdate();
 }
 
-void AKPCLBuildableManufacturerBase::ReadyForVisuelUpdate()
-{
-}
+void AKPCLBuildableManufacturerBase::ReadyForVisuelUpdate() {}
 
 void AKPCLBuildableManufacturerBase::InitMeshOverwriteInformation()
 {
@@ -161,7 +159,7 @@ void AKPCLBuildableManufacturerBase::ApplyCustomizationData_Native(const FFactor
 }
 
 void AKPCLBuildableManufacturerBase::SetCustomizationData_Native(const FFactoryCustomizationData& customizationData,
-                                                                 bool skipCombine)
+	bool                                                                                          skipCombine)
 {
 	Super::SetCustomizationData_Native(customizationData, skipCombine);
 
@@ -204,7 +202,7 @@ void AKPCLBuildableManufacturerBase::ApplyMeshInformation(FKPCLMeshOverwriteInfo
 	else
 	{
 		AIO_OverwriteInstanceData_Transform(Information.mOverwriteMesh, Information.mCustomTransform,
-		                                    Information.mOverwriteHandleIndex);
+			Information.mOverwriteHandleIndex);
 	}
 }
 
@@ -217,8 +215,7 @@ bool AKPCLBuildableManufacturerBase::AIO_OverwriteInstanceData(UStaticMesh* Mesh
 {
 	if (!IsInGameThread())
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, Mesh, Idx ]()
-		{
+		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, Mesh, Idx ]() {
 			AIO_OverwriteInstanceData(Mesh, Idx);
 		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 		return true;
@@ -240,8 +237,7 @@ bool AKPCLBuildableManufacturerBase::AIO_OverwriteInstanceData_Transform(
 {
 	if (!IsInGameThread())
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, Mesh, NewRelativTransform, Idx ]()
-		{
+		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, Mesh, NewRelativTransform, Idx ]() {
 			AIO_OverwriteInstanceData_Transform(Mesh, NewRelativTransform, Idx);
 		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 		return true;
@@ -250,7 +246,7 @@ bool AKPCLBuildableManufacturerBase::AIO_OverwriteInstanceData_Transform(
 	if (Idx > INDEX_NONE && IsValid(Mesh))
 	{
 		AAbstractInstanceManager* Manager = AAbstractInstanceManager::GetInstanceManager(GetWorld());
-		TArray<FInstanceData> Datas = mInstanceDataCDO->GetInstanceData();
+		TArray<FInstanceData>     Datas = mInstanceDataCDO->GetInstanceData();
 		if (Datas.IsValidIndex(Idx) && mInstanceHandles.IsValidIndex(Idx) && IsValid(Manager))
 		{
 			FInstanceData Data = Datas[Idx];
@@ -276,12 +272,11 @@ bool AKPCLBuildableManufacturerBase::AIO_OverwriteInstanceData_Transform(
 }
 
 bool AKPCLBuildableManufacturerBase::AIO_UpdateCustomFloat(int32 FloatIndex, float Data, int32 InstanceIdx,
-                                                           bool MarkDirty)
+	bool                                                         MarkDirty)
 {
 	if (!IsInGameThread())
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, FloatIndex, Data, InstanceIdx, MarkDirty ]()
-		{
+		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, FloatIndex, Data, InstanceIdx, MarkDirty ]() {
 			AIO_UpdateCustomFloat(FloatIndex, Data, InstanceIdx, MarkDirty);
 		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 		return true;
@@ -293,7 +288,7 @@ bool AKPCLBuildableManufacturerBase::AIO_UpdateCustomFloat(int32 FloatIndex, flo
 		{
 			//UE_LOG( LogKPCL, Error, TEXT("mInstanceHandles[ %d ]->SetPrimitiveDataByID( %f, %d, %d ); IsValid(%d), Component(%d), Owner(%d)"), InstanceIdx, Data, FloatIndex, MarkDirty, mInstanceHandles[ InstanceIdx ]->IsValid(), IsValid( mInstanceHandles[ InstanceIdx ]->GetInstanceComponent() ), mInstanceHandles[ InstanceIdx ]->GetOwner() == this )
 			mInstanceHandles[InstanceIdx]->SetPrimitiveDataByID(Data/** float that we want to set */,
-			                                                    FloatIndex /** Index where we want to set */, true);
+				FloatIndex /** Index where we want to set */, true);
 			if (mCachedCustomData.Contains(InstanceIdx))
 			{
 				mCachedCustomData[InstanceIdx].Add(FloatIndex, Data);
@@ -312,12 +307,11 @@ bool AKPCLBuildableManufacturerBase::AIO_UpdateCustomFloat(int32 FloatIndex, flo
 }
 
 bool AKPCLBuildableManufacturerBase::AIO_UpdateCustomFloatAsColor(int32 StartFloatIndex, FLinearColor Data,
-                                                                  int32 InstanceIdx, bool MarkDirty)
+	int32                                                               InstanceIdx, bool             MarkDirty)
 {
 	if (!IsInGameThread())
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, StartFloatIndex, Data, InstanceIdx, MarkDirty ]()
-		{
+		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, StartFloatIndex, Data, InstanceIdx, MarkDirty ]() {
 			AIO_UpdateCustomFloatAsColor(StartFloatIndex, Data, InstanceIdx, MarkDirty);
 		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 		return true;
@@ -332,8 +326,7 @@ bool AKPCLBuildableManufacturerBase::AIO_SetInstanceHidden(int32 InstanceIdx, bo
 {
 	if (!IsInGameThread())
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, InstanceIdx, IsHidden ]()
-		{
+		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, InstanceIdx, IsHidden ]() {
 			AIO_SetInstanceHidden(InstanceIdx, IsHidden);
 		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 		return true;
@@ -344,9 +337,9 @@ bool AKPCLBuildableManufacturerBase::AIO_SetInstanceHidden(int32 InstanceIdx, bo
 		if (mInstanceHandles[InstanceIdx]->IsInstanced())
 		{
 			FTransform T = mCachedTransforms.Contains(InstanceIdx)
-				               ? mCachedTransforms[InstanceIdx]
-				               : mInstanceDataCDO->GetInstanceData()[InstanceIdx].RelativeTransform *
-				               GetActorTransform();
+				? mCachedTransforms[InstanceIdx]
+				: mInstanceDataCDO->GetInstanceData()[InstanceIdx].RelativeTransform *
+				GetActorTransform();
 			T.SetScale3D(!IsHidden ? T.GetScale3D() : FVector(0.001f));
 			T.SetLocation(!IsHidden ? T.GetLocation() : FVector(0.001f));
 
@@ -362,8 +355,7 @@ bool AKPCLBuildableManufacturerBase::AIO_SetInstanceWorldTransform(int32 Instanc
 {
 	if (!IsInGameThread())
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, InstanceIdx, Transform ]()
-		{
+		FFunctionGraphTask::CreateAndDispatchWhenReady([ &, InstanceIdx, Transform ]() {
 			AIO_SetInstanceWorldTransform(InstanceIdx, Transform);
 		}, GET_STATID(STAT_TaskGraph_OtherTasks), nullptr, ENamedThreads::GameThread);
 		return true;

@@ -113,7 +113,7 @@ void AKPCLOutlineSubsystem::CreateOutline(FOutlineData OutlineData, bool Multica
 					if (AKPCLOutlineActor* OutlineActor = GetOutlineActorForActor(Actor))
 					{
 						if (OutlineActor->mOutlineData.mOutlineType != OutlineData.mOutlineType || OutlineActor->
-							mOutlineData.mOutlineColorSlot != OutlineData.mOutlineColorSlot)
+						                                                                           mOutlineData.mOutlineColorSlot != OutlineData.mOutlineColorSlot)
 						{
 							ClearOutlinesForActor(Actor);
 						}

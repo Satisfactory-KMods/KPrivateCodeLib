@@ -17,8 +17,8 @@ class KPRIVATECODELIB_API UKPCLPatreonSubsystem : public UGameInstanceSubsystem,
 
 protected:
 	//~ Begin Tickable Object Interface
-	virtual void Tick(float DeltaTime) override;
-	virtual bool IsTickable() const override;
+	virtual void    Tick(float DeltaTime) override;
+	virtual bool    IsTickable() const override;
 	virtual UWorld* GetTickableGameObjectWorld() const override;
 	virtual TStatId GetStatId() const override;
 	//~ End Tickable Object Interface
@@ -38,8 +38,8 @@ public:
 	UFUNCTION()
 	void OnSettingChanged();
 
-	static void QueryApi(FHttpRequestRef& Request, FString QueryName, TArray<FString> Parameter = {},
-	                     bool Execute = true, bool IsPost = false);
+	static void QueryApi(FHttpRequestRef& Request, FString     QueryName, TArray<FString> Parameter = {},
+		bool                              Execute = true, bool IsPost = false);
 	static bool ParseApiQuery(FHttpResponsePtr Response, TSharedPtr<FJsonObject>& Json);
 
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContext"))

@@ -27,7 +27,7 @@ AFGBuildable* FAttachmentData::GetActorFromIndex(int Index) const
 }
 
 AFGBuildable* FAttachmentData::GetActorFromLocation(FTransform TestLocation, FTransform& OutLocation,
-                                                    float MaxDistance) const
+	float                                                      MaxDistance) const
 {
 	AFGBuildable* ClosedActor = nullptr;
 	OutLocation.SetLocation(FVector(0));
@@ -37,7 +37,7 @@ AFGBuildable* FAttachmentData::GetActorFromLocation(FTransform TestLocation, FTr
 		for (int i = 0; i < mAttachmentPointDatas.Num(); ++i)
 		{
 			float Distance = FVector::Distance(mAttachmentPointDatas[i].mLocations.GetLocation(),
-			                                   TestLocation.GetLocation());
+				TestLocation.GetLocation());
 			if (Distance < LastHit)
 			{
 				OutLocation = mAttachmentPointDatas[i].mLocations;
@@ -56,7 +56,7 @@ bool FAttachmentData::HasInRange(FTransform TestLocation, float MaxDistance) con
 		for (int i = 0; i < mAttachmentPointDatas.Num(); ++i)
 		{
 			float Distance = FVector::Distance(mAttachmentPointDatas[i].mLocations.GetLocation(),
-			                                   TestLocation.GetLocation());
+				TestLocation.GetLocation());
 			if (Distance <= MaxDistance && !mAttachmentPointDatas[i].IsAttached())
 			{
 				return true;
@@ -72,7 +72,7 @@ bool FAttachmentData::IsLocationFree(FTransform TestLocation, FTransform& OutLoc
 	{
 		const bool DontAttached = GetActorFromLocation(TestLocation, OutLocation, MaxDistance) == nullptr;
 		return DontAttached && FVector::Distance(OutLocation.GetLocation(), FVector(0)) > 200.f && OutLocation.
-			GetLocation().Z > -20000000;
+		                                                                                           GetLocation().Z > -20000000;
 	}
 	return false;
 }
@@ -174,14 +174,13 @@ void UKPCLModularBuildingHandler::InitArrays()
 
 			if (Index != INDEX_NONE)
 			{
-				FAttachmentInfos& Info = mAttachmentInformations[Index];
+				FAttachmentInfos&  Info = mAttachmentInformations[Index];
 				TArray<FTransform> Transforms;
 				Map.Value.GetTransformSortedByIndex(Transforms);
 				Info.mSnapWorldLocations.Append(Transforms);
 			}
 		}
 	}
-
 
 	if (mAttachmentDatas.Num() != mAttachmentInformations.Num())
 	{
@@ -203,8 +202,8 @@ void UKPCLModularBuildingHandler::InitArrays()
 }
 
 bool UKPCLModularBuildingHandler::AddNewActorToAttachment(AFGBuildable* Actor,
-                                                          TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-                                                          FTransform Location, float Distance)
+	TSubclassOf<UKPCLModularAttachmentDescriptor>                       Attachment,
+	FTransform                                                          Location, float Distance)
 {
 	const int AttachmentIndex = FindAttachmentIndex(Attachment);
 
@@ -241,8 +240,8 @@ void UKPCLModularBuildingHandler::AttachedActorRemoved(AFGBuildable* Actor)
 }
 
 bool UKPCLModularBuildingHandler::CanAttachToLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-                                                      FTransform TestLocation, FTransform& OutLocation,
-                                                      float Distance) const
+	FTransform                                                                                      TestLocation, FTransform& OutLocation,
+	float                                                                                           Distance) const
 {
 	if (CanAttach(Attachment))
 	{
@@ -260,8 +259,8 @@ bool UKPCLModularBuildingHandler::CanAttachToLocation(TSubclassOf<UKPCLModularAt
 }
 
 bool UKPCLModularBuildingHandler::GetSnapPointInRange(FTransform TestLocation, FTransform& SnapLocation,
-                                                      float AllowedDistance,
-                                                      TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment)
+	float                                                        AllowedDistance,
+	TSubclassOf<UKPCLModularAttachmentDescriptor>                Attachment)
 {
 	if (IsValid(Attachment))
 	{
@@ -303,7 +302,7 @@ TArray<AFGBuildable*> UKPCLModularBuildingHandler::GetAttachedActorsByClass(
 	TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment)
 {
 	TArray<AFGBuildable*> Out;
-	const int AttachmentIndex = FindAttachmentIndex(Attachment);
+	const int             AttachmentIndex = FindAttachmentIndex(Attachment);
 	if (AttachmentIndex >= 0)
 	{
 		for (FAttachmentPointData AttachmentPointData : mAttachmentDatas[AttachmentIndex].mAttachmentPointDatas)

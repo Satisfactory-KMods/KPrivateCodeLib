@@ -18,7 +18,7 @@ class KPRIVATECODELIB_API UKPCLRegistryObject : public UObject
 
 public:
 	virtual TArray<TSubclassOf<UFGSchematic>> GetSchematicsToRegister();
-	virtual TArray<TSubclassOf<UFGRecipe>> GetRecipesToRegister();
+	virtual TArray<TSubclassOf<UFGRecipe>>    GetRecipesToRegister();
 
 	static bool ShouldRegister(TSubclassOf<UKPCLRegistryObject> InClass);
 

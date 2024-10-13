@@ -173,12 +173,8 @@ TArray<AFGBuildable*> UKPCLModularBuildingHandlerBase::GetAttachedActorsByClass(
 	return {};
 }
 
-void UKPCLModularBuildingHandlerBase::GetAttachedActorsByIndex(TArray<AFGBuildable*>& Out, uint8 index)
-{
-}
+void UKPCLModularBuildingHandlerBase::GetAttachedActorsByIndex(TArray<AFGBuildable*>& Out, uint8 index) {}
 
-void UKPCLModularBuildingHandlerBase::GetAttachedActors(TArray<AFGBuildable*>& Out)
-{
-}
+void UKPCLModularBuildingHandlerBase::GetAttachedActors(TArray<AFGBuildable*>& Out) {}
 
 // End UKPCLModularBuildingHandlerBase

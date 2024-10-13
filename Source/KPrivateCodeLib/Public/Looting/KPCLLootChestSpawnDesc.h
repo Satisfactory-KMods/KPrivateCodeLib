@@ -29,8 +29,8 @@ protected:
 	virtual void ForeachLocations(TArray<AActor*>& ActorArray) override;
 
 	virtual TArray<TSubclassOf<AActor>> GetSearchingActorClasses() override;
-	virtual TSubclassOf<AActor> GetActorClass() override;
-	virtual TSubclassOf<AActor> GetActorFreeClass() override;
+	virtual TSubclassOf<AActor>         GetActorClass() override;
+	virtual TSubclassOf<AActor>         GetActorFreeClass() override;
 
 	UPROPERTY(EditDefaultsOnly, Category="Actor")
 	TSubclassOf<AKPCLLootChest> mLootChestClass;

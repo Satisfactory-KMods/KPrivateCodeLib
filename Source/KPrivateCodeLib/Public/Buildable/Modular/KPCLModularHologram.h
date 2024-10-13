@@ -24,10 +24,10 @@ public:
 	virtual void CheckValidPlacement() override;
 
 	virtual bool IsModuleAllowed(class UKPCLModularBuildingHandlerBase* Handler, AFGBuildable* TargetBuildable,
-	                             const FHitResult& hitResult);
+		const FHitResult&                                               hitResult);
 
 	virtual AActor* GetUpgradedActor() const override;
-	virtual bool TryUpgrade(const FHitResult& hitResult) override;
+	virtual bool    TryUpgrade(const FHitResult& hitResult) override;
 
 	virtual void Scroll(int32 delta) override;
 

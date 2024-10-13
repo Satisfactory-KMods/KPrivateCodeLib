@@ -25,14 +25,14 @@ bool UKPCLNetworkInfoComponent::HasCore() const
 
 int32 UKPCLNetworkInfoComponent::CoreCount() const
 {
-	return  mNetworkCoresInNetwork.Num();
+	return mNetworkCoresInNetwork.Num();
 }
 
 void UKPCLNetworkInfoComponent::SetCors(TArray<AKPCLNetworkCore*> Cores)
 {
-	if (mNetworkCoresInNetwork.Num() != Cores.Num()) {
-		FSimpleDelegateGraphTask::CreateAndDispatchWhenReady(FSimpleDelegateGraphTask::FDelegate::CreateLambda([&, Cores]()
-		{
+	if (mNetworkCoresInNetwork.Num() != Cores.Num())
+	{
+		FSimpleDelegateGraphTask::CreateAndDispatchWhenReady(FSimpleDelegateGraphTask::FDelegate::CreateLambda([&, Cores]() {
 			if (CoreStateChanged.IsBound())
 			{
 				CoreStateChanged.Broadcast(Cores.Num() > 0);

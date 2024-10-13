@@ -20,7 +20,7 @@ public:
 
 	UFUNCTION(BlueprintPure, Category="Network")
 	static float GetPowerConsume(TSubclassOf<UKPCLNetworkDrive> InClass);
-	
+
 protected:
 	virtual FText GetItemDescriptionInternal() const override;
 	virtual FText GetItemNameInternal() const override;

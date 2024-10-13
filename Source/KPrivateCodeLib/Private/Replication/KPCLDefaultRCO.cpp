@@ -34,7 +34,7 @@ void UKPCLDefaultRCO::Server_ClearOutlines_Implementation(AKPCLOutlineSubsystem*
 }
 
 void UKPCLDefaultRCO::Server_SetOutlineColor_Implementation(AKPCLOutlineSubsystem* Subsystem, FLinearColor Color,
-                                                            EOutlineColorSlot ColorSlot)
+	EOutlineColorSlot                                                              ColorSlot)
 {
 	if (Subsystem)
 	{
@@ -88,7 +88,7 @@ void UKPCLDefaultRCO::Server_LootChest_Implementation(AKPCLLootChest* Target, AF
 }
 
 int32 UKPCLDefaultRCO::MoveItemAmount(UFGInventoryComponent* Source, int32 SourceIndex, UFGInventoryComponent* Target,
-                                      FItemAmount Amount, bool ResizeToFit)
+	FItemAmount                                              Amount, bool  ResizeToFit)
 {
 	if (ensure(Source && Target && Amount.ItemClass && Amount.Amount > 0))
 	{
@@ -116,15 +116,15 @@ int32 UKPCLDefaultRCO::MoveItemAmount(UFGInventoryComponent* Source, int32 Sourc
 	return 0;
 }
 
-void UKPCLDefaultRCO::Server_MoveItemAmount_Implementation(UFGInventoryComponent* Source, int32 SourceIndex,
-                                                           UFGInventoryComponent* Target, FItemAmount Amount,
-                                                           bool ResizeToFit)
+void UKPCLDefaultRCO::Server_MoveItemAmount_Implementation(UFGInventoryComponent* Source, int32       SourceIndex,
+	UFGInventoryComponent*                                                        Target, FItemAmount Amount,
+	bool                                                                          ResizeToFit)
 {
 	MoveItemAmount(Source, SourceIndex, Target, Amount, ResizeToFit);
 }
 
 void UKPCLDefaultRCO::Server_UpdateCustomSwatchData_Implementation(AKPCLSwatchSystem* Target, FCustomSwatchData Data,
-                                                                   int32 Idx)
+	int32                                                                             Idx)
 {
 	if (ensureMsgf(Target, TEXT("Cant Found AKPCLSwatchSystem Server_AddCustomSwatchData")))
 	{
@@ -153,27 +153,27 @@ void UKPCLDefaultRCO::Server_RemoveCustomSwatchData_Implementation(AKPCLSwatchSy
 
 
 void UKPCLDefaultRCO::Server_Faxit_GrabFromNetwork_Implementation(class AKPCLNetworkCore* Target,
-	AFGCharacterPlayer* Player, FItemAmount Amount)
+	AFGCharacterPlayer*                                                                   Player, FItemAmount Amount)
 {
-	if(IsValid(Target))
+	if (IsValid(Target))
 	{
 		Target->GrabFromNetwork(Player, Amount);
 	}
 }
 
 void UKPCLDefaultRCO::Server_Faxit_SetOverflowType_Implementation(class AKPCLNetworkConnectionBuilding* Target,
-																  EKPCLOverflowMode NewMode)
+	EKPCLOverflowMode                                                                                   NewMode)
 {
-	if(IsValid(Target))
+	if (IsValid(Target))
 	{
 		Target->SetOverflowMode(NewMode);
 	}
 }
 
 void UKPCLDefaultRCO::Server_Faxit_SetSpeedOverride_Implementation(class AKPCLNetworkConnectionBuilding* Target,
-																   float Value)
+	float                                                                                                Value)
 {
-	if(IsValid(Target))
+	if (IsValid(Target))
 	{
 		Target->SetSpeedOverride(Value);
 	}
@@ -181,16 +181,16 @@ void UKPCLDefaultRCO::Server_Faxit_SetSpeedOverride_Implementation(class AKPCLNe
 
 void UKPCLDefaultRCO::Server_Faxit_ClearSpeedOverride_Implementation(class AKPCLNetworkConnectionBuilding* Target)
 {
-	if(IsValid(Target))
+	if (IsValid(Target))
 	{
 		Target->ClearSpeedOverride();
 	}
 }
 
 void UKPCLDefaultRCO::Server_Faxit_SetFilterItem_Implementation(class AKPCLNetworkConnectionBuilding* Target,
-																TSubclassOf<UFGItemDescriptor> NewItem)
+	TSubclassOf<UFGItemDescriptor>                                                                    NewItem)
 {
-	if(IsValid(Target))
+	if (IsValid(Target))
 	{
 		Target->SetFilterItem(NewItem);
 	}

@@ -1,10 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #include "Subsystem/KPCLFaxitSubsystem.h"
 
-#include "KBFL_Util.h"
-#include "KPCLNetworkCore.h"
-#include "KPCLUnlockNetworkTier.h"
-#include "UnrealNetwork.h"
+#include "BFL/KBFL_Util.h"
+#include "Net/UnrealNetwork.h"
+#include "Network/Buildings/KPCLNetworkCore.h"
 
 void AKPCLFaxitSubsystem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -23,10 +22,9 @@ void AKPCLFaxitSubsystem::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	const int32 NumPerGroup = FMath::Max(FMath::DivideAndRoundUp(mNetworks.Num(), 8), 1);
-	ParallelFor(8, [&](int32 Index)
-	{
+	ParallelFor(8, [&](int32 Index) {
 		for (int32 Member = Index * NumPerGroup; Member < FMath::Min(
-				 (Index + 1) * NumPerGroup, mNetworks.Num()); Member++)
+			     (Index + 1) * NumPerGroup, mNetworks.Num()); Member++)
 		{
 			FKPCLFaxitNetwork* Network = &mNetworks[Member];
 			if (ensure(Network) && ensure(Network->mCore))
@@ -47,10 +45,9 @@ AKPCLFaxitSubsystem::AKPCLFaxitSubsystem()
 
 FKPCLFaxitNetwork* AKPCLFaxitSubsystem::GetNetworkRef(AKPCLNetworkBuildingBase* Actor)
 {
-	return mNetworks.FindByPredicate( [Actor](const FKPCLFaxitNetwork& item)
-		{
-			return item.mCore == Actor || item.mNetworkBuildings.Contains(Actor);
-		} );
+	return mNetworks.FindByPredicate([Actor](const FKPCLFaxitNetwork& item) {
+		return item.mCore == Actor || item.mNetworkBuildings.Contains(Actor);
+	});
 }
 
 AKPCLFaxitSubsystem* AKPCLFaxitSubsystem::Get(UObject* worldContext)
@@ -65,20 +62,18 @@ FKPCLFaxitNetwork AKPCLFaxitSubsystem::CreateOrAddNetwork(FString networkName, A
 
 FKPCLFaxitNetwork* AKPCLFaxitSubsystem::CreateOrAddNetworkNative(FString networkName, AKPCLNetworkCore* Core)
 {
-	FKPCLFaxitNetwork* found = mNetworks.FindByPredicate( [Core](const FKPCLFaxitNetwork& item)
-		{
-			return item.mCore == Core;
-		} );
+	FKPCLFaxitNetwork* found = mNetworks.FindByPredicate([Core](const FKPCLFaxitNetwork& item) {
+		return item.mCore == Core;
+	});
 
-	if(!found)
+	if (!found)
 	{
 		mNetworks.Add(FKPCLFaxitNetwork(networkName, Core));
-		return mNetworks.FindByPredicate( [Core](const FKPCLFaxitNetwork& item)
-		{
+		return mNetworks.FindByPredicate([Core](const FKPCLFaxitNetwork& item) {
 			return item.mCore == Core;
-		} );
+		});
 	}
-	
+
 	return found;
 }
 
@@ -88,17 +83,16 @@ void AKPCLFaxitSubsystem::DestoryNetwork(AKPCLNetworkCore* Core)
 	if (found)
 	{
 		for (AKPCLNetworkBuildingBase*
-			NetworkBuilding : found->mNetworkBuildings)
+		     NetworkBuilding : found->mNetworkBuildings)
 		{
-			if(IsValid(NetworkBuilding))
+			if (IsValid(NetworkBuilding))
 			{
 				NetworkBuilding->OnNetworkDestoryed_Internal();
 			}
 		}
 	}
-	
-	mNetworks.RemoveAll([Core](const FKPCLFaxitNetwork& item)
-	{
+
+	mNetworks.RemoveAll([Core](const FKPCLFaxitNetwork& item) {
 		return item.mCore == Core;
 	});
 }
@@ -106,7 +100,7 @@ void AKPCLFaxitSubsystem::DestoryNetwork(AKPCLNetworkCore* Core)
 void AKPCLFaxitSubsystem::DestroyNetworkBuilding(AKPCLNetworkBuildingBase* Building)
 {
 	FKPCLFaxitNetwork* FaxitNetwork = GetNetworkRef(Building);
-	if(FaxitNetwork)
+	if (FaxitNetwork)
 	{
 		FaxitNetwork->RemoveActorFromNetwork(Building);
 	}
@@ -115,7 +109,7 @@ void AKPCLFaxitSubsystem::DestroyNetworkBuilding(AKPCLNetworkBuildingBase* Build
 void AKPCLFaxitSubsystem::AddBuildingToCore(AKPCLNetworkBuildingBase* Building, AKPCLNetworkCore* Core)
 {
 	FKPCLFaxitNetwork* FaxitNetwork = GetNetworkRef(Core);
-	if(FaxitNetwork)
+	if (FaxitNetwork)
 	{
 		DestroyNetworkBuilding(Building);
 		FaxitNetwork->AddActorToNetwork(Building);
@@ -180,28 +174,27 @@ void AKPCLFaxitSubsystem::UnlockNetworkTier(int32 Tier, EKPCLUnlockTier UnlockTy
 {
 	switch (UnlockType)
 	{
-	case EKPCLUnlockTier::Overflow:
-		mOverflowUnlocked = true;
-		break;
-	case EKPCLUnlockTier::RemoteAccess:
-		mRemoteAccessUnlocked = true;
-		break;
-	case EKPCLUnlockTier::NetworkSolidSpeedLevel:
-		mNetworkSolidSpeedLevel += Tier;
-		break;
-	case EKPCLUnlockTier::NetworkFluidSpeedLevel:
-		mNetworkFluidSpeedLevel += Tier;
-		break;
-	case EKPCLUnlockTier::NetworkMachineLevel:
-		mNetworkMachineLevel += Tier;
-		break;
+		case EKPCLUnlockTier::Overflow:
+			mOverflowUnlocked = true;
+			break;
+		case EKPCLUnlockTier::RemoteAccess:
+			mRemoteAccessUnlocked = true;
+			break;
+		case EKPCLUnlockTier::NetworkSolidSpeedLevel:
+			mNetworkSolidSpeedLevel += Tier;
+			break;
+		case EKPCLUnlockTier::NetworkFluidSpeedLevel:
+			mNetworkFluidSpeedLevel += Tier;
+			break;
+		case EKPCLUnlockTier::NetworkMachineLevel:
+			mNetworkMachineLevel += Tier;
+			break;
 	}
-	
+
 	const int32 NumPerGroup = FMath::Max(FMath::DivideAndRoundUp(mNetworks.Num(), 8), 1);
-	ParallelFor(8, [&](int32 Index)
-	{
+	ParallelFor(8, [&](int32 Index) {
 		for (int32 Member = Index * NumPerGroup; Member < FMath::Min(
-				 (Index + 1) * NumPerGroup, mNetworks.Num()); Member++)
+			     (Index + 1) * NumPerGroup, mNetworks.Num()); Member++)
 		{
 			FKPCLFaxitNetwork* Network = &mNetworks[Member];
 			if (ensure(Network) && ensure(Network->mCore))
@@ -218,19 +211,28 @@ void AKPCLFaxitSubsystem::UnlockNetworkTier(int32 Tier, EKPCLUnlockTier UnlockTy
 
 void FKPCLFaxitNetworkStatData::Merge(FKPCLFaxitNetworkStatData& Other, bool ResetOther)
 {
-	if(mItem != Other.mItem) return;
+	if (mItem != Other.mItem)
+	{
+		return;
+	}
 
 	mDownload += Other.mDownload;
 	mUpload += Other.mUpload;
 
-	if(!ResetOther) return;
+	if (!ResetOther)
+	{
+		return;
+	}
 	Other.mDownload = 0;
 	Other.mUpload = 0;
 }
 
 void FKPCLFaxitNetworkStatData::Merge(FKPCLFaxitNetworkStatData* Other, bool ResetOther)
 {
-	if(!Other) return;
+	if (!Other)
+	{
+		return;
+	}
 	Merge(*Other, ResetOther);
 }
 

@@ -13,10 +13,11 @@ UCLASS(Blueprintable, BlueprintType)
 class KPRIVATECODELIB_API UKPCLModularAttachmentDescriptor : public UObject
 {
 	GENERATED_BODY()
+
 public:
 	UFUNCTION(BlueprintPure, Category = "ModularAttachmentDescriptor|Hologram")
 	static TArray<TSubclassOf<UKPCLModularAttachmentDescriptor>> GetAttachmentDependencies(TSubclassOf<UKPCLModularAttachmentDescriptor> InClass);
-	
+
 	UFUNCTION(BlueprintPure, Category = "ModularAttachmentDescriptor|Hologram")
 	static FText GetAttachmentName(TSubclassOf<UKPCLModularAttachmentDescriptor> InClass);
 

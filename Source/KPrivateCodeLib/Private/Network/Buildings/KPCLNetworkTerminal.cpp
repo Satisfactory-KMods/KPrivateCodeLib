@@ -23,7 +23,7 @@ void AKPCLNetworkTerminal::OnUse_Implementation(AFGCharacterPlayer* byCharacter,
 }
 
 FText AKPCLNetworkTerminal::GetLookAtDecription_Implementation(AFGCharacterPlayer* byCharacter,
-                                                               const FUseState& state) const
+	const FUseState&                                                               state) const
 {
 	if (IsProducing())
 	{

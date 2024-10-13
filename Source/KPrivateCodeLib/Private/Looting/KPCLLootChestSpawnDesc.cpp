@@ -19,7 +19,7 @@ void UKPCLLootChestSpawnDesc::ForeachLocations(TArray<AActor*>& ActorArray)
 					LootChestActor->FinishSpawning(mLootChestLocations[idx], true);
 					ActorArray.Add(LootChestActor);
 					UE_LOG(LogTemp, Log, TEXT("Spawn Lootchest <%s> | %s"), *mLootChestLocations[idx].ToString(),
-					       *LootChestActor->GetName());
+						*LootChestActor->GetName());
 				}
 			}
 
@@ -37,7 +37,7 @@ void UKPCLLootChestSpawnDesc::ForeachLocations(TArray<AActor*>& ActorArray)
 
 TArray<TSubclassOf<AActor>> UKPCLLootChestSpawnDesc::GetSearchingActorClasses()
 {
-	return {GetActorClass()};
+	return { GetActorClass() };
 }
 
 TSubclassOf<AActor> UKPCLLootChestSpawnDesc::GetActorClass()

@@ -33,6 +33,6 @@ class KPRIVATECODELIB_API UKPCLCDMaxCountReached : public UFGConstructDisqualifi
 	UKPCLCDMaxCountReached()
 	{
 		mDisqfualifyingText = NSLOCTEXT("KPrivateCodeLib", "ConstructDisqualifier_MaxCountReached",
-		                                "Reached global max count for this building (5)");
+			"Reached global max count for this building (5)");
 	}
 };

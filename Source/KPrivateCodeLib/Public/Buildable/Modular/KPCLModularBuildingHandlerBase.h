@@ -42,8 +42,7 @@ struct FAttachmentLocations
 	void GetTransformSortedByIndex(TArray<FTransform>& Transforms, bool rev = false)
 	{
 		Transforms.Empty();
-		mLocations.Sort([rev](const FAttachmentPointLocation& A, const FAttachmentPointLocation& B)
-		{
+		mLocations.Sort([rev](const FAttachmentPointLocation& A, const FAttachmentPointLocation& B) {
 			if (rev)
 			{
 				return A.mIndex > B.mIndex;
@@ -79,14 +78,12 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void InitArrays()
-	{
-	}
+	virtual void InitArrays() {}
 
 	virtual int FindAttachmentIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) const;
 
 	virtual bool AddNewActorToAttachment(AFGBuildable* Actor, TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-	                                     FTransform Location, float Distance = 500.0f) { return false; }
+		FTransform                                     Location, float                                      Distance = 500.0f) { return false; }
 
 	virtual void AttachedActorRemoved(AFGBuildable* Actor);
 	virtual void TryToConnectPower(AFGBuildable* OtherActor);
@@ -101,11 +98,11 @@ public:
 
 	UFUNCTION(BlueprintPure, BlueprintCallable)
 	virtual bool CanAttachToLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, FTransform TestLocation,
-	                                 FTransform& OutLocation, float Distance = 500.0f) const { return false; };
+		FTransform&                                                                OutLocation, float     Distance = 500.0f) const { return false; };
 
 	UFUNCTION(BlueprintPure, BlueprintCallable)
-	virtual bool GetSnapPointInRange(FTransform TestLocation, FTransform& SnapLocation, float AllowedDistance,
-	                                 TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) { return false; };
+	virtual bool GetSnapPointInRange(FTransform       TestLocation, FTransform& SnapLocation, float AllowedDistance,
+		TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) { return false; };
 
 	UFUNCTION(BlueprintPure, BlueprintCallable)
 	virtual AFGBuildable* GetAttachedActorByClass(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment);
@@ -199,7 +196,7 @@ void UKPCLModularBuildingHandlerBase::GetAllAttachedActors_Internal(TArray<T*>& 
 
 template <class T>
 void UKPCLModularBuildingHandlerBase::GetAttachedActorByIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-                                                              TArray<T*>& OutActors)
+	TArray<T*>&                                                                                             OutActors)
 {
 	TArray<AFGBuildable*> Actors = GetAttachedActorsByClass(Attachment);
 	for (AFGBuildable* Actor : Actors)

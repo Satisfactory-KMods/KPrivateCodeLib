@@ -3,21 +3,20 @@
 
 #include "Network/Buildings/KPCLNetworkCore.h"
 
-#include "KPCLDefaultRCO.h"
-#include "KPCLNetworkConnectionComponent.h"
-#include "KPCLNetworkDrive.h"
-#include "KPCLNetworkInfoComponent.h"
 #include "KPrivateCodeLibModule.h"
 
 #include "BFL/KBFL_Inventory.h"
 #include "BlueprintFunctionLib/KPCLBlueprintFunctionLib.h"
+#include "Description/KPCLNetworkDrive.h"
 
 #include "Net/UnrealNetwork.h"
 
 #include "Network/KPCLNetwork.h"
+#include "Network/KPCLNetworkConnectionComponent.h"
+#include "Network/KPCLNetworkInfoComponent.h"
 #include "Registry/ModContentRegistry.h"
+#include "Replication/KPCLDefaultRCO.h"
 #include "Resources/FGItemDescriptor.h"
-#include "Subsystem/KPCLUnlockSubsystem.h"
 #include "Subsystems/KBFLAssetDataSubsystem.h"
 
 #undef GetForm
@@ -59,7 +58,7 @@ void AKPCLNetworkCore::TryConnectNetworks(AFGBuildable* OtherBuildable) const
 
 FKPCLFaxitNetwork AKPCLNetworkCore::GetNetworkData_Implementation() const
 {
-	if(mNetworkRef)
+	if (mNetworkRef)
 	{
 		return *mNetworkRef;
 	}
@@ -76,13 +75,13 @@ bool AKPCLNetworkCore::HasCoreInNetwork_Implementation() const
 void AKPCLNetworkCore::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	if(HasAuthority()) {
+
+	if (HasAuthority())
+	{
 		mNetworkRef = mFaxitSubsystem->CreateOrAddNetworkNative(GetName(), this);
 		UpdateStorageState();
 
-
-		if(mNetworkRef)
+		if (mNetworkRef)
 		{
 			for (AKPCLNetworkBuildingBase* Building : mNetworkRef->mNetworkBuildings)
 			{
@@ -116,7 +115,7 @@ void AKPCLNetworkCore::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 void AKPCLNetworkCore::GetConditionalReplicatedProps(TArray<FFGCondReplicatedProperty>& outProps) const
 {
 	Super::GetConditionalReplicatedProps(outProps);
-	
+
 	FG_DOREPCONDITIONAL(ThisClass, mStateBundels);
 	FG_DOREPCONDITIONAL(ThisClass, mStorage);
 	FG_DOREPCONDITIONAL(ThisClass, mNetworkPower);
@@ -126,13 +125,13 @@ void AKPCLNetworkCore::GetConditionalReplicatedProps(TArray<FFGCondReplicatedPro
 }
 
 void AKPCLNetworkCore::GetDismantleRefund_Implementation(TArray<FInventoryStack>& out_refund,
-                                                         bool noBuildCostEnabled) const
+	bool                                                                          noBuildCostEnabled) const
 {
-	if(noBuildCostEnabled)
+	if (noBuildCostEnabled)
 	{
 		return;
 	}
-	
+
 	if (TSubclassOf<UFGRecipe> Recipe = GetBuiltWithRecipe())
 	{
 		for (FItemAmount ItemAmount : UFGRecipe::GetIngredients(Recipe))
@@ -204,12 +203,12 @@ void AKPCLNetworkCore::Factory_Tick(float dt)
 
 	if (HasAuthority())
 	{
-		if(mPlayerInventoryHandle.TickHandle(dt, CanConsumeFromPlayerInventory()))
+		if (mPlayerInventoryHandle.TickHandle(dt, CanConsumeFromPlayerInventory()))
 		{
 			OnConsumeFromPlayerInventory();
 		}
 
-		if(mItemFlushTimer.Tick(dt))
+		if (mItemFlushTimer.Tick(dt))
 		{
 			FlushOverflow();
 		}
@@ -224,15 +223,15 @@ bool AKPCLNetworkCore::CanProduce_Implementation() const
 bool AKPCLNetworkCore::CanConsumeFromPlayerInventory() const
 {
 	FInventoryStack Stack;
-	int32 Index;
+	int32           Index;
 	return IsProducing() && GetStackThatCanConsumeFromPlayerInventory(Stack, Index);
 }
 
 void AKPCLNetworkCore::OnConsumeFromPlayerInventory()
 {
 	FInventoryStack Stack;
-	int32 Index;
-	if(GetStackThatCanConsumeFromPlayerInventory(Stack, Index))
+	int32           Index;
+	if (GetStackThatCanConsumeFromPlayerInventory(Stack, Index))
 	{
 		GetPlayerBufferInventory()->RemoveFromIndex(Index, 1);
 	}
@@ -250,20 +249,18 @@ FItemAmount AKPCLNetworkCore::GetItemOrCreateAmount(TSubclassOf<UFGItemDescripto
 
 FItemAmount* AKPCLNetworkCore::GetItemAmountRef(TSubclassOf<UFGItemDescriptor> Item)
 {
-	FItemAmount* foundItemAmount = mStorage.FindByPredicate( [Item](const FItemAmount& itemAmount)
-		{
-			return itemAmount.ItemClass == Item;
-		} );
+	FItemAmount* foundItemAmount = mStorage.FindByPredicate([Item](const FItemAmount& itemAmount) {
+		return itemAmount.ItemClass == Item;
+	});
 
-	if(!foundItemAmount)
+	if (!foundItemAmount)
 	{
 		mStorage.Add(FItemAmount(Item, 0));
-		return mStorage.FindByPredicate( [Item](const FItemAmount& itemAmount)
-		{
+		return mStorage.FindByPredicate([Item](const FItemAmount& itemAmount) {
 			return itemAmount.ItemClass == Item;
-		} );
+		});
 	}
-	
+
 	return foundItemAmount;
 }
 
@@ -291,17 +288,17 @@ void AKPCLNetworkCore::GetItemAmountsFiltered(EResourceForm Form, TArray<FItemAm
 
 void AKPCLNetworkCore::GrabFromNetwork(AFGCharacterPlayer* Player, FItemAmount Amount)
 {
-	if(!HasAuthority())
+	if (!HasAuthority())
 	{
 		UKPCLDefaultRCO* RCO = UKPCLDefaultRCO::GetRCO<UKPCLDefaultRCO>(GetWorld());
-		if(IsValid(RCO))
+		if (IsValid(RCO))
 		{
 			RCO->Server_Faxit_GrabFromNetwork(this, Player, Amount);
 		}
 		return;
 	}
-	
-	if(IsValid(Player) && IsValid(Player->GetInventory()))
+
+	if (IsValid(Player) && IsValid(Player->GetInventory()))
 	{
 		TryToGrabItem(Player->GetInventory(), Amount.ItemClass, Amount.Amount);
 	}
@@ -310,7 +307,7 @@ void AKPCLNetworkCore::GrabFromNetwork(AFGCharacterPlayer* Player, FItemAmount A
 int32 AKPCLNetworkCore::IsStorageFull(TSubclassOf<UFGItemDescriptor> Item)
 {
 	FItemAmount* ItemAmount = GetItemAmountRef(Item);
-	int32 MaxAmount = GetMaxItemAmount(Item);
+	int32        MaxAmount = GetMaxItemAmount(Item);
 
 	return ItemAmount->Amount >= MaxAmount;
 }
@@ -336,13 +333,19 @@ int32 AKPCLNetworkCore::IsStorageEmpty(FItemAmount* ItemAmount)
 int32 AKPCLNetworkCore::TryToStoreItem(UFGInventoryComponent* Inventory, TSubclassOf<UFGItemDescriptor> Item, int32 Amount)
 {
 	FInventoryStack Stack;
-	int32 InventoryAmount = Inventory->GetNumItems(Item);
+	int32           InventoryAmount = Inventory->GetNumItems(Item);
 
 	int32 AmountToStore = FMath::Min(Amount, InventoryAmount);
-	if(AmountToStore <= 0) return 0;
+	if (AmountToStore <= 0)
+	{
+		return 0;
+	}
 
 	int32 StoredAmount = TryToStoreItemAmount(Item, AmountToStore);
-	if(StoredAmount <= 0) return 0;
+	if (StoredAmount <= 0)
+	{
+		return 0;
+	}
 
 	Inventory->Remove(Item, StoredAmount);
 	return StoredAmount;
@@ -351,9 +354,12 @@ int32 AKPCLNetworkCore::TryToStoreItem(UFGInventoryComponent* Inventory, TSubcla
 int32 AKPCLNetworkCore::TryToStoreItemAmount(TSubclassOf<UFGItemDescriptor> Item, int32 Amount)
 {
 	FItemAmount* ItemAmount = GetItemAmountRef(Item);
-	int32 MaxAmount = GetMaxItemAmount(Item);
+	int32        MaxAmount = GetMaxItemAmount(Item);
 
-	if(IsStorageFull(ItemAmount)) return 0;
+	if (IsStorageFull(ItemAmount))
+	{
+		return 0;
+	}
 
 	int32 StoredAmount = FMath::Min(Amount, MaxAmount - ItemAmount->Amount);
 
@@ -366,12 +372,15 @@ int32 AKPCLNetworkCore::TryToStoreItemAmount(TSubclassOf<UFGItemDescriptor> Item
 int32 AKPCLNetworkCore::TryToGrabItem(UFGInventoryComponent* Inventory, TSubclassOf<UFGItemDescriptor> Item, int32 Amount)
 {
 	FItemAmount* ItemAmount = GetItemAmountRef(Item);
-	if(ItemAmount->Amount <= 0) return 0;
+	if (ItemAmount->Amount <= 0)
+	{
+		return 0;
+	}
 
 	int32 MaxGrabAmount = FMath::Min(Amount, ItemAmount->Amount);
 
 	FInventoryStack Stack = FInventoryStack(MaxGrabAmount, Item);
-	int AddedAmount = Inventory->AddStack(Stack, true);
+	int             AddedAmount = Inventory->AddStack(Stack, true);
 	ItemAmount->Amount -= MaxGrabAmount;
 
 	NotifyStorageChange();
@@ -381,7 +390,10 @@ int32 AKPCLNetworkCore::TryToGrabItem(UFGInventoryComponent* Inventory, TSubclas
 int32 AKPCLNetworkCore::TryToGrabItemAmount(TSubclassOf<UFGItemDescriptor> Item, int32 Amount)
 {
 	FItemAmount* ItemAmount = GetItemAmountRef(Item);
-	if(ItemAmount->Amount <= 0) return 0;
+	if (ItemAmount->Amount <= 0)
+	{
+		return 0;
+	}
 
 	int32 MaxGrabAmount = FMath::Min(Amount, ItemAmount->Amount);
 	ItemAmount->Amount -= MaxGrabAmount;
@@ -404,22 +416,22 @@ void AKPCLNetworkCore::GatherStates()
 {
 	Super::GatherStates();
 
-	if(mNetworkRef)
+	if (mNetworkRef)
 	{
 		FKPCLFaxitNetworkStatDataBundle Bundle;
 		for (AKPCLNetworkBuildingBase* NetworkBuilding : mNetworkRef->mNetworkBuildings)
 		{
 			for (FKPCLFaxitNetworkStatData State : NetworkBuilding->GetStates())
 			{
-				FKPCLFaxitNetworkStatData* FoundState = Bundle.mStats.FindByPredicate( [State](const FKPCLFaxitNetworkStatData& item)
-					{
-						return item.mItem == State.mItem;
-					} );
+				FKPCLFaxitNetworkStatData* FoundState = Bundle.mStats.FindByPredicate([State](const FKPCLFaxitNetworkStatData& item) {
+					return item.mItem == State.mItem;
+				});
 
-				if(!FoundState)
+				if (!FoundState)
 				{
 					Bundle.mStats.Add(State);
-				} else
+				}
+				else
 				{
 					FoundState->Merge(State, false);
 				}
@@ -428,11 +440,10 @@ void AKPCLNetworkCore::GatherStates()
 
 		Bundle.mTimestamp = FDateTime::Now().ToUnixTimestamp();
 		mStateBundels.Add(Bundle);
-		mStateBundels.Sort([](const FKPCLFaxitNetworkStatDataBundle& a, const FKPCLFaxitNetworkStatDataBundle& b)
-					{
-						return a.mTimestamp > b.mTimestamp;
-					});
-		
+		mStateBundels.Sort([](const FKPCLFaxitNetworkStatDataBundle& a, const FKPCLFaxitNetworkStatDataBundle& b) {
+			return a.mTimestamp > b.mTimestamp;
+		});
+
 		while (mStateBundels.Num() > 60)
 		{
 			mStateBundels.RemoveAt(1);
@@ -442,11 +453,11 @@ void AKPCLNetworkCore::GatherStates()
 
 void AKPCLNetworkCore::TickNetwork(float dt, FKPCLFaxitNetwork* Network)
 {
-	if(IsProducing() && Network)
+	if (IsProducing() && Network)
 	{
 		for (AKPCLNetworkBuildingBase* Building : Network->mNetworkBuildings)
 		{
-			Building->TickNetwork(dt, Network);		
+			Building->TickNetwork(dt, Network);
 		}
 	}
 }
@@ -464,7 +475,7 @@ bool AKPCLNetworkCore::FilterInputInventory(TSubclassOf<UObject> object, int32 i
 {
 	if (IsValid(object))
 	{
-		if (const TSubclassOf<UKPCLNetworkDrive> Drive{object})
+		if (const TSubclassOf<UKPCLNetworkDrive> Drive{ object })
 		{
 			return true;
 		}
@@ -473,14 +484,14 @@ bool AKPCLNetworkCore::FilterInputInventory(TSubclassOf<UObject> object, int32 i
 }
 
 void AKPCLNetworkCore::OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-                                          UFGInventoryComponent* sourceInventory)
+	UFGInventoryComponent*                                               sourceInventory)
 {
 	Super::OnInputItemRemoved(itemClass, numRemoved, sourceInventory);
 	UpdateStorageState();
 }
 
 void AKPCLNetworkCore::OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass, int32 numRemoved,
-                                        UFGInventoryComponent* sourceInventory)
+	UFGInventoryComponent*                                             sourceInventory)
 {
 	Super::OnInputItemAdded(itemClass, numRemoved, sourceInventory);
 	UpdateStorageState();
@@ -488,16 +499,16 @@ void AKPCLNetworkCore::OnInputItemAdded(TSubclassOf<UFGItemDescriptor> itemClass
 
 void AKPCLNetworkCore::UpdateStorageState()
 {
-	if(!IsValid(GetInventory()))
+	if (!IsValid(GetInventory()))
 	{
 		return;
 	}
 
-	for(int32 i = 0; i < GetInventory()->GetSizeLinear(); i++)
+	for (int32 i = 0; i < GetInventory()->GetSizeLinear(); i++)
 	{
-		GetInventory()->AddArbitrarySlotSize(i,1);
+		GetInventory()->AddArbitrarySlotSize(i, 1);
 	}
-	
+
 	TArray<FInventoryStack> Stacks;
 	GetInventory()->GetInventoryStacks(Stacks, false);
 
@@ -505,7 +516,7 @@ void AKPCLNetworkCore::UpdateStorageState()
 	int32 NewMultiplier = 1;
 	for (FInventoryStack Stack : Stacks)
 	{
-		if (const TSubclassOf<UKPCLNetworkDrive> Drive{Stack.Item.GetItemClass()})
+		if (const TSubclassOf<UKPCLNetworkDrive> Drive{ Stack.Item.GetItemClass() })
 		{
 			NewMultiplier += UKPCLNetworkDrive::GetMultiplier(Drive);
 			NewDrivePower += UKPCLNetworkDrive::GetPowerConsume(Drive);
@@ -522,16 +533,19 @@ void AKPCLNetworkCore::CheckStorageState()
 	bool NewFlushState = false;
 	for (FItemAmount Storage : mStorage)
 	{
-		if(Storage.Amount <= 0) continue;
+		if (Storage.Amount <= 0)
+		{
+			continue;
+		}
 		int32 MaxAmount = GetMaxItemAmount(Storage.ItemClass);
-		if(Storage.Amount > MaxAmount)
+		if (Storage.Amount > MaxAmount)
 		{
 			NewFlushState = true;
 			break;
 		}
 	}
 
-	if(NewFlushState != mItemFlushTimer.mIsActive)
+	if (NewFlushState != mItemFlushTimer.mIsActive)
 	{
 		mItemFlushTimer.mIsActive = NewFlushState;
 		mItemFlushTimer.Reset();
@@ -542,7 +556,10 @@ void AKPCLNetworkCore::FlushOverflow()
 {
 	for (FItemAmount& Storage : mStorage)
 	{
-		if(Storage.Amount <= 0) continue;
+		if (Storage.Amount <= 0)
+		{
+			continue;
+		}
 		int32 MaxAmount = GetMaxItemAmount(Storage.ItemClass);
 		Storage.Amount = FMath::Min(Storage.Amount, MaxAmount);
 	}
@@ -567,13 +584,13 @@ void AKPCLNetworkCore::HandlePower(float dt)
 	{
 		FPowerCircuitStats Stats = FPowerCircuitStats();
 		Network->GetStats(Stats);
-		
+
 		mNetworkPower = FMath::Max(Stats.PowerConsumed, 0.1f);
 		mMaxNetworkPower = FMath::Max(Stats.MaximumPowerConsumption, 0.1f);
-		
+
 		GetPowerInfo()->SetTargetConsumption(IsProducing() ? mNetworkPower : 0.1f);
 		GetPowerInfo()->SetMaximumTargetConsumption(IsProducing()
-			                                            ? mMaxNetworkPower
-			                                            : 0.1f);
+			? mMaxNetworkPower
+			: 0.1f);
 	}
 }

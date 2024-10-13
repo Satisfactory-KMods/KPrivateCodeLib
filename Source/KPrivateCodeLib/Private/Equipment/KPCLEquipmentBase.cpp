@@ -96,8 +96,8 @@ void AKPCLEquipmentBase::Cache()
 
 void AKPCLEquipmentBase::Trace()
 {
-	const TArray<AActor*> IgnoredActors{this, GetInstigatorCharacter()};
-	FHitResult Result;
+	const TArray<AActor*> IgnoredActors{ this, GetInstigatorCharacter() };
+	FHitResult            Result;
 
 	if (!IsValid(GetInstigatorCharacter()))
 	{
@@ -109,8 +109,8 @@ void AKPCLEquipmentBase::Trace()
 
 	// Trace for signs
 	if (UKismetSystemLibrary::BoxTraceSingleForObjects(GetWorld(), Start, End, mTraceBoxHalfSize, FRotator(),
-	                                                   mTraceObjects, false, IgnoredActors, EDrawDebugTrace::None,
-	                                                   Result, false))
+		mTraceObjects, false, IgnoredActors, EDrawDebugTrace::None,
+		Result, false))
 	{
 		UKPCLBlueprintFunctionLib::ResolveHitResult(GetWorld(), Result, Result);
 		if (Result.IsValidBlockingHit())
@@ -136,13 +136,9 @@ void AKPCLEquipmentBase::Trace()
 	}
 }
 
-void AKPCLEquipmentBase::OnNewActorHit(AActor* Hit, AActor* Last)
-{
-}
+void AKPCLEquipmentBase::OnNewActorHit(AActor* Hit, AActor* Last) {}
 
-void AKPCLEquipmentBase::OnLastActorChanged(AActor* NewLast, AActor* LastLast)
-{
-}
+void AKPCLEquipmentBase::OnLastActorChanged(AActor* NewLast, AActor* LastLast) {}
 
 void AKPCLEquipmentBase::AddEquipmentActionBindings()
 {
@@ -196,21 +192,13 @@ AActor* AKPCLEquipmentBase::GetLastHit() const
 	return mLastActor;
 }
 
-void AKPCLEquipmentBase::Input_PrimaryFire(const FInputActionValue& actionValue)
-{
-}
+void AKPCLEquipmentBase::Input_PrimaryFire(const FInputActionValue& actionValue) {}
 
-void AKPCLEquipmentBase::Input_SecondaryFire(const FInputActionValue& actionValue)
-{
-}
+void AKPCLEquipmentBase::Input_SecondaryFire(const FInputActionValue& actionValue) {}
 
-void AKPCLEquipmentBase::Input_Wheel(const FInputActionValue& actionValue)
-{
-}
+void AKPCLEquipmentBase::Input_Wheel(const FInputActionValue& actionValue) {}
 
-void AKPCLEquipmentBase::MultiCast_OnLeftClick_Implementation()
-{
-}
+void AKPCLEquipmentBase::MultiCast_OnLeftClick_Implementation() {}
 
 void AKPCLEquipmentBase::OnLeftClick()
 {
@@ -222,9 +210,7 @@ void AKPCLEquipmentBase::OnLeftClickReleased()
 	bLeftIsClicked = false;
 }
 
-void AKPCLEquipmentBase::MultiCast_OnRightClick_Implementation()
-{
-}
+void AKPCLEquipmentBase::MultiCast_OnRightClick_Implementation() {}
 
 void AKPCLEquipmentBase::OnRightClick()
 {
@@ -236,9 +222,7 @@ void AKPCLEquipmentBase::OnRightClickReleased()
 	bRightIsClicked = false;
 }
 
-void AKPCLEquipmentBase::MultiCast_OnMiddleMouseButton_Implementation()
-{
-}
+void AKPCLEquipmentBase::MultiCast_OnMiddleMouseButton_Implementation() {}
 
 void AKPCLEquipmentBase::OnMiddleMouseButton()
 {

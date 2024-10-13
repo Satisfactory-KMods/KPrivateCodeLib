@@ -66,19 +66,19 @@ protected:
 	virtual void MultiCast_OnLeftClick();
 	virtual void OnLeftClick();
 	virtual void OnLeftClickReleased();
-	bool bLeftIsClicked = false;
+	bool         bLeftIsClicked = false;
 
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void MultiCast_OnRightClick();
 	virtual void OnRightClick();
 	virtual void OnRightClickReleased();
-	bool bRightIsClicked = false;
+	bool         bRightIsClicked = false;
 
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void MultiCast_OnMiddleMouseButton();
 	virtual void OnMiddleMouseButton();
 	virtual void OnMiddleMouseButtonReleased();
-	bool bMiddleMouseButtonIsClicked = false;
+	bool         bMiddleMouseButtonIsClicked = false;
 
 	// Cached actor Outline component to add outlines to the actors/signs
 	UPROPERTY()

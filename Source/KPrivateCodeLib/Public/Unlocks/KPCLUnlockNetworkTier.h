@@ -24,7 +24,7 @@ class KPRIVATECODELIB_API UKPCLUnlockNetworkTier : public UFGUnlockInfoOnly
 
 	virtual void Unlock(AFGUnlockSubsystem* unlockSubssytem) override;
 	virtual void Apply(AFGUnlockSubsystem* unlockSubssytem) override;
-	void SendToSubsystem(AFGUnlockSubsystem* unlockSubssytem);
+	void         SendToSubsystem(AFGUnlockSubsystem* unlockSubssytem);
 
 	UPROPERTY(EditDefaultsOnly, Category="Faxit")
 	int32 mTierValue = 1;

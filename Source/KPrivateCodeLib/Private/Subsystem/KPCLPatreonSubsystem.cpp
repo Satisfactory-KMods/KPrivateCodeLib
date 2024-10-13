@@ -152,8 +152,7 @@ void UKPCLPatreonSubsystem::Query()
 		{
 			FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
 			Request->OnProcessRequestComplete().BindLambda(
-				[&](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)
-				{
+				[&](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess) {
 					UE_LOG(LogTemp, Error, TEXT("OnProcessRequestComplete"));
 					if (bSuccess)
 					{
@@ -168,14 +167,14 @@ void UKPCLPatreonSubsystem::Query()
 					}
 				});
 
-			QueryApi(Request, "HasBenefits", {mCode, mDiscordID});
+			QueryApi(Request, "HasBenefits", { mCode, mDiscordID });
 		}
 		UE_LOG(LogTemp, Error, TEXT("%s / %s"), *mCode, *mDiscordID);
 	}
 }
 
 void UKPCLPatreonSubsystem::QueryApi(FHttpRequestRef& Request, FString QueryName, TArray<FString> Parameter,
-                                     bool Execute, bool IsPost)
+	bool                                              Execute, bool    IsPost)
 {
 	FString Url = TEXT("https://kmods.de/");
 

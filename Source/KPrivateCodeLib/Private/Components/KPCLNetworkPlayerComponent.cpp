@@ -3,7 +3,6 @@
 
 #include "Components/KPCLNetworkPlayerComponent.h"
 
-#include "FGSchematicManager.h"
 #include "KPrivateCodeLibModule.h"
 #include "Buildables/FGBuildable.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -13,7 +12,7 @@
 #include "Network/KPCLNetwork.h"
 #include "Network/KPCLNetworkConnectionComponent.h"
 #include "Network/Buildings/KPCLNetworkCore.h"
-#include "Subsystem/KPCLUnlockSubsystem.h"
+#include "Subsystem/KPCLFaxitSubsystem.h"
 
 void UKPCLNetworkPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -58,15 +57,15 @@ void UKPCLNetworkPlayerComponent::DoDistanceCheck()
 		return;
 	}
 
-	FVector Loc = GetPlayerCharacterLocation();
+	FVector               Loc = GetPlayerCharacterLocation();
 	const TArray<AActor*> ActorsToIgnore{};
-	TArray<AActor*> OutActors{};
+	TArray<AActor*>       OutActors{};
 
 	if (UKismetSystemLibrary::SphereOverlapActors(this, Loc, mMaxDistance, mObjectTypes, AFGBuildable::StaticClass(),
-	                                              ActorsToIgnore, OutActors))
+		ActorsToIgnore, OutActors))
 	{
-		float LowestDistance = mMaxDistance;
-		AFGBuildable* NearstActor = nullptr;
+		float                            LowestDistance = mMaxDistance;
+		AFGBuildable*                    NearstActor = nullptr;
 		UKPCLNetworkConnectionComponent* NearstNetworkComponent = nullptr;
 
 		for (AActor* Actor : OutActors)
@@ -212,7 +211,10 @@ bool UKPCLNetworkPlayerComponent::GetPlayerCharacterInventory(UFGInventoryCompon
 bool UKPCLNetworkPlayerComponent::DistanceAccessUnlocked() const
 {
 	AKPCLFaxitSubsystem* Faxit = AKPCLFaxitSubsystem::Get(GetWorld());
-	if(!Faxit) return false;
+	if (!Faxit)
+	{
+		return false;
+	}
 	return Faxit->mRemoteAccessUnlocked;
 }
 
@@ -247,10 +249,10 @@ UKPCLNetworkPlayerComponent* UKPCLNetworkPlayerComponent::GetOrCreateNetworkComp
 		}
 
 		const TSubclassOf<UKPCLNetworkPlayerComponent> Class = !IsValid(ComponentClass)
-			                                                       ? TSubclassOf<UKPCLNetworkPlayerComponent>{
-				                                                       StaticClass()
-			                                                       }
-			                                                       : ComponentClass;
+			? TSubclassOf<UKPCLNetworkPlayerComponent>{
+				StaticClass()
+			}
+			: ComponentClass;
 		if (IsValid(Class))
 		{
 			Component = NewObject<UKPCLNetworkPlayerComponent>(State, Class, FName("NetworkComp"));
@@ -294,6 +296,7 @@ AFGBuildable* UKPCLNetworkPlayerComponent::GetNextBuilding() const
 
 	return mNextBuilding;
 }
+
 void UKPCLNetworkPlayerComponent::OnRep_DistanceUpdated()
 {
 	if (mOnDistanceUpdated.IsBound())

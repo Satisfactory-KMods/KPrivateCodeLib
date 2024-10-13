@@ -13,14 +13,12 @@ USTRUCT(BlueprintType)
 struct KPRIVATECODELIB_API FAttachmentInfosStacker
 {
 	GENERATED_BODY()
-	FAttachmentInfosStacker()
-	{
-	};
+	FAttachmentInfosStacker() {};
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UKPCLModularAttachmentDescriptor> mAttachmentClass = nullptr;
 
-	int32 mMaxStackingModuleCount = 5;
+	int32      mMaxStackingModuleCount = 5;
 	FTransform mWorldMainSnapPoint = FTransform();
 
 	bool operator==(TSubclassOf<UKPCLModularAttachmentDescriptor> other) const
@@ -33,9 +31,7 @@ USTRUCT(BlueprintType)
 struct KPRIVATECODELIB_API FAttachmentDataStacker
 {
 	GENERATED_BODY()
-	FAttachmentDataStacker()
-	{
-	};
+	FAttachmentDataStacker() {};
 
 	UPROPERTY(SaveGame, BlueprintReadOnly)
 	FTransform mMainSnapLocations = {};
@@ -43,13 +39,13 @@ struct KPRIVATECODELIB_API FAttachmentDataStacker
 	UPROPERTY(SaveGame, BlueprintReadOnly)
 	TArray<AFGBuildable*> mSnappedActors = {};
 
-	uint32 GetIndexFromActor(AFGBuildable* Actor) const;
-	bool CanSnapTo(int32 MaxModuleCount = 5) const;
-	FTransform GetSnapLocation() const;
-	float GetAllHeights() const;
-	AFGBuildable* GetActorFromIndex(int32 Index) const;
-	void RemoveActorFromData(AFGBuildable* Actor);
-	bool AddActorToData(AFGBuildable* Actor);
+	uint32                GetIndexFromActor(AFGBuildable* Actor) const;
+	bool                  CanSnapTo(int32 MaxModuleCount = 5) const;
+	FTransform            GetSnapLocation() const;
+	float                 GetAllHeights() const;
+	AFGBuildable*         GetActorFromIndex(int32 Index) const;
+	void                  RemoveActorFromData(AFGBuildable* Actor);
+	bool                  AddActorToData(AFGBuildable* Actor);
 	TArray<AFGBuildable*> GetActorsUpperIndex(int32 Index);
 };
 
@@ -68,14 +64,14 @@ public:
 	virtual void InitArrays() override;
 
 	virtual bool AddNewActorToAttachment(AFGBuildable* Actor, TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
-	                                     FTransform Location, float Distance = 500.0f) override;
+		FTransform                                     Location, float                                      Distance = 500.0f) override;
 
 	virtual void AttachedActorRemoved(AFGBuildable* Actor) override;
 
 	virtual bool CanAttachToLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, FTransform TestLocation,
-	                                 FTransform& OutLocation, float Distance = 500.0f) const override;
-	virtual bool GetSnapPointInRange(FTransform TestLocation, FTransform& SnapLocation, float AllowedDistance,
-	                                 TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
+		FTransform&                                                                OutLocation, float     Distance = 500.0f) const override;
+	virtual bool GetSnapPointInRange(FTransform       TestLocation, FTransform& SnapLocation, float AllowedDistance,
+		TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
 	virtual AFGBuildable* GetAttachedActorByClass(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
 	virtual TArray<AFGBuildable*>
 	GetAttachedActorsByClass(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;

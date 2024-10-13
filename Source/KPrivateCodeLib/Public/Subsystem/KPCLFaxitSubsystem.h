@@ -3,9 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "FGItemDescriptor.h"
 #include "KPCLModSubsystem.h"
-#include "KPCLUnlockNetworkTier.h"
+#include "Resources/FGItemDescriptor.h"
+#include "Unlocks/KPCLUnlockNetworkTier.h"
 #include "KPCLFaxitSubsystem.generated.h"
 
 USTRUCT(BlueprintType)
@@ -13,7 +13,9 @@ struct FKPCLFaxitNetworkStatData
 {
 	GENERATED_BODY()
 
-	FKPCLFaxitNetworkStatData(): mItem(nullptr) {}
+	FKPCLFaxitNetworkStatData()
+		: mItem(nullptr) {}
+
 	FKPCLFaxitNetworkStatData(TSubclassOf<UFGItemDescriptor> Item)
 	{
 		mItem = Item;
@@ -57,9 +59,8 @@ struct FKPCLFaxitNetwork
 {
 	GENERATED_BODY()
 
-	FKPCLFaxitNetwork(): mCore(nullptr)
-	{
-	}
+	FKPCLFaxitNetwork()
+		: mCore(nullptr) {}
 
 	FKPCLFaxitNetwork(FString networkName, AKPCLNetworkCore* Core)
 	{
@@ -104,13 +105,13 @@ public:
 	static AKPCLFaxitSubsystem* Get(UObject* worldContext);
 
 	UFUNCTION(BlueprintCallable, Category="Faxit")
-	FKPCLFaxitNetwork CreateOrAddNetwork(FString networkName, AKPCLNetworkCore* Core);
+	FKPCLFaxitNetwork  CreateOrAddNetwork(FString networkName, AKPCLNetworkCore* Core);
 	FKPCLFaxitNetwork* CreateOrAddNetworkNative(FString networkName, AKPCLNetworkCore* Core);
 
 	void DestoryNetwork(AKPCLNetworkCore* Core);
-	
+
 	void DestroyNetworkBuilding(AKPCLNetworkBuildingBase* Building);
-	
+
 	UFUNCTION(BlueprintCallable, Category="Faxit")
 	void AddBuildingToCore(AKPCLNetworkBuildingBase* Building, AKPCLNetworkCore* Core);
 
@@ -147,7 +148,7 @@ private:
 public:
 	UPROPERTY(SaveGame, BlueprintReadOnly, Replicated, Category="Faxit")
 	bool mOverflowUnlocked = false;
-	
+
 	UPROPERTY(SaveGame, BlueprintReadOnly, Replicated, Category="Faxit")
 	bool mRemoteAccessUnlocked = false;
 

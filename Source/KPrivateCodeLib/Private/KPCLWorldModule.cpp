@@ -14,15 +14,8 @@ DECLARE_LOG_CATEGORY_EXTERN(KBFLWorldModuleV2Log, Log, All);
 
 DEFINE_LOG_CATEGORY(KBFLWorldModuleV2Log);
 
-UKPCLWorldModule::UKPCLWorldModule() : Super()
-{
-}
-
-void UKPCLWorldModule::PostInitPhase_Implementation()
-{
-	Super::PostInitPhase_Implementation();
-	BindUnlockEvents();
-}
+UKPCLWorldModule::UKPCLWorldModule()
+	: Super() {}
 
 void UKPCLWorldModule::InitPhase_Implementation()
 {
@@ -34,13 +27,13 @@ void UKPCLWorldModule::InitPhase_Implementation()
 	}
 
 	UKBFLAssetDataSubsystem* Subsystem = UKBFLAssetDataSubsystem::Get(GetWorld());
-	UModContentRegistry* ModContentRegistry = UModContentRegistry::Get(GetWorld());
+	UModContentRegistry*     ModContentRegistry = UModContentRegistry::Get(GetWorld());
 
 	if (IsValid(Subsystem) && IsValid(ModContentRegistry))
 	{
 		//Register default content
 		TArray<TSubclassOf<UKPCLRegistryObject>> Objects;
-		Subsystem->GetObjectsOfChilds_Internal({UKPCLRegistryObject::StaticClass()}, Objects);
+		Subsystem->GetObjectsOfChilds_Internal({ UKPCLRegistryObject::StaticClass() }, Objects);
 
 		for (TSubclassOf<UKPCLRegistryObject> RegistryObjectClass : Objects)
 		{
@@ -74,58 +67,14 @@ void UKPCLWorldModule::InitPhase_Implementation()
 	}
 }
 
-void UKPCLWorldModule::BindUnlockEvents()
-{
-	if (AFGResearchManager* ResearchManager = AFGResearchManager::Get(GetWorld()))
-	{
-		ResearchManager->ResearchResultsClaimedDelegate.AddUniqueDynamic(this, &UKPCLWorldModule::OnSchematicUnlocked);
-		ResearchManager->ResearchTreeUnlockedDelegate.AddUniqueDynamic(
-			this, &UKPCLWorldModule::OnResearchTreeAccessUnlocked);
-	}
-
-	if (AFGSchematicManager* SchematicManager = AFGSchematicManager::Get(GetWorld()))
-	{
-		SchematicManager->PurchasedSchematicDelegate.AddUniqueDynamic(this, &UKPCLWorldModule::OnSchematicUnlocked);
-	}
-}
-
-void UKPCLWorldModule::OnSchematicUnlocked(TSubclassOf<UFGSchematic> Schematic)
-{
-	const TSubclassOf<UFGMessageBase>* Message = mUnlockSchematic.Find(Schematic);
-	if (Message && IsADAEnabled())
-	{
-		SendMessage(*Message);
-	}
-}
-
-void UKPCLWorldModule::OnResearchTreeAccessUnlocked(TSubclassOf<UFGResearchTree> ResearchTree)
-{
-	const TSubclassOf<UFGMessageBase>* Message = mUnlockAccessResearchTree.Find(ResearchTree);
-	if (Message && IsADAEnabled())
-	{
-		SendMessage(*Message);
-	}
-}
-
 bool UKPCLWorldModule::IsEasyNodesEnabled_Implementation()
 {
 	return mUseEasyNodes;
 }
 
-void UKPCLWorldModule::ApplyEasyNodes_Implementation(const TArray<TSubclassOf<UFGResearchTree>>& Nodes)
-{
-}
+void UKPCLWorldModule::ApplyEasyNodes_Implementation(const TArray<TSubclassOf<UFGResearchTree>>& Nodes) {}
 
 bool UKPCLWorldModule::IsADAEnabled_Implementation()
 {
 	return true;
-}
-
-void UKPCLWorldModule::SendMessage(const TSubclassOf<UFGMessageBase> Message) const
-{
-	AFGGameState* GameState = Cast<AFGGameState>(UGameplayStatics::GetGameState(GetWorld()));
-	if (GameState && Message)
-	{
-		// GameState->SendMessageToAllPlayers( Message );
-	}
 }
