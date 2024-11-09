@@ -104,6 +104,9 @@ public:
 
 	// START: Advanced Instance Overwrite
 
+	UFUNCTION()
+	virtual void OnOptionsUpdated(FString UpdatedCVar) {}
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="KMods|Mesh")
 	TArray<FKPCLMeshOverwriteInformation> mDefaultMeshOverwriteInformations;

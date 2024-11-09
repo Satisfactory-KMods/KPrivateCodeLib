@@ -53,6 +53,9 @@ public:
 
 	virtual void OnInit_Implementation() {}
 
+	UFUNCTION()
+	virtual void OnOptionsUpdated(FString UpdatedCVar) {}
+
 	FORCEINLINE virtual bool ShouldSave_Implementation() const override { return mShouldSave; }
 
 	/** Threaded tick for special uses */

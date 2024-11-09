@@ -37,6 +37,11 @@
 			"Name": "KBFL",
 			"SemVersion": "^3.0.0",
 			"Enabled": true
+		},
+		{
+			"Name": "KAPI",
+			"Enabled": true,
+			"SemVersion": "^1.0.0"
 		}
 	],
 	"LocalizationTargets": [

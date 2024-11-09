@@ -53,16 +53,9 @@ public:
 
 	FString GetKey() const
 	{
-		if(IsValid(mSessionSetting))
-		{
-			return mSessionSetting->StrId;
-		}
-		return mKey;
+		fgcheckf(mSessionSetting, TEXT("SessionSetting is null in FKPCLAsgHelper::GetKey"));
+		return mSessionSetting->StrId;
 	}
-
-	// The key of the option
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FString mKey = FString();
 
 	// Or use mKey to get the value
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
