@@ -12,6 +12,7 @@
 #include "Components/KPCLBetterIndicator.h"
 #include "Structures/KPCLFunctionalStructure.h"
 #include "Structures/KPCLInventoryStructure.h"
+#include "Subsystems/KAPIDataAssetSubsystem.h"
 
 #include "KPCLProducerBase.generated.h"
 
@@ -407,4 +408,17 @@ public:
 	UFGPipeConnectionFactory*              GetPipe(int Index, ECKPCLDirection Direction = KPCLInput) const;
 	TArray<UFGPipeConnectionFactory*>      GetAllPipes(ECKPCLDirection Direction = KPCLAny) const;
 	bool                                   bInventoryHasInit = false;
+
+	UPROPERTY()
+	UKAPIDataAssetSubsystem* mAssetSubsystem;
+
+	UFUNCTION(BlueprintPure)
+	UKAPIDataAssetSubsystem* GetAssetSubsystem() const
+	{
+		if(!IsValid(mAssetSubsystem))
+		{
+			return UKAPIDataAssetSubsystem::GetChecked(GetWorld());
+		}
+		return mAssetSubsystem;
+	}
 };

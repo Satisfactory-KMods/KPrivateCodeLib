@@ -3,10 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "FGCircuitConnectionComponent.h"
-#include "KPCLModularAttachmentDescriptor.h"
 #include "KPCLModularBuildingHandlerBase.h"
 #include "Buildables/FGBuildable.h"
+#include "Descriptors/KAPIModularAttachmentDescriptor.h"
 
 #include "KPCLModularBuildingHandler.generated.h"
 
@@ -16,11 +15,11 @@ struct FAttachmentInfos
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<UKPCLModularAttachmentDescriptor> mAttachmentClass;
+	TSubclassOf<UKAPIModularAttachmentDescriptor> mAttachmentClass;
 
 	TArray<FTransform> mSnapWorldLocations;
 
-	bool operator==(TSubclassOf<UKPCLModularAttachmentDescriptor> other) const
+	bool operator==(TSubclassOf<UKAPIModularAttachmentDescriptor> other) const
 	{
 		return mAttachmentClass == other;
 	};
@@ -81,27 +80,27 @@ public:
 
 	virtual void InitArrays() override;
 
-	virtual bool AddNewActorToAttachment(AFGBuildable* Actor, TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
+	virtual bool AddNewActorToAttachment(AFGBuildable* Actor, TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment,
 		FTransform                                     Location, float                                      Distance = 500.0f) override;
 
 	virtual void AttachedActorRemoved(AFGBuildable* Actor) override;
 
-	virtual bool CanAttachToLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, FTransform TestLocation,
+	virtual bool CanAttachToLocation(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment, FTransform TestLocation,
 		FTransform&                                                                OutLocation, float     Distance = 500.0f) const override;
 	virtual bool GetSnapPointInRange(FTransform       TestLocation, FTransform& SnapLocation, float AllowedDistance,
-		TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
-	virtual AFGBuildable* GetAttachedActorByClass(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
+		TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment) override;
+	virtual AFGBuildable* GetAttachedActorByClass(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment) override;
 
 	template <class T>
-	T* GetClosedActorFromLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, FTransform Location);
+	T* GetClosedActorFromLocation(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment, FTransform Location);
 
 	template <class T>
-	T* GetActorFromModularIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, int32 Index);
+	T* GetActorFromModularIndex(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment, int32 Index);
 
 	virtual TArray<AFGBuildable*>
-	GetAttachedActorsByClass(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
+	GetAttachedActorsByClass(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment) override;
 	virtual void GetAttachedActors(TArray<AFGBuildable*>& Out) override;
-	virtual int  FindAttachmentIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) const override;
+	virtual int  FindAttachmentIndex(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment) const override;
 
 	UFUNCTION()
 	void OnRep_AttachmentDatas();
@@ -121,7 +120,7 @@ public:
 };
 
 template <class T>
-T* UKPCLModularBuildingHandler::GetClosedActorFromLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
+T* UKPCLModularBuildingHandler::GetClosedActorFromLocation(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment,
 	FTransform                                                                                           Location)
 {
 	const int AttachmentIndex = FindAttachmentIndex(Attachment);
@@ -134,7 +133,7 @@ T* UKPCLModularBuildingHandler::GetClosedActorFromLocation(TSubclassOf<UKPCLModu
 }
 
 template <class T>
-T* UKPCLModularBuildingHandler::GetActorFromModularIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
+T* UKPCLModularBuildingHandler::GetActorFromModularIndex(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment,
 	int32                                                                                              Index)
 {
 	const int AttachmentIndex = FindAttachmentIndex(Attachment);

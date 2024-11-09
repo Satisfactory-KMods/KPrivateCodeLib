@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "KPCLModularAttachmentDescriptor.h"
 #include "Buildables/FGBuildable.h"
 
 #include "KPCLModularSnapPoint.generated.h"
@@ -15,7 +14,7 @@ class KPRIVATECODELIB_API UKPCLModularSnapPoint : public UStaticMeshComponent
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<UKPCLModularAttachmentDescriptor> mAttachmentClass;
+	TSubclassOf<UKAPIModularAttachmentDescriptor> mAttachmentClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 mIndex;

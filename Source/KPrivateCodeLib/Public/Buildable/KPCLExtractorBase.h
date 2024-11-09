@@ -359,4 +359,17 @@ public:
 	UFGPipeConnectionFactory*              GetPipe(int Index, ECKPCLDirection Direction = KPCLInput) const;
 	TArray<UFGPipeConnectionFactory*>      GetAllPipes(ECKPCLDirection Direction = KPCLAny) const;
 	bool                                   bInventoryHasInit = false;
+
+	UPROPERTY()
+	UKAPIDataAssetSubsystem* mAssetSubsystem;
+
+	UFUNCTION(BlueprintPure)
+	UKAPIDataAssetSubsystem* GetAssetSubsystem() const
+	{
+		if(!IsValid(mAssetSubsystem))
+		{
+			return UKAPIDataAssetSubsystem::GetChecked(GetWorld());
+		}
+		return mAssetSubsystem;
+	}
 };

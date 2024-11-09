@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "KPCLModularAttachmentDescriptor.h"
+#include "Descriptors/KAPIModularAttachmentDescriptor.h"
 #include "Structures/KPCLFunctionalStructure.h"
 #include "UObject/Interface.h"
 #include "KPCLModularBuildingInterface.generated.h"
@@ -31,7 +31,7 @@ public:
 	void RemoveAttachedActor(AFGBuildable* Actor);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Modular Building Interface")
-	bool AttachedActor(AFGBuildable* Actor, TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
+	bool AttachedActor(AFGBuildable* Actor, TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment,
 		FTransform                   Location, float                                      Distance = 500.0f);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Modular Building Interface")
@@ -59,7 +59,7 @@ public:
 	int32 GetModularIndex();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Modular Building Interface")
-	TSubclassOf<UKPCLModularAttachmentDescriptor> GetModularAttachmentClass();
+	TSubclassOf<UKAPIModularAttachmentDescriptor> GetModularAttachmentClass();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Modular Building Interface")
 	void Stacker_AddBuildingHeight(float& Height);

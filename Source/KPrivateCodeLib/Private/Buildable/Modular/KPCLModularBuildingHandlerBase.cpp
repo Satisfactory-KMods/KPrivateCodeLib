@@ -65,7 +65,7 @@ void UKPCLModularBuildingHandlerBase::BeginPlay()
 	BroadcastTrigger();
 }
 
-int UKPCLModularBuildingHandlerBase::FindAttachmentIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) const
+int UKPCLModularBuildingHandlerBase::FindAttachmentIndex(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment) const
 {
 	return INDEX_NONE;
 }
@@ -106,7 +106,7 @@ void UKPCLModularBuildingHandlerBase::TryToConnectPower(AFGBuildable* Actor)
 }
 
 bool UKPCLModularBuildingHandlerBase::GetLocationMap(
-	TMap<TSubclassOf<UKPCLModularAttachmentDescriptor>, FAttachmentLocations>& OutMap)
+	TMap<TSubclassOf<UKAPIModularAttachmentDescriptor>, FAttachmentLocations>& OutMap)
 {
 	OutMap.Empty();
 	AFGBuildable* Building = Cast<AFGBuildable>(GetOwner());
@@ -156,19 +156,19 @@ bool UKPCLModularBuildingHandlerBase::GetLocationMap(
 	return false;
 }
 
-bool UKPCLModularBuildingHandlerBase::CanAttach(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) const
+bool UKPCLModularBuildingHandlerBase::CanAttach(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment) const
 {
 	return FindAttachmentIndex(Attachment) != INDEX_NONE;
 }
 
 AFGBuildable* UKPCLModularBuildingHandlerBase::GetAttachedActorByClass(
-	TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment)
+	TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment)
 {
 	return nullptr;
 }
 
 TArray<AFGBuildable*> UKPCLModularBuildingHandlerBase::GetAttachedActorsByClass(
-	TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment)
+	TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment)
 {
 	return {};
 }

@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "FGCircuitConnectionComponent.h"
-#include "KPCLModularAttachmentDescriptor.h"
 #include "KPCLModularBuildingHandlerBase.h"
 
 #include "KPCLModularBuildingHandlerStacker.generated.h"
@@ -16,12 +15,12 @@ struct KPRIVATECODELIB_API FAttachmentInfosStacker
 	FAttachmentInfosStacker() {};
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<UKPCLModularAttachmentDescriptor> mAttachmentClass = nullptr;
+	TSubclassOf<UKAPIModularAttachmentDescriptor> mAttachmentClass = nullptr;
 
 	int32      mMaxStackingModuleCount = 5;
 	FTransform mWorldMainSnapPoint = FTransform();
 
-	bool operator==(TSubclassOf<UKPCLModularAttachmentDescriptor> other) const
+	bool operator==(TSubclassOf<UKAPIModularAttachmentDescriptor> other) const
 	{
 		return mAttachmentClass == other;
 	};
@@ -63,21 +62,21 @@ public:
 	virtual void BeginPlay() override;
 	virtual void InitArrays() override;
 
-	virtual bool AddNewActorToAttachment(AFGBuildable* Actor, TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
+	virtual bool AddNewActorToAttachment(AFGBuildable* Actor, TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment,
 		FTransform                                     Location, float                                      Distance = 500.0f) override;
 
 	virtual void AttachedActorRemoved(AFGBuildable* Actor) override;
 
-	virtual bool CanAttachToLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment, FTransform TestLocation,
+	virtual bool CanAttachToLocation(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment, FTransform TestLocation,
 		FTransform&                                                                OutLocation, float     Distance = 500.0f) const override;
 	virtual bool GetSnapPointInRange(FTransform       TestLocation, FTransform& SnapLocation, float AllowedDistance,
-		TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
-	virtual AFGBuildable* GetAttachedActorByClass(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
+		TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment) override;
+	virtual AFGBuildable* GetAttachedActorByClass(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment) override;
 	virtual TArray<AFGBuildable*>
-	GetAttachedActorsByClass(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) override;
+	GetAttachedActorsByClass(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment) override;
 	virtual void GetAttachedActors(TArray<AFGBuildable*>& Out) override;
 
-	virtual int FindAttachmentIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) const override;
+	virtual int FindAttachmentIndex(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment) const override;
 
 	UFUNCTION()
 	void OnRep_AttachmentDatas();

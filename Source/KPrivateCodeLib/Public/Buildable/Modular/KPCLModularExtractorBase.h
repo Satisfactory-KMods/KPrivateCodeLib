@@ -91,7 +91,7 @@ public:
 	virtual void RemoveAttachedActor_Implementation(AFGBuildable* Actor) override;
 
 	virtual bool AttachedActor_Implementation(AFGBuildable* Actor,
-		TSubclassOf<UKPCLModularAttachmentDescriptor>       Attachment,
+		TSubclassOf<UKAPIModularAttachmentDescriptor>       Attachment,
 		FTransform                                          Location, float Distance) override;
 
 	virtual void OnModulesUpdated_Implementation() override;

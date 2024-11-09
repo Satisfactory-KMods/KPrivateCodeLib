@@ -88,7 +88,7 @@ void AKPCLModularExtractorBase::RemoveAttachedActor_Implementation(AFGBuildable*
 }
 
 bool AKPCLModularExtractorBase::AttachedActor_Implementation(AFGBuildable* Actor,
-	TSubclassOf<UKPCLModularAttachmentDescriptor>                          Attachment,
+	TSubclassOf<UKAPIModularAttachmentDescriptor>                          Attachment,
 	FTransform                                                             Location, float Distance)
 {
 	if (mModularHandler)

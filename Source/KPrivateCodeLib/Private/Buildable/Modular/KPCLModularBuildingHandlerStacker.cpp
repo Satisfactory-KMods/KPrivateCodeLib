@@ -117,10 +117,10 @@ void UKPCLModularBuildingHandlerStacker::BeginPlay()
 
 void UKPCLModularBuildingHandlerStacker::InitArrays()
 {
-	TMap<TSubclassOf<UKPCLModularAttachmentDescriptor>, FAttachmentLocations> LocMap;
+	TMap<TSubclassOf<UKAPIModularAttachmentDescriptor>, FAttachmentLocations> LocMap;
 	if (GetLocationMap(LocMap))
 	{
-		for (TTuple<TSubclassOf<UKPCLModularAttachmentDescriptor>, FAttachmentLocations> Map : LocMap)
+		for (TTuple<TSubclassOf<UKAPIModularAttachmentDescriptor>, FAttachmentLocations> Map : LocMap)
 		{
 			int32 Index = FindAttachmentIndex(Map.Key);
 			if (Index == INDEX_NONE)
@@ -170,7 +170,7 @@ void UKPCLModularBuildingHandlerStacker::InitArrays()
 }
 
 int UKPCLModularBuildingHandlerStacker::FindAttachmentIndex(
-	TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) const
+	TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment) const
 {
 	return mAttachmentInformations.IndexOfByKey(Attachment);
 }
@@ -183,7 +183,7 @@ void UKPCLModularBuildingHandlerStacker::OnRep_AttachmentDatas()
 }
 
 bool UKPCLModularBuildingHandlerStacker::AddNewActorToAttachment(AFGBuildable* Actor,
-	TSubclassOf<UKPCLModularAttachmentDescriptor>
+	TSubclassOf<UKAPIModularAttachmentDescriptor>
 	Attachment, FTransform Location, float Distance)
 {
 	const int AttachmentIndex = FindAttachmentIndex(Attachment);
@@ -213,7 +213,7 @@ void UKPCLModularBuildingHandlerStacker::AttachedActorRemoved(AFGBuildable* Acto
 	OnRep_AttachmentDatas();
 }
 
-bool UKPCLModularBuildingHandlerStacker::CanAttachToLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
+bool UKPCLModularBuildingHandlerStacker::CanAttachToLocation(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment,
 	FTransform                                                                                             TestLocation, FTransform& OutLocation,
 	float                                                                                                  Distance) const
 {
@@ -235,7 +235,7 @@ bool UKPCLModularBuildingHandlerStacker::CanAttachToLocation(TSubclassOf<UKPCLMo
 
 bool UKPCLModularBuildingHandlerStacker::GetSnapPointInRange(FTransform TestLocation, FTransform& SnapLocation,
 	float                                                               AllowedDistance,
-	TSubclassOf<UKPCLModularAttachmentDescriptor>                       Attachment)
+	TSubclassOf<UKAPIModularAttachmentDescriptor>                       Attachment)
 {
 	if (CanAttach(Attachment))
 	{
@@ -254,7 +254,7 @@ bool UKPCLModularBuildingHandlerStacker::GetSnapPointInRange(FTransform TestLoca
 }
 
 AFGBuildable* UKPCLModularBuildingHandlerStacker::GetAttachedActorByClass(
-	TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment)
+	TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment)
 {
 	const int AttachmentIndex = FindAttachmentIndex(Attachment);
 	if (AttachmentIndex >= 0)
@@ -268,7 +268,7 @@ AFGBuildable* UKPCLModularBuildingHandlerStacker::GetAttachedActorByClass(
 }
 
 TArray<AFGBuildable*> UKPCLModularBuildingHandlerStacker::GetAttachedActorsByClass(
-	TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment)
+	TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment)
 {
 	const int AttachmentIndex = FindAttachmentIndex(Attachment);
 	if (AttachmentIndex >= 0)

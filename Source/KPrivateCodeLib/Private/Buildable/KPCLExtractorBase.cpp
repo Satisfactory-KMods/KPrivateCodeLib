@@ -259,6 +259,7 @@ TArray<UFGPipeConnectionFactory*> AKPCLExtractorBase::GetAllPipes(ECKPCLDirectio
 void AKPCLExtractorBase::BeginPlay()
 {
 	Super::BeginPlay();
+	mAssetSubsystem = UKAPIDataAssetSubsystem::GetChecked(GetWorld());
 
 	InitComponents();
 

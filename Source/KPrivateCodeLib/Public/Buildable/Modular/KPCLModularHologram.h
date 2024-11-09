@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "FGConstructDisqualifier.h"
-#include "KPCLModularAttachmentDescriptor.h"
+#include "Descriptors/KAPIModularAttachmentDescriptor.h"
 #include "Hologram/FGFactoryHologram.h"
 #include "KPCLModularHologram.generated.h"
 
@@ -48,7 +48,7 @@ public:
 	FTransform mNextSnapLocation;
 
 	UPROPERTY(EditDefaultsOnly, Category="KMods")
-	TSubclassOf<UKPCLModularAttachmentDescriptor> mAttachmentDescriptor;
+	TSubclassOf<UKAPIModularAttachmentDescriptor> mAttachmentDescriptor;
 
 	UPROPERTY(EditDefaultsOnly, Category="KMods")
 	bool mPreventUpgrade = false;

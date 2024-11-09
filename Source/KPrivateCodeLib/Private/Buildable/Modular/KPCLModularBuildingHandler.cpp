@@ -7,6 +7,7 @@
 
 #include "FGPowerConnectionComponent.h"
 #include "Buildable/Modular/KPCLModularBuildingInterface.h"
+#include "Descriptors/KAPIModularAttachmentDescriptor.h"
 #include "Kismet/KismetMathLibrary.h"
 
 #include "Net/UnrealNetwork.h"
@@ -151,10 +152,10 @@ void UKPCLModularBuildingHandler::GetLifetimeReplicatedProps(TArray<FLifetimePro
 
 void UKPCLModularBuildingHandler::InitArrays()
 {
-	TMap<TSubclassOf<UKPCLModularAttachmentDescriptor>, FAttachmentLocations> LocMap;
+	TMap<TSubclassOf<UKAPIModularAttachmentDescriptor>, FAttachmentLocations> LocMap;
 	if (GetLocationMap(LocMap))
 	{
-		for (TTuple<TSubclassOf<UKPCLModularAttachmentDescriptor>, FAttachmentLocations> Map : LocMap)
+		for (TTuple<TSubclassOf<UKAPIModularAttachmentDescriptor>, FAttachmentLocations> Map : LocMap)
 		{
 			int32 Index = FindAttachmentIndex(Map.Key);
 			if (Index == INDEX_NONE)
@@ -202,7 +203,7 @@ void UKPCLModularBuildingHandler::InitArrays()
 }
 
 bool UKPCLModularBuildingHandler::AddNewActorToAttachment(AFGBuildable* Actor,
-	TSubclassOf<UKPCLModularAttachmentDescriptor>                       Attachment,
+	TSubclassOf<UKAPIModularAttachmentDescriptor>                       Attachment,
 	FTransform                                                          Location, float Distance)
 {
 	const int AttachmentIndex = FindAttachmentIndex(Attachment);
@@ -239,7 +240,7 @@ void UKPCLModularBuildingHandler::AttachedActorRemoved(AFGBuildable* Actor)
 	OnRep_AttachmentDatas();
 }
 
-bool UKPCLModularBuildingHandler::CanAttachToLocation(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment,
+bool UKPCLModularBuildingHandler::CanAttachToLocation(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment,
 	FTransform                                                                                      TestLocation, FTransform& OutLocation,
 	float                                                                                           Distance) const
 {
@@ -260,7 +261,7 @@ bool UKPCLModularBuildingHandler::CanAttachToLocation(TSubclassOf<UKPCLModularAt
 
 bool UKPCLModularBuildingHandler::GetSnapPointInRange(FTransform TestLocation, FTransform& SnapLocation,
 	float                                                        AllowedDistance,
-	TSubclassOf<UKPCLModularAttachmentDescriptor>                Attachment)
+	TSubclassOf<UKAPIModularAttachmentDescriptor>                Attachment)
 {
 	if (IsValid(Attachment))
 	{
@@ -285,7 +286,7 @@ bool UKPCLModularBuildingHandler::GetSnapPointInRange(FTransform TestLocation, F
 }
 
 AFGBuildable* UKPCLModularBuildingHandler::GetAttachedActorByClass(
-	TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment)
+	TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment)
 {
 	const int AttachmentIndex = FindAttachmentIndex(Attachment);
 	if (AttachmentIndex >= 0)
@@ -299,7 +300,7 @@ AFGBuildable* UKPCLModularBuildingHandler::GetAttachedActorByClass(
 }
 
 TArray<AFGBuildable*> UKPCLModularBuildingHandler::GetAttachedActorsByClass(
-	TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment)
+	TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment)
 {
 	TArray<AFGBuildable*> Out;
 	const int             AttachmentIndex = FindAttachmentIndex(Attachment);
@@ -330,7 +331,7 @@ void UKPCLModularBuildingHandler::GetAttachedActors(TArray<AFGBuildable*>& Out)
 	}
 }
 
-int UKPCLModularBuildingHandler::FindAttachmentIndex(TSubclassOf<UKPCLModularAttachmentDescriptor> Attachment) const
+int UKPCLModularBuildingHandler::FindAttachmentIndex(TSubclassOf<UKAPIModularAttachmentDescriptor> Attachment) const
 {
 	if (Attachment == nullptr)
 	{

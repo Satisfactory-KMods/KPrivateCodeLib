@@ -195,7 +195,7 @@ bool AKPCLModularHologram::TryUpgrade(const FHitResult& hitResult)
 		if (UKismetSystemLibrary::DoesImplementInterface(hitResult.GetActor(),
 			UKPCLModularBuildingInterface::StaticClass()))
 		{
-			TSubclassOf<UKPCLModularAttachmentDescriptor> ATClass =
+			TSubclassOf<UKAPIModularAttachmentDescriptor> ATClass =
 				IKPCLModularBuildingInterface::Execute_GetModularAttachmentClass(hitResult.GetActor());
 			if (ATClass == mAttachmentDescriptor && hitResult.GetActor()->GetClass() != mBuildClass)
 			{

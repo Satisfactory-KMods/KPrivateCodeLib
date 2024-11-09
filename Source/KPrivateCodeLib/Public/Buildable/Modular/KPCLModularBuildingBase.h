@@ -82,7 +82,7 @@ public:
 		OnMasterBuildingReceived(Actor);
 	}
 
-	virtual TSubclassOf<UKPCLModularAttachmentDescriptor> GetModularAttachmentClass_Implementation() override;
+	virtual TSubclassOf<UKAPIModularAttachmentDescriptor> GetModularAttachmentClass_Implementation() override;
 
 	virtual int32 GetModularIndex_Implementation() override;
 
@@ -93,7 +93,7 @@ public:
 	virtual void RemoveAttachedActor_Implementation(AFGBuildable* Actor) override;
 
 	virtual bool AttachedActor_Implementation(AFGBuildable* Actor,
-		TSubclassOf<UKPCLModularAttachmentDescriptor>       Attachment,
+		TSubclassOf<UKAPIModularAttachmentDescriptor>       Attachment,
 		FTransform                                          Location, float Distance) override;
 
 	virtual void OnModulesUpdated_Implementation() override;
@@ -152,7 +152,7 @@ public:
 	bool mShouldUseUiFromMaster = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="KMods|Modular Building")
-	TSubclassOf<UKPCLModularAttachmentDescriptor> mUpgradeClass;
+	TSubclassOf<UKAPIModularAttachmentDescriptor> mUpgradeClass;
 
 	/** Helper Function to get Handler casted */
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category="KMods|Modular Building", meta=(BlueprintAutocast))

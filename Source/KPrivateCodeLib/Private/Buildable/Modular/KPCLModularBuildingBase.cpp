@@ -50,7 +50,7 @@ void AKPCLModularBuildingBase::OnUse_Implementation(AFGCharacterPlayer* byCharac
 	Super::OnUse_Implementation(byCharacter, State);
 }
 
-TSubclassOf<UKPCLModularAttachmentDescriptor> AKPCLModularBuildingBase::GetModularAttachmentClass_Implementation()
+TSubclassOf<UKAPIModularAttachmentDescriptor> AKPCLModularBuildingBase::GetModularAttachmentClass_Implementation()
 {
 	return mUpgradeClass;
 }
@@ -95,7 +95,7 @@ void AKPCLModularBuildingBase::RemoveAttachedActor_Implementation(AFGBuildable* 
 }
 
 bool AKPCLModularBuildingBase::AttachedActor_Implementation(AFGBuildable* Actor,
-	TSubclassOf<UKPCLModularAttachmentDescriptor>                         Attachment,
+	TSubclassOf<UKAPIModularAttachmentDescriptor>                         Attachment,
 	FTransform                                                            Location, float Distance)
 {
 	if (mModularHandler)

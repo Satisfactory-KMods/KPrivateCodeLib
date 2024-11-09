@@ -57,6 +57,6 @@ public class KPrivateCodeLib : ModuleRules
 
 		if (Target.Type == TargetRules.TargetType.Editor)
 			PublicDependencyModuleNames.AddRange(new[] { "OnlineBlueprintSupport", "AnimGraph" });
-		PublicDependencyModuleNames.AddRange(new[] { "FactoryGame", "SML", "KBFL" });
+		PublicDependencyModuleNames.AddRange(new[] { "FactoryGame", "SML", "KBFL", "KAPI" });
 	}
 }
