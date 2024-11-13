@@ -66,7 +66,13 @@ void AKPCLProducerBase::InitInventories()
 	GetComponents(Components);
 	for (UFGInventoryComponent* Component : Components)
 	{
+		if(!IsValid(Component)) continue;
 		FName ComponentName = FName(Component->GetName());
+		if(mCachedInventorys.Contains(ComponentName))
+		{
+			UE_LOG(LogKPCL, Error, TEXT("InitInventories, with duplicate inventory %s in actor %s! > SKIP!"), *ComponentName.ToString(), *GetName());
+			continue;
+		}
 		mCachedInventorys.Add(ComponentName, Component);
 	}
 
@@ -370,10 +376,11 @@ void AKPCLProducerBase::ReApplyColorForIndex(int32 Idx, const FFactoryCustomizat
 		return;
 	}
 
-	if (mInstanceHandles[Idx]->IsInstanced() && DoesContainLightweightInstances_Native())
+	if (mInstanceHandles[Idx]->IsInstanced())
 	{
+		int32 NewNum = FMath::Clamp(mInstanceDataCDO->GetInstanceData()[Idx].NumCustomDataFloats, 0, 100);
 		TArray<float> Datas = customizationData.Data;
-		Datas.SetNum(mInstanceDataCDO->GetInstanceData()[Idx].NumCustomDataFloats);
+		Datas.SetNum(NewNum);
 		if (mCachedCustomData.Contains(Idx))
 		{
 			for (TTuple<int, float> Result : mCachedCustomData[Idx])
@@ -1005,13 +1012,14 @@ float AKPCLProducerBase::GetProductionCycleTime() const
 
 UFGInventoryComponent* AKPCLProducerBase::GetInventory() const
 {
-	return mCachedInventorys[FKPCLInventoryStructure::InputName];
+	if(!mCachedInventorys.Contains(FKPCLInventoryStructure::InputName)) return nullptr;
+	return mCachedInventorys.FindChecked(FKPCLInventoryStructure::InputName);
 }
 
 void AKPCLProducerBase::InitInputInventory()
 {
-	GetInventory()->OnItemAddedDelegate.AddUniqueDynamic(this, &AKPCLProducerBase::OnInputItemAdded);
-	GetInventory()->OnItemRemovedDelegate.AddUniqueDynamic(this, &AKPCLProducerBase::OnInputItemRemoved);
+	GetInventory()->OnItemAddedDelegate_Native.BindUObject(this, &AKPCLProducerBase::OnInputItemAdded);
+	GetInventory()->OnItemRemovedDelegate_Native.BindUObject(this, &AKPCLProducerBase::OnInputItemRemoved);
 
 	if (!GetInventory()->mItemFilter.IsBoundToObject(this))
 	{
@@ -1025,13 +1033,14 @@ void AKPCLProducerBase::InitInputInventory()
 
 UFGInventoryComponent* AKPCLProducerBase::GetOutputInventory() const
 {
-	return mCachedInventorys[FKPCLInventoryStructure::OutputName];
+	if(!mCachedInventorys.Contains(FKPCLInventoryStructure::OutputName)) return nullptr;
+	return mCachedInventorys.FindChecked(FKPCLInventoryStructure::OutputName);
 }
 
 void AKPCLProducerBase::InitOutputInventory()
 {
-	GetOutputInventory()->OnItemAddedDelegate.AddUniqueDynamic(this, &AKPCLProducerBase::OnOutputItemAdded);
-	GetOutputInventory()->OnItemRemovedDelegate.AddUniqueDynamic(this, &AKPCLProducerBase::OnOutputItemRemoved);
+	GetOutputInventory()->OnItemAddedDelegate_Native.BindUObject(this, &AKPCLProducerBase::OnOutputItemAdded);
+	GetOutputInventory()->OnItemRemovedDelegate_Native.BindUObject(this, &AKPCLProducerBase::OnOutputItemRemoved);
 
 	if (!GetOutputInventory()->mItemFilter.IsBoundToObject(this))
 	{
@@ -1045,7 +1054,8 @@ void AKPCLProducerBase::InitOutputInventory()
 
 UFGInventoryComponent* AKPCLProducerBase::GetBoosterInventory() const
 {
-	return mCachedInventorys[FKPCLInventoryStructure::BoosterName];
+	if(!mCachedInventorys.Contains(FKPCLInventoryStructure::BoosterName)) return nullptr;
+	return mCachedInventorys.FindChecked(FKPCLInventoryStructure::BoosterName);
 }
 
 void AKPCLProducerBase::InitBoosterInventory()

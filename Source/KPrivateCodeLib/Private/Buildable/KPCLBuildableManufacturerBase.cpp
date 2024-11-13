@@ -132,8 +132,9 @@ void AKPCLBuildableManufacturerBase::ReApplyColorForIndex(int32 Idx, const FFact
 
 	if (mInstanceHandles[Idx]->IsInstanced())
 	{
+		int32 NewNum = FMath::Clamp(mInstanceDataCDO->GetInstanceData()[Idx].NumCustomDataFloats, 0, 100);
 		TArray<float> Datas = customizationData.Data;
-		Datas.SetNum(mInstanceDataCDO->GetInstanceData()[Idx].NumCustomDataFloats);
+		Datas.SetNum(NewNum);
 		if (mCachedCustomData.Contains(Idx))
 		{
 			for (TTuple<int, float> Result : mCachedCustomData[Idx])

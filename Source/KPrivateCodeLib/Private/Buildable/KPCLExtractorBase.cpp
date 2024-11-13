@@ -66,7 +66,13 @@ void AKPCLExtractorBase::InitInventories()
 	GetComponents(Components);
 	for (UFGInventoryComponent* Component : Components)
 	{
+		if(!IsValid(Component)) continue;
 		FName ComponentName = FName(Component->GetName());
+		if(mCachedInventorys.Contains(ComponentName))
+		{
+			UE_LOG(LogKPCL, Error, TEXT("InitInventories, with duplicate inventory %s in actor %s! > SKIP!"), *ComponentName.ToString(), *GetName());
+			continue;
+		}
 		mCachedInventorys.Add(ComponentName, Component);
 	}
 
@@ -402,17 +408,22 @@ void AKPCLExtractorBase::ReApplyColorForIndex(int32 Idx, const FFactoryCustomiza
 		return;
 	}
 
-	if (mInstanceHandles[Idx]->IsInstanced() && DoesContainLightweightInstances_Native())
+	if (mInstanceHandles[Idx]->IsInstanced())
 	{
+		UE_LOG(LogKPCL, Warning, TEXT("ReApplyColorForIndex %d Mesh: %s"), Idx, *mInstanceHandles[Idx]->GetInstanceComponent()->GetStaticMesh()->GetPathName());
+		int32 NewNum = FMath::Clamp(mInstanceDataCDO->GetInstanceData()[Idx].NumCustomDataFloats, 0, 100);
 		TArray<float> Datas = customizationData.Data;
-		Datas.SetNum(mInstanceDataCDO->GetInstanceData()[Idx].NumCustomDataFloats);
+		UE_LOG(LogKPCL, Warning, TEXT("ReApplyColorForIndex SetNum %d to %d"), Idx, NewNum);
+		Datas.SetNum(NewNum);
 		if (mCachedCustomData.Contains(Idx))
 		{
 			for (TTuple<int, float> Result : mCachedCustomData[Idx])
 			{
+				UE_LOG(LogKPCL, Warning, TEXT("Datas[%d] = %f"), Result.Key, Result.Value);
 				Datas[Result.Key] = Result.Value;
 			}
 		}
+		UE_LOG(LogKPCL, Warning, TEXT("ReApplyColorForIndex SetCustomPrimitiveDataOnHandle %d to %d"), Idx, NewNum);
 		AAbstractInstanceManager::SetCustomPrimitiveDataOnHandle(mInstanceHandles[Idx], Datas, true);
 	}
 }
@@ -978,13 +989,14 @@ float AKPCLExtractorBase::GetProductionCycleTime() const
 
 UFGInventoryComponent* AKPCLExtractorBase::GetInventory() const
 {
-	return mCachedInventorys[FKPCLInventoryStructure::InputName];
+	if(!mCachedInventorys.Contains(FKPCLInventoryStructure::InputName)) return nullptr;
+	return mCachedInventorys.FindChecked(FKPCLInventoryStructure::InputName);
 }
 
 void AKPCLExtractorBase::InitInputInventory()
 {
-	GetInventory()->OnItemAddedDelegate.AddUniqueDynamic(this, &AKPCLExtractorBase::OnInputItemAdded);
-	GetInventory()->OnItemRemovedDelegate.AddUniqueDynamic(this, &AKPCLExtractorBase::OnInputItemRemoved);
+	GetInventory()->OnItemAddedDelegate_Native.BindUObject(this, &AKPCLExtractorBase::OnInputItemAdded);
+	GetInventory()->OnItemRemovedDelegate_Native.BindUObject(this, &AKPCLExtractorBase::OnInputItemRemoved);
 
 	if (!GetInventory()->mItemFilter.IsBoundToObject(this))
 	{
@@ -998,8 +1010,8 @@ void AKPCLExtractorBase::InitInputInventory()
 
 void AKPCLExtractorBase::InitOutputInventory()
 {
-	GetOutputInventory()->OnItemAddedDelegate.AddUniqueDynamic(this, &AKPCLExtractorBase::OnOutputItemAdded);
-	GetOutputInventory()->OnItemRemovedDelegate.AddUniqueDynamic(this, &AKPCLExtractorBase::OnOutputItemRemoved);
+	GetOutputInventory()->OnItemAddedDelegate_Native.BindUObject(this, &AKPCLExtractorBase::OnOutputItemAdded);
+	GetOutputInventory()->OnItemRemovedDelegate_Native.BindUObject(this, &AKPCLExtractorBase::OnOutputItemRemoved);
 
 	if (!GetOutputInventory()->mItemFilter.IsBoundToObject(this))
 	{
@@ -1013,7 +1025,8 @@ void AKPCLExtractorBase::InitOutputInventory()
 
 UFGInventoryComponent* AKPCLExtractorBase::GetBoosterInventory() const
 {
-	return mCachedInventorys[FKPCLInventoryStructure::BoosterName];
+	if(!mCachedInventorys.Contains(FKPCLInventoryStructure::BoosterName)) return nullptr;
+	return mCachedInventorys.FindChecked(FKPCLInventoryStructure::BoosterName);
 }
 
 void AKPCLExtractorBase::InitBoosterInventory()
