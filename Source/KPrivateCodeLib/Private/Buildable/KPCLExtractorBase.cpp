@@ -403,7 +403,7 @@ void AKPCLExtractorBase::InitMeshOverwriteInformation()
 
 void AKPCLExtractorBase::ReApplyColorForIndex(int32 Idx, const FFactoryCustomizationData& customizationData)
 {
-	if (!mInstanceHandles.IsValidIndex(Idx) || !DoesContainLightweightInstances_Native())
+	if (!mInstanceHandles.IsValidIndex(Idx) || !DoesContainLightweightInstances_Native() || !IsValid(mInstanceDataCDO))
 	{
 		return;
 	}
