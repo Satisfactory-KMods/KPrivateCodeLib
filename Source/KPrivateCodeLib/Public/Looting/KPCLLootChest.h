@@ -72,25 +72,25 @@ public:
 
 	void GenerateLoot();
 
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, Category="KMods|LootChest")
 	bool WasLooted() const;
 
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, Category="KMods|LootChest")
 	UFGInventoryComponent* GetInventory() const;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category="KMods|LootChest")
 	void Loot(AFGCharacterPlayer* Player);
 
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category="KMods|LootChest")
 	FOnLootTableUpdated OnLootTableUpdated;
 
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category="KMods|LootChest")
 	FOnLootedUpdated OnLootedChanged;
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category="KMods|LootChest")
 	void LootTableUpdated();
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category="KMods|LootChest")
 	void OnLootedUpdated(bool Looted);
 
 private:
@@ -112,16 +112,16 @@ private:
 	UPROPERTY(EditDefaultsOnly, SaveGame, Category = "KMods|Inventory")
 	UFGInventoryComponent* mInventory;
 
-	UPROPERTY(EditAnywhere, SaveGame, ReplicatedUsing=OnRep_LootTableUpdate)
+	UPROPERTY(EditAnywhere, SaveGame, ReplicatedUsing=OnRep_LootTableUpdate, Category="KMods|LootChest")
 	TArray<FItemAmount> mLootableTable;
 
-	UPROPERTY(EditAnywhere, Category="KMods")
+	UPROPERTY(EditAnywhere, Category="KMods|LootChest")
 	TArray<FKPCLLootChestRandomData> mRandomData;
 
-	UPROPERTY(EditAnywhere, Category="KMods")
+	UPROPERTY(EditAnywhere, Category="KMods|LootChest")
 	FKPCLRange mRandomTrys = FKPCLRange(5, 20);
 
-	UPROPERTY(EditDefaultsOnly, Category="KMods")
+	UPROPERTY(EditDefaultsOnly, Category="KMods|LootChest")
 	UFGColoredInstanceMeshProxy* mMesh;
 
 	UPROPERTY(SaveGame, ReplicatedUsing=OnRep_OnLooted)

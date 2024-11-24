@@ -99,20 +99,17 @@ void AKPCLExtractorBase::InitInventories()
 
 void AKPCLExtractorBase::SetBelts()
 {
-	if (!IsValid(GetInventory()))
-	{
-		UE_LOG(LogKPCL, Warning, TEXT("SetBelts, with invalid inventory! > SKIP!"))
-		return;
-	}
-
 	TArray<UFGFactoryConnectionComponent*> BeltsToSet = GetAllConv();
 	if (BeltsToSet.Num() > 0)
 	{
 		for (UFGFactoryConnectionComponent* BeltConnection : BeltsToSet)
 		{
-			if (BeltConnection)
+			if (BeltConnection->GetDirection() != EFactoryConnectionDirection::FCD_OUTPUT && IsValid(GetInventory()))
 			{
 				BeltConnection->SetInventory(GetInventory());
+			} else if(IsValid(GetOutputInventory()) && BeltConnection->GetDirection() == EFactoryConnectionDirection::FCD_OUTPUT)
+			{
+				BeltConnection->SetInventory(GetOutputInventory());
 			}
 		}
 	}
@@ -122,9 +119,12 @@ void AKPCLExtractorBase::SetBelts()
 	{
 		for (UFGPipeConnectionFactory* PipeConnection : PipesToSet)
 		{
-			if (PipeConnection)
+			if (PipeConnection->GetPipeConnectionType() != EPipeConnectionType::PCT_CONSUMER && IsValid(GetInventory()))
 			{
 				PipeConnection->SetInventory(GetInventory());
+			} else if(IsValid(GetOutputInventory()) && PipeConnection->GetPipeConnectionType() == EPipeConnectionType::PCT_CONSUMER)
+			{
+				PipeConnection->SetInventory(GetOutputInventory());
 			}
 		}
 	}
@@ -1031,8 +1031,8 @@ UFGInventoryComponent* AKPCLExtractorBase::GetBoosterInventory() const
 
 void AKPCLExtractorBase::InitBoosterInventory()
 {
-	GetBoosterInventory()->OnItemAddedDelegate.AddUniqueDynamic(this, &AKPCLExtractorBase::OnBoosterItemAdded);
-	GetBoosterInventory()->OnItemRemovedDelegate.AddUniqueDynamic(this, &AKPCLExtractorBase::OnBoosterItemRemoved);
+	GetBoosterInventory()->OnItemAddedDelegate_Native.BindUObject(this, &AKPCLExtractorBase::OnBoosterItemAdded);
+	GetBoosterInventory()->OnItemRemovedDelegate_Native.BindUObject(this, &AKPCLExtractorBase::OnBoosterItemRemoved);
 
 	if (!GetBoosterInventory()->mItemFilter.IsBoundToObject(this))
 	{

@@ -49,8 +49,7 @@ void AKPCLLootChest::BeginPlay()
 		GenerateLoot();
 
 		GetInventory()->mItemFilter.BindUObject(this, &AKPCLLootChest::FilterItemClasses);
-
-		GetInventory()->OnItemRemovedDelegate.AddUniqueDynamic(this, &AKPCLLootChest::OnInputItemRemoved);
+		GetInventory()->OnItemRemovedDelegate_Native.BindUObject(this, &AKPCLLootChest::OnInputItemRemoved);
 	}
 
 	OnRep_OnLooted();
@@ -104,31 +103,24 @@ UFGInventoryComponent* AKPCLLootChest::GetInventory() const
 
 void AKPCLLootChest::Loot(AFGCharacterPlayer* Player)
 {
-	if (!Player)
+	if (!IsValid(Player))
 	{
 		return;
 	}
 
 	if (HasAuthority())
 	{
-		TArray<FItemAmount> NotAddedAmount;
+		UFGInventoryLibrary::GrabAllItemsFromInventory(GetInventory(), Player->GetInventory());
 
-		for (FItemAmount Loot : mLootableTable)
+		mLootableTable.Empty();
+		TArray<FInventoryStack> Stacks;
+		GetInventory()->GetInventoryStacks(Stacks);
+
+		for (FInventoryStack Stack : Stacks)
 		{
-			if (Loot.ItemClass && Loot.Amount > 0)
-			{
-				const int32 Added = Player->GetInventory()->
-				                            AddStack(FInventoryStack(Loot.Amount, Loot.ItemClass), true);
-				Loot.Amount -= Added;
-
-				if (Loot.Amount > 0)
-				{
-					NotAddedAmount.Add(Loot);
-				}
-			}
+			mLootableTable.Add(FItemAmount(Stack.Item.GetItemClass(), Stack.NumItems));
 		}
-
-		mLootableTable = NotAddedAmount;
+		
 		OnRep_LootTableUpdate();
 		ForceNetUpdate();
 	}
