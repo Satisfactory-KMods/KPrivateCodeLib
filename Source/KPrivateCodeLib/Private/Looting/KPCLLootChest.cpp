@@ -55,6 +55,13 @@ void AKPCLLootChest::BeginPlay()
 	OnRep_OnLooted();
 }
 
+void AKPCLLootChest::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	// OnRep_OnLooted();
+}
+
 void AKPCLLootChest::GenerateLoot()
 {
 	if (WasLooted() || !GetInventory()->IsEmpty() || !HasAuthority())
@@ -143,6 +150,11 @@ void AKPCLLootChest::OnInputItemRemoved(TSubclassOf<UFGItemDescriptor> itemClass
 
 void AKPCLLootChest::OnRep_LootTableUpdate()
 {
+	if(HasAuthority())
+	{
+		GetInventory()->MarkInventoryContentsDirty();
+	}
+	
 	if (IsValid(GetInventory()) && GetInventory()->IsEmpty() != WasLooted())
 	{
 		mChestIsLooted = GetInventory()->IsEmpty();
