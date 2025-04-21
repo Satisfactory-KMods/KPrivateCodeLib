@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
 	"Version": 3,
-	"VersionName": "3.0.1",
-	"SemVersion": "3.0.1",
+	"VersionName": "3.2.0-pre3",
+	"SemVersion": "3.2.0-pre3",
 	"FriendlyName": "KPrivateCodeLib",
 	"Description": "Lib for Kyris Mods",
 	"Category": "Modding",
@@ -25,23 +25,23 @@
 	"Plugins": [
 		{
 			"Name": "SML",
-			"SemVersion": "^3.8.0",
+			"SemVersion": "^3.10.0",
 			"Enabled": true
 		},
 		{
 			"Name": "KUI",
-			"SemVersion": "^3.0.0",
+			"SemVersion": "^3.2.0-pre3",
 			"Enabled": true
 		},
 		{
 			"Name": "KBFL",
-			"SemVersion": "^3.0.0",
+			"SemVersion": "^3.2.0-pre3",
 			"Enabled": true
 		},
 		{
 			"Name": "KAPI",
 			"Enabled": true,
-			"SemVersion": "^1.0.0"
+			"SemVersion": "^1.1.0-pre3"
 		}
 	],
 	"LocalizationTargets": [
@@ -51,5 +51,5 @@
 		}
 	],
 	"AcceptsAnyRemoteVersion": false,
-	"GameVersion": ">=377620"
+	"GameVersion": ">=382498"
 }
